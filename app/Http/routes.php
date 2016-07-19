@@ -30,13 +30,13 @@ $app->group(['prefix' => 'v1/{lang}','namespace' => 'App\Http\Controllers'], fun
 
 });
 
-$app->group(['prefix' => 'v1/{lang}','namespace' => 'App\Http\Controllers'], function($app)
+$app->group(['prefix' => 'v1/{lang}/zone/{id}','namespace' => 'App\Http\Controllers'], function($app)
 {
     // Mesas
-    $app->get('mesas','MesaController@index');
-    $app->get('mesa/{id}','MesaController@getMesa');
-    $app->post('mesa','MesaController@createMesa');
-    $app->put('mesa/{id}','MesaController@updateMesa');
-    $app->delete('mesa/{id}','MesaController@deleteMesa');
+    $app->get('tables','TableController@index');
+    $app->get('table/{tid}','TableController@getTable');
+    $app->post('table','TableController@createTable');
+    $app->put('table/{tid}','TableController@updateTable');
+    $app->delete('table/{tid}','TableController@deleteTable');
 
 });

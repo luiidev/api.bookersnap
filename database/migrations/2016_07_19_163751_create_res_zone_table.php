@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateZoneTable extends Migration
+class CreateResZoneTable extends Migration
 {
     /**
      * Run the migrations.

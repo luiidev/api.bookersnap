@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\Zone;
+use App\Table;
 use Illuminate\Http\Request;
 
 class ZoneController extends Controller
@@ -35,6 +36,9 @@ class ZoneController extends Controller
     public function getZone($id){
   
         $Zone  = Zone::find($id);
+        $ZoneTables  = Table::all()->where('res_zone_id',1);
+
+        $Zone->tables = $ZoneTables;
   
         return response()->json($Zone);
     }

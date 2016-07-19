@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Zone;
 use App\Table;
 use Illuminate\Http\Request;
 
@@ -21,9 +22,9 @@ class TableController extends Controller
      * @param micrositio_id
      * @return todas las zonas
      */
-    public function index()
+    public function index($id)
     {
-        $Table  = Table::all();
+        $Table  = Table::where('res_zone_id',$id);
         return response()->json($Table);
     }
   
@@ -32,9 +33,9 @@ class TableController extends Controller
      * @param micrositio_id
      * @return una zona y sus mesas
      */
-    public function getTable($id){
+    public function getTable($tid){
   
-        $Table  = Table::find($id);
+        $Table  = Table::find($tid);
   
         return response()->json($Table);
     }

@@ -4,7 +4,12 @@ use Illuminate\Database\Eloquent\Model;
   
 class Table extends Model
 {    
-	 $table = "res_tables";
-     protected $fillable = ['name', 'sketch', 'status', 'type_zone', 'join_table', 'status_smoker', 'people_standing', 'user_add', 'user_upd', 'ev_event_id', 'ms_microsite_id'];  
+	protected $table = "res_tables";
+    protected $fillable = ['res_zone_id','name', 'min_cover', 'price', 'status', 'config_color', 'config_position', 'config_forme', 'config_size', 'config_rotation', 'date_add', 'date_upd','user_add','user_upd'];  
+
+
+    /*public function Zone(){
+        return $this->belongsTo(Zone::class, 'res_zone_id');
+    }*/
 }
 ?>
