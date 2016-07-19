@@ -14,3 +14,29 @@
 $app->get('/', function () use ($app) {
     return $app->version();
 });
+
+$app->get('/docs', function () use ($app) {
+    return "documentacion del API";
+});
+
+$app->group(['prefix' => 'v1/{lang}','namespace' => 'App\Http\Controllers'], function($app)
+{
+	// Zonas 
+    $app->get('zones','ZoneController@index');
+    $app->get('zone/{id}','ZoneController@getZone');
+    $app->post('zone','ZoneController@createZone');
+    $app->put('zone/{id}','ZoneController@updateZone');
+    $app->delete('zone/{id}','ZoneController@deleteZone');
+
+});
+
+$app->group(['prefix' => 'v1/{lang}','namespace' => 'App\Http\Controllers'], function($app)
+{
+    // Mesas
+    $app->get('mesas','MesaController@index');
+    $app->get('mesa/{id}','MesaController@getMesa');
+    $app->post('mesa','MesaController@createMesa');
+    $app->put('mesa/{id}','MesaController@updateMesa');
+    $app->delete('mesa/{id}','MesaController@deleteMesa');
+
+});
