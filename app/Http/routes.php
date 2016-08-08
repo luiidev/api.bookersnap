@@ -1,42 +1,102 @@
 <?php
 
 /*
-|--------------------------------------------------------------------------
-| Application Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register all of the routes for an application.
-| It is a breeze. Simply tell Lumen the URIs it should respond to
-| and give it the Closure to call when that URI is requested.
-|
-*/
+  |--------------------------------------------------------------------------
+  | Application Routes
+  |--------------------------------------------------------------------------
+  |
+  | Here is where you can register all of the routes for an application.
+  | It's a breeze. Simply tell Laravel the URIs it should respond to
+  | and give it the controller to call when that URI is requested.
+  |
+ */
 
-$app->get('/', function () use ($app) {
-    return $app->version();
+Route::get('/', function () {
+    return view('welcome');
 });
 
-$app->get('/docs', function () use ($app) {
+Route::get('/docs', function () {
     return "documentacion del API";
 });
 
-$app->group(['prefix' => 'v1/{lang}','namespace' => 'App\Http\Controllers'], function($app)
-{
-	// Zonas 
-    $app->get('zones','ZoneController@index');
-    $app->get('zone/{id}','ZoneController@getZone');
-    $app->post('zone','ZoneController@createZone');
-    $app->put('zone/{id}','ZoneController@updateZone');
-    $app->delete('zone/{id}','ZoneController@deleteZone');
-
+Route::group(['prefix' => 'api/mesas/v1/{lang}'], function() {
+    routeMesas();
 });
 
-$app->group(['prefix' => 'v1/{lang}/zone/{id}','namespace' => 'App\Http\Controllers'], function($app)
-{
-    // Mesas
-    $app->get('tables','TableController@index');
-    $app->get('table/{tid}','TableController@getTable');
-    $app->post('table','TableController@createTable');
-    $app->put('table/{tid}','TableController@updateTable');
-    $app->delete('table/{tid}','TableController@deleteTable');
-
+Route::group(['prefix' => 'v1/{lang}'], function() {
+    routeMesas();
 });
+
+function routeMesas() {
+    
+    //-----------------------------------------------------
+    // MICROSITE
+    //-----------------------------------------------------
+    Route::group(['prefix' => 'microsites/{micrositeId}'], function() {
+
+        //-----------------------------------------------------
+        // MICROSITE::ZONAS
+        //-----------------------------------------------------
+        Route::get('zones/', 'ZoneController@index');
+        Route::get('zones/{id}', 'ZoneController@show');
+        Route::post('zones/', 'ZoneController@store');
+        Route::put('zones/{id}', 'ZoneController@update');
+        Route::delete('zones/{id}', 'ZoneController@delete');
+        
+        
+        //-----------------------------------------------------
+        // MICROSITE::ZONAS
+        //-----------------------------------------------------
+        Route::get('turn/', 'TurnController@index');
+        Route::get('turn/{id}', 'TurnController@show');
+        Route::post('turn/', 'TurnController@store');
+        Route::put('turn/{id}', 'TurnController@update');
+        Route::delete('turn/{id}', 'TurnController@delete');
+        
+
+        //-----------------------------------------------------
+        // MICROSITE::ZONAS::TURNS
+        //-----------------------------------------------------
+        Route::get('zones/{zone_id}/turns', 'ZoneTurnController@index');
+        Route::get('zones/{zone_id}/turns/{id}', 'ZoneTurnController@show');
+        Route::post('zones/{zone_id}/turns', 'ZoneTurnController@store');
+        Route::put('zones/{zone_id}/turns/{id}', 'ZoneTurnController@update');
+        Route::delete('zones/{zone_id}/turns/{id}', 'ZoneTurnController@delete');
+
+        //-----------------------------------------------------
+        // MICROSITE::ZONAS::TYPETURNS::DAYS
+        //-----------------------------------------------------
+        Route::get('zones/{zone_id}/type-turns/{id}/days', 'ZoneTypeturnController@index');
+        Route::get('zones/{zone_id}/type-turns/{id}/days/available', 'ZoneTypeturnController@available'); 
+        
+//        Route::get('reservations', 'ZoneTypeturnDayController@available');
+        
+        
+        //-----------------------------------------------------
+        // MICROSITE::BLOCK
+        //-----------------------------------------------------
+//        Route::get('blocks', 'ConfigZoneTypeturnDayController@available');
+//        Route::get('blocks/{block_id}', 'ConfigZoneTypeturnDayController@available');
+//        Route::post('blocks', 'ConfigZoneTypeturnDayController@available');
+//        Route::put('blocks/{block_id}', 'ConfigZoneTypeturnDayController@available');
+//        Route::delete('blocks/{block_id}', 'ConfigZoneTypeturnDayController@available');
+//        
+//        
+//        Route::get('schedules', 'ConfigZoneTypeturnDayController@available');     
+//        Route::get('servers', 'ConfigZoneTypeturnDayController@available');
+//        
+//        
+//        Route::get('reservations', 'ConfigZoneTypeturnDayController@available');
+//        Route::get('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
+//        Route::post('reservations', 'ConfigZoneTypeturnDayController@available');
+//        Route::put('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
+//        Route::delete('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
+//        
+//        Route::get('days/{day_id}', 'ZoneTypeturnDayController@available');
+        
+    });
+    //-----------------------------------------------------
+    // TYPETURNS
+    //-----------------------------------------------------
+    Route::get('type-turns', 'TypeTurnController@index');
+}

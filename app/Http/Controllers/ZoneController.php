@@ -1,20 +1,23 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Zone;
-use App\Table;
-use Illuminate\Http\Request;
 
-class ZoneController extends Controller
-{
+use Illuminate\Http\Request;
+use App\res_zone;
+use App\res_table;
+use App\Services\ZoneService;
+use App\Http\Requests\ZoneRequest;
+
+class ZoneController extends Controller {
+
+    protected $_ZoneService;
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct()
-    {
-        //
+    public function __construct(ZoneService $ZoneService) {
+        $this->_ZoneService = $ZoneService;
     }
 
     /**
@@ -22,46 +25,65 @@ class ZoneController extends Controller
      * @param micrositio_id
      * @return todas las zonas
      */
-    public function index()
-    {
-        $Zone  = Zone::all();
-        return response()->json($Zone);
+    public function index($lang, int $microsite_id) {
+        
+        $result = $this->_ZoneService->getList($microsite_id);
+        return response()->json($result);
     }
-  
+
     /**
-     * listar zona id y sus mesas.
-     * @param micrositio_id
-     * @return una zona y sus mesas
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
      */
-    public function getZone($id){
-  
-        $Zone  = Zone::find($id);
-        $ZoneTables  = Table::all()->where('res_zone_id',1);
-
-        $Zone->tables = $ZoneTables;
-  
-        return response()->json($Zone);
+    public function create($lang, int $microsite_id, int $zone_id) {
+        
     }
-  
-    public function createZone(Request $request){
-  
-        $Zone = Zone::create($request->all());
-  
-        return response()->json($Zone);
-  
-    }
-  
-    public function deleteZone($id){
 
-        $Zone  = Zone::find($id);
-
-        $Zone->delete();
- 
-        return response()->json('deleted');
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(ZoneRequest $request, $lang, int $microsite_id) {
+        $result = $this->_ZoneService->create($request->all(), $microsite_id);
+        return response()->json($result);
     }
-  
-    public function updateZone(Request $request,$id){
-        $Zone  = Zone::find($id);
+
+    /**
+     * Display the specified resource.
+     *
+     * @param int   $micrositio_id
+     * @param int   $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($lang, int $microsite_id, int $id) {
+        
+        $result = $this->_ZoneService->get($microsite_id, $id);
+        return response()->json($result);
+        
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id) {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $lang, int $microsite_id, int $id) {
+        $Zone = res_zone::find($id);
         $Zone->name = $request->input('name');
         $Zone->sketch = $request->input('sketch');
         $Zone->status = $request->input('status');
@@ -73,10 +95,20 @@ class ZoneController extends Controller
         $Zone->user_upd = $request->input('user_upd');
         $Zone->ev_event_id = $request->input('ev_event_id');
         $Zone->ms_microsite_id = $request->input('ms_microsite_id');
-
-
         $Zone->save();
-  
         return response()->json($Zone);
     }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($lang, int $microsite_id, int $id) {
+        $Zone = res_zone::find($id);
+        $Zone->delete();
+        return response()->json('deleted');
+    }
+
 }
