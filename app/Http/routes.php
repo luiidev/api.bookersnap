@@ -19,10 +19,6 @@ Route::get('/docs', function () {
     return "documentacion del API";
 });
 
-Route::group(['prefix' => 'api/mesas/v1/{lang}'], function() {
-    routeMesas();
-});
-
 Route::group(['prefix' => 'v1/{lang}'], function() {
     routeMesas();
 });
@@ -42,7 +38,6 @@ function routeMesas() {
         Route::post('zones/', 'ZoneController@store');
         Route::put('zones/{id}', 'ZoneController@update');
         Route::delete('zones/{id}', 'ZoneController@delete');
-        
         
         //-----------------------------------------------------
         // MICROSITE::ZONAS

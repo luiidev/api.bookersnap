@@ -17,28 +17,7 @@ class seeder_res_turn_table extends Seeder {
         DB::table('res_turn')->insert($this->getData());
     }
 
-    private function getData3() {
-        $res_turn_zone = array();
-        for ($i = 1; $i < $items; $i++) {
-            for ($j = 1; $j <= 3; $j++) {
-                $res_turn_zone[] = array(
-                    'name' => 0,
-                    'on_table' => 0,
-                    'hours_ini' => "7:00",
-                    'hours_end' => "11:00",
-                    'status' => 1,
-                    'date_add' => Carbon\Carbon::now(),
-                    'date_upd' => null,
-                    'user_add' => 1,
-                    'user_upd' => null,
-                    'early' => 0,
-                    'res_zone_id' => $i,
-                    'ms_microsite_id' => 1,
-                    'res_type_turn_zone_id' => $j,
-                );
-            }
-        }
-    }
+
     private function getData() {
         return [
             $this->getRow(1, 1, 1, "Turno D1", "7:00:00", "10:00:00"),
