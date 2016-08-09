@@ -17,8 +17,9 @@ class CreateResDayTurnZoneTable extends Migration
             $table->Integer('day');
             $table->dateTime('date_ini');
             $table->dateTime('date_end')->nullable();
-            $table->bigInteger('res_turn_zone_id')->unsigned();
+            $table->bigInteger('res_turn_id')->unsigned();
             $table->bigInteger('res_zone_id')->unsigned();
+            $table->bigInteger('res_type_turn_id')->unsigned();            
             $table->bigInteger('ms_microsite_id')->unsigned();
         });
     }

@@ -17,11 +17,11 @@ class CreateResReservationTable extends Migration {
             $table->bigInteger('ms_microsite_id')->unsigned();
             $table->bigInteger('bs_user_id')->unsigned()->nullable();
             $table->bigInteger('res_guest_id')->unsigned();
+            $table->bigInteger('res_reservation_status_id')->unsigned();
             $table->date('date_reservation')->comment();
             $table->time('hours_reservation')->comment();
             $table->time('hours_duration')->nullable()->comment();
-            $table->integer('num_people')->comment();
-            $table->integer('status_reservation')->comment();
+            $table->integer('num_people')->comment();            
             $table->integer('status_released')->comment();
             $table->integer('num_people_1')->nullable()->comment();
             $table->integer('num_people_2')->nullable()->comment();

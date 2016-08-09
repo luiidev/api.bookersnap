@@ -10,29 +10,36 @@ class seeder_res_day_turn_zone_table extends Seeder {
      * @return void
      */
     public function run() {
-        $res_day_turn_zone = array();
-        for ($j = 1; $j <= 3; $j++) {
-            for ($k = 1; $k <= 6; $k++) {
-                $res_day_turn_zone[] = array(
-                    'day' => $k,
-                    'res_turn_zone_id' => $j,
-                    'res_zone_id' => 1,
-                    'ms_microsite_id' => 1,
-                );
-            }
+        /*Zone, Turn, Typeturn, Microsite, Days*/
+        DB::table('res_day_turn_zone')->insert($this->getData(1, 1, 1, 1, array(1, 2, 3, 4, 5)));
+        DB::table('res_day_turn_zone')->insert($this->getData(1, 3, 2, 1, array(1, 2, 3, 4, 5)));
+        DB::table('res_day_turn_zone')->insert($this->getData(1, 5, 3, 1, array(1, 2, 3, 4, 5)));
+        DB::table('res_day_turn_zone')->insert($this->getData(1, 7, 4, 1, array(1, 2, 3, 4, 5)));
+
+        DB::table('res_day_turn_zone')->insert($this->getData(2, 1, 1, 1, array(1, 2, 3, 4, 5)));
+        DB::table('res_day_turn_zone')->insert($this->getData(2, 3, 2, 1, array(1, 2, 3, 4, 5)));
+        DB::table('res_day_turn_zone')->insert($this->getData(2, 5, 3, 1, array(1, 2, 3, 4, 5)));
+        DB::table('res_day_turn_zone')->insert($this->getData(2, 7, 4, 1, array(1, 2, 3, 4, 5)));
+    }
+
+    private function getData(int $res_zone_id, int $res_turn_id, int $res_type_turn_id, int $ms_microsite_id, array $days) {
+        $turnDay = [];
+        foreach ($days as $key => $day) {
+            $turnDay[] = $this->getRow($res_zone_id, $res_turn_id, $res_type_turn_id, $ms_microsite_id, $day);
         }
-        
-        for ($j = 4; $j <= 6; $j++) {
-            for ($k = 1; $k <= 6; $k++) {
-                $res_day_turn_zone[] = array(
-                    'day' => $k,
-                    'res_turn_zone_id' => $j,
-                    'res_zone_id' => 2,
-                    'ms_microsite_id' => 1,
-                );
-            }
-        }
-        DB::table('res_day_turn_zone')->insert($res_day_turn_zone);
+        return $turnDay;
+    }
+
+    private function getRow(int $res_zone_id, int $res_turn_id, int $res_type_turn_id, int $ms_microsite_id, int $day, string $dateini = '2016-08-01', string $dateend = null) {
+        return [
+            'res_zone_id' => $res_zone_id,
+            'res_turn_id' => $res_turn_id,
+            'res_type_turn_id' => $res_type_turn_id,
+            'ms_microsite_id' => $ms_microsite_id,
+            'day' => $day,
+            'date_ini' => $dateini,
+            'date_end' => $dateend
+        ];
     }
 
 }

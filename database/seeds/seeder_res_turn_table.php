@@ -17,21 +17,20 @@ class seeder_res_turn_table extends Seeder {
         DB::table('res_turn')->insert($this->getData());
     }
 
-
     private function getData() {
         return [
             $this->getRow(1, 1, 1, "Turno D1", "7:00:00", "10:00:00"),
-            $this->getRow(1, 1, 1, "Turno D2", "7:00:00", "10:00:00"),
-            $this->getRow(1, 2, 1, "Turno A1", "12:00:00", "16:00:00"),
-            $this->getRow(1, 2, 1, "Turno A2", "12:00:00", "16:00:00"),
-            $this->getRow(1, 3, 1, "Turno C1", "17:00:00", "22:00:00"),
-            $this->getRow(1, 3, 1, "Turno C2", "17:00:00", "22:00:00"),
-            $this->getRow(1, 4, 1, "Turno B1", "20:00:00", "23:00:00"),
-            $this->getRow(1, 4, 1, "Turno B2", "20:00:00", "2:00:00"),
+            $this->getRow(2, 1, 1, "Turno D2", "7:00:00", "10:00:00"),
+            $this->getRow(3, 2, 1, "Turno A1", "12:00:00", "16:00:00"),
+            $this->getRow(4, 2, 1, "Turno A2", "12:00:00", "16:00:00"),
+            $this->getRow(5, 3, 1, "Turno C1", "17:00:00", "22:00:00"),
+            $this->getRow(6, 3, 1, "Turno C2", "17:00:00", "22:00:00"),
+            $this->getRow(7, 4, 1, "Turno B1", "20:00:00", "23:00:00"),
+            $this->getRow(8, 4, 1, "Turno B2", "20:00:00", "2:00:00"),
         ];
     }
 
-    private function getRow(int $id, int $type_turn, int $microsite_id, string $name, string $startdate, string $enddate) {
+    private function getRow(int $id, int $type_turn_id, int $microsite_id, string $name, string $startdate, string $enddate) {
         return [
             'id' => $id,
             'name' => $name,
@@ -44,7 +43,7 @@ class seeder_res_turn_table extends Seeder {
             'user_add' => 1,
             'user_upd' => null,
             'early' => 0,
-            'res_type_turn_id' => $type_turn,
+            'res_type_turn_id' => $type_turn_id,
             'ms_microsite_id' => $microsite_id,
         ];
     }

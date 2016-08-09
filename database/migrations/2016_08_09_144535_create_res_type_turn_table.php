@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateResTurnStateTable extends Migration
+class CreateResTypeTurnTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,9 +12,9 @@ class CreateResTurnStateTable extends Migration
      */
     public function up()
     {
-        Schema::create('res_turn_state', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->string('name');
+        Schema::create('res_type_turn', function (Blueprint $table) {
+             $table->bigIncrements('id');
+            $table->string('name',64);
             $table->integer('status');
         });
     }
@@ -26,6 +26,6 @@ class CreateResTurnStateTable extends Migration
      */
     public function down()
     {
-        Schema::drop('res_turn_state');
+        Schema::drop('res_type_turn');
     }
 }

@@ -16,7 +16,6 @@ class CreateResTableBlockTable extends Migration
             $table->bigInteger('res_table_id')->unsigned();
             $table->bigInteger('res_zone_id')->unsigned();
             $table->bigInteger('res_block_id')->unsigned();
-            $table->bigInteger('ms_microsite_id')->unsigned();
         });
     }
 
