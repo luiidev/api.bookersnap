@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateResTableStatusTable extends Migration
+class CreateResReservationStatusTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,7 +12,7 @@ class CreateResTableStatusTable extends Migration
      */
     public function up()
     {
-        Schema::create('res_table_status', function (Blueprint $table) {
+        Schema::create('res_reservation_status', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name',64);
             $table->string('color',128)->nullable(); // es croquis
@@ -31,6 +31,6 @@ class CreateResTableStatusTable extends Migration
      */
     public function down()
     {
-        Schema::drop('res_table_status');
+        Schema::drop('res_reservation_status');
     }
 }

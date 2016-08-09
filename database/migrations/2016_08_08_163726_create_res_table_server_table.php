@@ -16,7 +16,6 @@ class CreateResTableServerTable extends Migration
             $table->bigInteger('res_table_id')->unsigned();
             $table->bigInteger('res_zone_id')->unsigned();
             $table->bigInteger('res_server_id')->unsigned();
-            $table->bigInteger('ms_microsite_id')->unsigned();
         });
     }
 

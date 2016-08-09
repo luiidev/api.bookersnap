@@ -14,28 +14,41 @@ class seeder_res_zone_table extends Seeder {
      * @return void
      */
     public function run() {
-        
+
         DB::table('res_zone')->insert($this->getData());
     }
-    
+
     private function getData() {
-        $res_zone = array();
-        for ($i = 1; $i < 10; $i++) {
-            $res_zone[] = array(
-                'name' => "ZONA $i",
-                'sketch' => null,
-                'status' => 1,
-                'type_zone' => 1,
-                'join_table' => 1,
-                'status_smoker' => 0,
-                'people_standing' => rand(1, 100),
-                'date_add' => Carbon\Carbon::now(),
-                'date_upd' => null,
-                'user_add' => 1,
-                'user_upd' => null,
-                'ms_microsite_id' => 1
-            );
-        }
+        return [
+            $this->getRow(1, 1, "ZONA 1"),
+            $this->getRow(2, 1, "ZONA 2"),
+            $this->getRow(3, 1, "ZONA 3"),
+            $this->getRow(4, 1, "ZONA 4"),
+            $this->getRow(5, 1, "ZONA 6"),
+            $this->getRow(6, 1, "ZONA 7"),
+            $this->getRow(7, 1, "ZONA 8"),
+            $this->getRow(8, 1, "ZONA 9"),
+            $this->getRow(9, 1, "ZONA 10"),
+            $this->getRow(10, 1, "ZONA 11")
+        ];
+    }
+
+    private function getRow(int $id, int $microsite_id, string $name) {
+        return [
+            'id' => $id,
+            'name' => $name,
+            'sketch' => null,
+            'status' => 1,
+            'type_zone' => 1,
+            'join_table' => 1,
+            'status_smoker' => 0,
+            'people_standing' => rand(1, 100),
+            'date_add' => Carbon\Carbon::now(),
+            'date_upd' => null,
+            'user_add' => 1,
+            'user_upd' => null,
+            'ms_microsite_id' => $microsite_id
+        ];
     }
 
 }

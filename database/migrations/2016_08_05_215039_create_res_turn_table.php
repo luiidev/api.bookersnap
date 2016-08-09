@@ -14,7 +14,7 @@ class CreateResTurnTable extends Migration
     {
         Schema::create('res_turn', function (Blueprint $table) {
             $table->bigIncrements('id');
-//            $table->timestamps();
+            $table->string('name');
             $table->bigInteger('res_type_turn_id')->unsigned();
             $table->bigInteger('ms_microsite_id')->unsigned();            
             $table->time('hours_ini');

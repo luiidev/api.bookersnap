@@ -36,6 +36,6 @@ class CreateBsUserTable extends Migration
      */
     public function down()
     {
-        //Schema::drop('bs_user');
+        Schema::drop('bs_user');
     }
 }
