@@ -25,7 +25,11 @@ class ZoneService {
      * @return  array   Lista de Estructura de zonas
      */    
     public function getList(int $microsite_id) {
-        $rows = res_zone::where('ms_microsite_id', $microsite_id)->where('status', '<>', '2')->with('tables')->with('turns.days')->with('turns.type')->get();
+
+        $rows = res_zone::where('ms_microsite_id', $microsite_id)->where('status', '<>', '2')->with('tables')->get()->map(function($item){
+            return $item;
+        });
+  
         return $rows->toArray();
     }
     

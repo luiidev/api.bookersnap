@@ -19,7 +19,7 @@ Route::get('/docs', function () {
     return "documentacion del API";
 });
 
-Route::group(['prefix' => 'v1/{lang}'], function() {
+Route::group(['prefix' => 'v1/{lang}',], function() {
     routeMesas();
 });
 
@@ -28,7 +28,7 @@ function routeMesas() {
     //-----------------------------------------------------
     // MICROSITE
     //-----------------------------------------------------
-    Route::group(['prefix' => 'microsites/{micrositeId}'], function() {
+    Route::group(['prefix' => 'microsites/{micrositeId}','middleware' => 'responseHeader'], function() {
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS
