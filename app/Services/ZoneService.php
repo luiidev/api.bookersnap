@@ -16,8 +16,15 @@ namespace App\Services;
 use App\res_zone;
 use App\res_table;
 use Illuminate\Support\Facades\DB;
+use App\Services\ZoneTableService;
 
 class ZoneService {
+
+    protected $_ZoneTableService;
+ 
+    public function __construct(ZoneTableService $ZoneTableService) {
+        $this->_ZoneTableService = $ZoneTableService;
+    }
     
     /**
      * lista de todas las zonas de un micrositio.
@@ -42,18 +49,21 @@ class ZoneService {
         try{
             $zone = new res_zone();
             $zone->name = $data['name'];
-            $zone->sketch = $data['sketch'];
-            $zone->status = $data['status'];
-            $zone->type_zone = $data['type_zone'];
-            $zone->join_table = $data['join_table'];
-            $zone->status_smoker = $data['status_smoker'];
-            $zone->people_standing = $data['people_standing'];
+            //$zone->sketch = empty($data['sketch']) ? null : $data['sketch'] ;
+            //$zone->status = empty($data['status']) ? 0: $data['status'];
+            //$zone->type_zone = empty($data['type_zone']) ? 0 : $data['type_zone'];
+            //$zone->join_table = empty($data['join_table']) ? 0 : $data['join_table'];
+            //$zone->status_smoker = empty($data['status_smoker']) ? 0 : $data['status_smoker'];
+            //$zone->people_standing = empty($data['people_standing']) ? 0 : $data['people_standing'];
             $zone->ms_microsite_id = $microsite_id;
-
+            $zone->user_add = 1;
+            $zone->date_add = \Carbon\Carbon::now();
             DB::BeginTransaction();
             $zone->save();
+
             foreach ($data['tables'] as $key => $value) {
-                $zone = $this->insertTables($zone, $value['day']);
+
+                $zone = $this->_ZoneTableService->create($zone, $value);
             }
             DB::Commit();
         }  catch (\Exception $e){
@@ -61,29 +71,43 @@ class ZoneService {
             abort(500, "Ocurrio un error interno");
         }
     }
-    
-    private function insertTables(res_zone $zone, array $data) {
-        try {
-            $table = new res_table();
-            $table->ms_microsite_id = $zone->ms_microsite_id;
-            $table->res_zone_id = $zone->id;
-            $table->name = $data['name'];
-            $table->min_cover = $data['min_cover'];
-            $table->max_cover = $data['max_cover'];
-            $table->price = $data['price'];
-            $table->status = $data['status'];
-            $table->config_color = $data['config_color'];
-            $table->config_position = $data['config_position'];
-            $table->config_forme = $data['config_forme'];
-            $table->config_size = $data['config_size'];
-            $table->config_rotation = $data['config_rotation'];
-            $zone->tables()->save($table);
-        } catch (\Exception $e) {
-            
+        
+    public function update(array $data,int $id_zone){
+
+        try{
+
+            $now = \Carbon\Carbon::now();
+
+            $zone = new res_zone();
+
+            $zone->user_add = 1;
+            $zone->date_add = $now;
+
+            DB::BeginTransaction();
+
+            $zone->where('id',$id_zone)->update(["name" => $data["name"],"date_upd" => $now ]);
+
+            foreach ($data['tables'] as $key => $value) {
+
+                $exists = $this->_ZoneTableService->exists($value);
+       
+                if($exists){
+                    $this->_ZoneTableService->update($value);
+                }else{
+                    
+                    $this->_ZoneTableService->create($zone, $value);
+                }
+ 
+            }
+
+            DB::Commit();
+           
+        }  catch (\Exception $e){
+
+            abort(500, $e->getMessage());
         }
-        return $turn;
+
     }
-    
     
     /**
      * Obtener turno con sus dias asignados.

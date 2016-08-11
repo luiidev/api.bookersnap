@@ -28,14 +28,14 @@ function routeMesas() {
     //-----------------------------------------------------
     // MICROSITE
     //-----------------------------------------------------
-    Route::group(['prefix' => 'microsites/{micrositeId}','middleware' => 'responseHeader'], function() {
+    Route::group(['prefix' => 'microsites/{micrositeId}','middleware' => ['cors','setLocale']], function() {
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS
         //-----------------------------------------------------
         Route::get('zones/', 'ZoneController@index');
         Route::get('zones/{id}', 'ZoneController@show');
-        Route::post('zones/', 'ZoneController@store');
+        Route::post('zones/', 'ZoneController@create');
         Route::put('zones/{id}', 'ZoneController@update');
         Route::delete('zones/{id}', 'ZoneController@delete');
         

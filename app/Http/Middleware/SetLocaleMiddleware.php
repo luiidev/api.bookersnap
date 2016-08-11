@@ -3,8 +3,9 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Lang;
 
-class responseHeaderMiddleware
+class SetLocaleMiddleware
 {
     /**
      * Handle an incoming request.
@@ -15,7 +16,7 @@ class responseHeaderMiddleware
      */
     public function handle($request, Closure $next)
     {
-      
+        Lang::setLocale($request->lang); 
         return $next($request);
     }
 }
