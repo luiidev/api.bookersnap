@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
     }
 
     public function dataDemo(){
-          $this->call(seeder_bs_country_table::class);
+        $this->call(seeder_bs_country_table::class);
         $this->call(seeder_bs_city_table::class);
         $this->call(seeder_bs_user_table::class);
         $this->call(seeder_ms_microsite_table::class);

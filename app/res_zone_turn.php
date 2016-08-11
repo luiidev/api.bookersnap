@@ -10,4 +10,7 @@ class res_zone_turn extends Model {
     public $timestamps = false;
     protected $hidden = ['ms_microsite_id', 'res_zone_turn_id', 'res_turn_id', 'res_type_turn_id'];    
     
+    public function turns() {
+       return $this->belongsTo('App\res_turn', 'res_turn_id');
+    }
 }

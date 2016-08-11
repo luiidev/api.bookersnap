@@ -25,13 +25,6 @@ class ZoneController extends Controller {
         });
     }
 
-    public function create(ZoneRequest $request, $lang, int $microsite_id) {
-        return $this->TryCatch(function () use ($request,$microsite_id) {
-            $result = $this->_ZoneService->create($request->all(), $microsite_id);
-            return response()->json($result);
-
-        });
-    }
 
     public function show($lang, int $microsite_id, int $id) {
 
@@ -41,6 +34,12 @@ class ZoneController extends Controller {
         });  
     }
 
+    public function create(ZoneRequest $request, $lang, int $microsite_id) {
+        return $this->TryCatch(function () use ($request,$microsite_id) {
+            $result = $this->_ZoneService->create($request->all(), $microsite_id);
+            return response()->json($result);
+        });
+    }
 
     public function update(ZoneRequest $request, $lang, int $microsite_id, int $id) {
   
@@ -50,10 +49,12 @@ class ZoneController extends Controller {
         });
     }
 
-    public function destroy($lang, int $microsite_id, int $id) {
-        $Zone = res_zone::find($id);
-        $Zone->delete();
-        return response()->json('deleted');
+    public function delete($lang, int $microsite_id, int $id) {
+
+        return $this->TryCatch(function () use ($id) {
+            $result = $this->_ZoneService->delete($id);
+            return response()->json($result);
+        });
     }
 
 }

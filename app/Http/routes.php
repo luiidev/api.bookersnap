@@ -44,7 +44,7 @@ function routeMesas() {
         //-----------------------------------------------------
         Route::get('turn/', 'TurnController@index');
         Route::get('turn/{id}', 'TurnController@show');
-        Route::post('turn/', 'TurnController@store');
+        Route::post('turn/', 'TurnController@create');
         Route::put('turn/{id}', 'TurnController@update');
         Route::delete('turn/{id}', 'TurnController@delete');
         

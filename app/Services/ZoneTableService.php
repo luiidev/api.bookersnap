@@ -14,11 +14,11 @@ use Illuminate\Support\Facades\DB;
 class ZoneTableService {
 
 	public function exists($id){
-	    $response = false;
-	    $row = res_table::where('id', $id)->get();
+	    $response = FALSE;
+	    $row = res_table::where('id', $id)->get()->count();
 
-		if($row != null){
-			$response = true;
+		if($row > 0){
+			$response = TRUE;
 		}
 
 		return $response;
@@ -61,7 +61,12 @@ class ZoneTableService {
            		"config_forme" => $data["config_forme"],
            		"config_size" => $data["config_size"],
            		"config_rotation" => $data["config_rotation"],
-           		"config_position" => $data["config_position"]
+           		"config_position" => $data["config_position"],
+           		"name" => $data["name"],
+           		"min_cover" => $data["min_cover"],
+           		"max_cover" => $data["max_cover"],
+           		"status" => $data["status"]
+
            	]);
             
         } catch (\Exception $e) {

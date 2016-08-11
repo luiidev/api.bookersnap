@@ -6,80 +6,49 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 
+use App\Services\TurnService;
+
 class TurnController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
+    protected $_TurnService;
+ 
+    public function __construct(TurnService $TurnService) {
+        $this->_TurnService = $TurnService;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function index($lang, int $microsite_id)
     {
-        //
+        return $this->TryCatch(function () use ($microsite_id) {
+            $data = $this->_TurnService->getList($microsite_id);
+            return $this->CreateResponse(true, 201, "", $data);
+        });
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    public function show($lang, int $microsite_id, int $id) {
+
+        return $this->TryCatch(function () use ($id,$microsite_id) {
+            $result = $this->_TurnService->get($microsite_id, $id);
+            return $this->CreateResponse(true, 201, "", $result);
+        });  
+    }
+  
+    public function create(Request $request, $lang, int $microsite_id)
     {
-        //
+        return $this->TryCatch(function () use ($request,$microsite_id) {
+            $result = $this->_TurnService->create($request->all(), $microsite_id);
+            return response()->json($result);
+        });
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
+    public function update(Request $request, $lang, int $microsite_id, int $id)
     {
-        //
+        return $this->TryCatch(function () use ($request,$microsite_id,$id) {
+            $result = $this->_TurnService->update($request->all(), $id);
+            return response()->json($result);
+        });
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
+    public function delete($id)
     {
         //
     }

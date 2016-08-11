@@ -49,7 +49,7 @@ class ZoneRequest extends Request {
             "tables.*.min_cover"=> 'required|integer',
             "tables.*.max_cover"=> 'required|integer',
             "tables.*.price"=> 'float',
-            "tables.*.status"=> 'integer|in:0,1',
+            "tables.*.status"=> 'integer|in:0,1,2',
             "tables.*.config_color"=> "#fff",
             //"tables.*.config_position"=> "regex:/^[0-9]+$/,/^[0-9]+$/",
             "tables.*.config_forme"=> 'integer|in:1,2,3',

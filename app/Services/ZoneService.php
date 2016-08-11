@@ -33,7 +33,7 @@ class ZoneService {
      */    
     public function getList(int $microsite_id) {
 
-        $rows = res_zone::where('ms_microsite_id', $microsite_id)->where('status', '<>', '2')->with('tables')->get()->map(function($item){
+        $rows = res_zone::where('ms_microsite_id', $microsite_id)->with('tables')->with('zoneTurns.turns')->get()->map(function($item){
             return $item;
         });
   
@@ -41,7 +41,7 @@ class ZoneService {
     }
     
     public function get(int $microsite_id, int $id) {
-        $rows = res_zone::where('id', $id)->where('ms_microsite_id', $microsite_id)->where('status', '<>', '2')->with('tables')->first();
+        $rows = res_zone::where('id', $id)->where('ms_microsite_id', $microsite_id)->with('tables')->first();
         return $rows->toArray();
     }
     
@@ -73,6 +73,7 @@ class ZoneService {
     }
         
     public function update(array $data,int $id_zone){
+        $response = false;
 
         try{
 
@@ -82,6 +83,7 @@ class ZoneService {
 
             $zone->user_add = 1;
             $zone->date_add = $now;
+            $zone->id = $id_zone;
 
             DB::BeginTransaction();
 
@@ -89,24 +91,51 @@ class ZoneService {
 
             foreach ($data['tables'] as $key => $value) {
 
-                $exists = $this->_ZoneTableService->exists($value);
-       
+                $exists = $this->_ZoneTableService->exists($value["id"]);
+        
                 if($exists){
+                    
                     $this->_ZoneTableService->update($value);
                 }else{
-                    
+
                     $this->_ZoneTableService->create($zone, $value);
                 }
  
             }
 
             DB::Commit();
+
+            $response = true;
            
         }  catch (\Exception $e){
-
+            DB::rollBack();
             abort(500, $e->getMessage());
         }
 
+        return $response;
+    }
+
+    public function delete(int $id_zone){
+        $response = false;
+
+        try{
+
+            $zone = new res_zone();
+
+            DB::BeginTransaction();
+
+            $zone->where('id',$id_zone)->update(["status" => 2]);
+
+            DB::Commit();
+
+            $response = true;
+
+        }catch (\Exception $e){
+            DB::rollBack();
+            abort(500, $e->getMessage());
+        }
+
+        return $response;
     }
     
     /**

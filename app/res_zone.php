@@ -15,9 +15,9 @@ class res_zone extends Model {
         return $this->hasMany('App\res_table', 'res_zone_id');
     }
     
-//    public function turns() {
-//        return $this->hasMany('App\res_turn_zone', 'res_zone_id');
-//    }
+    public function zoneTurns() {
+       return $this->hasMany('App\res_zone_turn', 'res_zone_id');
+    }
 
 
 }
