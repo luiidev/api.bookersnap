@@ -42,11 +42,11 @@ function routeMesas() {
         //-----------------------------------------------------
         // MICROSITE::ZONAS
         //-----------------------------------------------------
-        Route::get('turn/', 'TurnController@index');
-        Route::get('turn/{id}', 'TurnController@show');
-        Route::post('turn/', 'TurnController@create');
-        Route::put('turn/{id}', 'TurnController@update');
-        Route::delete('turn/{id}', 'TurnController@delete');
+        Route::get('zones/{zone}/turns/', 'TurnController@index');
+        Route::get('zones/{zone}/turns/{id}', 'TurnController@show');
+        Route::post('zones/{zone}/turns/', 'TurnController@create');
+        Route::put('zones/{zone}/turns/{id}', 'TurnController@update');
+        Route::delete('zones/{zone}/turns/{id}', 'TurnController@delete');
         
 
         //-----------------------------------------------------
@@ -54,7 +54,7 @@ function routeMesas() {
         //-----------------------------------------------------
         Route::get('zones/{zone_id}/turns', 'ZoneTurnController@index');
         Route::get('zones/{zone_id}/turns/{id}', 'ZoneTurnController@show');
-        Route::post('zones/{zone_id}/turns', 'ZoneTurnController@store');
+        Route::post('zones/{zone_id}/turns', 'ZoneTurnController@create');
         Route::put('zones/{zone_id}/turns/{id}', 'ZoneTurnController@update');
         Route::delete('zones/{zone_id}/turns/{id}', 'ZoneTurnController@delete');
 

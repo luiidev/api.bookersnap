@@ -47,10 +47,10 @@ class res_turn extends Model {
     
 
     public function days() {
-       return $this->hasMany('App\res_day_turn_zone', 'res_turn_zone_id');
+       return $this->hasMany('App\res_day_turn_zone', 'res_turn_id');
     }
 
-    public function type() {
+    public function typeTurn() {
        return $this->belongsTo('App\res_type_turn', 'res_type_turn_id');
     }
     

@@ -16,10 +16,10 @@ class TurnController extends Controller
         $this->_TurnService = $TurnService;
     }
 
-    public function index($lang, int $microsite_id)
+    public function index($lang, int $microsite_id,int $zone )
     {
-        return $this->TryCatch(function () use ($microsite_id) {
-            $data = $this->_TurnService->getList($microsite_id);
+        return $this->TryCatch(function () use ($microsite_id,$zone) {
+            $data = $this->_TurnService->getList($microsite_id,$zone);
             return $this->CreateResponse(true, 201, "", $data);
         });
     }
@@ -32,10 +32,10 @@ class TurnController extends Controller
         });  
     }
   
-    public function create(Request $request, $lang, int $microsite_id)
+    public function create(Request $request, $lang, int $microsite_id, int $zone)
     {
-        return $this->TryCatch(function () use ($request,$microsite_id) {
-            $result = $this->_TurnService->create($request->all(), $microsite_id);
+        return $this->TryCatch(function () use ($request,$microsite_id,$zone) {
+            $result = $this->_TurnService->create($request->all(), $microsite_id,$zone);
             return response()->json($result);
         });
     }

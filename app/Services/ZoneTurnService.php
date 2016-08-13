@@ -51,14 +51,14 @@ class ZoneTurnService {
     public function create(int $zone_id, array $data) {
         try {
             $turn = new res_turn_zone();
-            $turn->hours_ini = $data['hours_ini'];
-            $turn->hours_end = $data['hours_end'];
-            $turn->status = $data['status'];
-            $turn->on_table = $data['on_table'];
-            $turn->early = $data['early'];
+            //$turn->hours_ini = $data['hours_ini'];
+            //$turn->hours_end = $data['hours_end'];
+            //$turn->status = $data['status'];
+            //$turn->on_table = $data['on_table'];
+            //$turn->early = $data['early'];
             $turn->ms_microsite_id = $data['microsite_id'];
             $turn->res_zone_id = $zone_id;
-            $turn->res_type_turn_zone_id = $data['type_turn_id'];
+           // $turn->res_type_turn_zone_id = $data['type_turn_id'];
 
             DB::BeginTransaction();
             $turn->save();
@@ -70,8 +70,7 @@ class ZoneTurnService {
             return $turn;
         } catch (\Exception $e) {
             DB::rollBack();
-            abort(500, "Ocurrio un error interno");
-//            abort(500, $e->getMessage(). " ". $e->getFile(). " ". $e->getLine());
+            abort(500, $e->getMessage());
         }
         return null;
     }
@@ -92,8 +91,8 @@ class ZoneTurnService {
             $turn->status = $data['status'];
             $turn->on_table = $data['on_table'];
             $turn->early = $data['early'];
-//        $turn->ms_microsite_id = $data['microsite_id'];
-//        $turn->res_zone_id = $zone_id;
+            //$turn->ms_microsite_id = $data['microsite_id'];
+            //$turn->res_zone_id = $zone_id;
             $turn->res_type_turn_zone_id = $data['type_turn_id'];
 
             DB::BeginTransaction();
