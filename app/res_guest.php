@@ -11,11 +11,11 @@ class res_guest extends Model {
     //protected $fillable = ['day', 'res_turn_zone_id', 'res_zone_id', 'ms_microsite_id'];
     protected $hidden = ['ms_microsite_id'];
 
-    public function email() {
+    public function emails() {
        return $this->hasMany('App\res_guest_email', 'res_guest_id');
     }
 
-    public function phone() {
+    public function phones() {
        return $this->hasMany('App\res_guest_phone', 'res_guest_id');
     }
 

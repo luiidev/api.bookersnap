@@ -8,6 +8,7 @@ use App\Http\Requests;
 use Illuminate\Support\Facades\Input;
 
 use App\Services\GuestService;
+use App\Http\Requests\GuestRequest;
 
 class GuestController extends Controller
 {
@@ -34,5 +35,19 @@ class GuestController extends Controller
         });
     }
 
+    public function create(GuestRequest $request, $lang, int $microsite_id){
+        return $this->TryCatch(function () use ($request, $microsite_id) {
+            $result = $this->_GuestService->create($request->all(), $microsite_id);
+            return $this->CreateResponse(true, 201, "", $result);
+        });
+    }
+    
+    public function update(GuestRequest $request, $lang, int $microsite_id, int $id) {
+  
+        return $this->TryCatch(function () use ($request, $microsite_id, $id) {
+            $result = $this->_GuestService->update($request->all(), $id);
+            return response()->json($result);
+        });
+    }
 
 }

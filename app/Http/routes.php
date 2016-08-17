@@ -54,6 +54,8 @@ function routeMesas() {
         //-----------------------------------------------------
         Route::get('guest', 'GuestController@index');
         Route::get('guest/{guest_id}', 'GuestController@show');
+        Route::post('guest', 'GuestController@create');
+        Route::put('guest/{guest_id}', 'GuestController@update');
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS::TURNS
