@@ -52,7 +52,8 @@ function routeMesas() {
         //-----------------------------------------------------
         // MICROSITE:: HUESPEDES
         //-----------------------------------------------------
-        Route::get('guest/', 'GuestController@index');
+        Route::get('guest', 'GuestController@index');
+        Route::get('guest/{guest_id}', 'GuestController@show');
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS::TURNS
