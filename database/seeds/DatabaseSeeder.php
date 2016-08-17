@@ -21,6 +21,9 @@ class DatabaseSeeder extends Seeder
         $this->call(seeder_ms_microsite_table::class);*/
         
         $this->call(seeder_res_type_turn_table::class);
+        $this->call(seeder_res_guest_tables::class);
+        $this->call(seeder_res_guest_email_tables::class);
+        $this->call(seeder_res_guest_phone_tables::class);
         /*$this->call(seeder_res_zone_table::class);
         $this->call(seeder_res_table_table::class);
         $this->call(seeder_res_turn_table::class);

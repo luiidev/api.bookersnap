@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
+use Illuminate\Support\Facades\Input;
 
 use App\Services\TurnService;
 
@@ -16,26 +17,27 @@ class TurnController extends Controller
         $this->_TurnService = $TurnService;
     }
 
-    public function index($lang, int $microsite_id,int $zone )
+    public function index($lang, int $microsite_id )
     {
-        return $this->TryCatch(function () use ($microsite_id,$zone) {
-            $data = $this->_TurnService->getList($microsite_id,$zone);
+        return $this->TryCatch(function () use ($microsite_id) {
+            $data = $this->_TurnService->getList($microsite_id);
             return $this->CreateResponse(true, 201, "", $data);
         });
+
     }
 
-    public function show($lang, int $microsite_id, int $id) {
+    public function show($lang, int $microsite_id,$id) {
 
-        return $this->TryCatch(function () use ($id,$microsite_id) {
-            $result = $this->_TurnService->get($microsite_id, $id);
+        return $this->TryCatch(function () use ($microsite_id,$id) {
+            $result = $this->_TurnService->get($microsite_id,$id);
             return $this->CreateResponse(true, 201, "", $result);
         });  
     }
   
-    public function create(Request $request, $lang, int $microsite_id, int $zone)
+    public function create(Request $request, $lang, int $microsite_id)
     {
-        return $this->TryCatch(function () use ($request,$microsite_id,$zone) {
-            $result = $this->_TurnService->create($request->all(), $microsite_id,$zone);
+        return $this->TryCatch(function () use ($request,$microsite_id) {
+            $result = $this->_TurnService->create($request->all(), $microsite_id);
             return response()->json($result);
         });
     }
@@ -47,6 +49,18 @@ class TurnController extends Controller
             return response()->json($result);
         });
     }
+
+    public function search($lang, int $microsite_id) {
+
+        $params = Input::get();
+
+        return $this->TryCatch(function () use ($microsite_id,$params) {
+            $result = $this->_TurnService->search($microsite_id,$params);
+            return $this->CreateResponse(true, 201, "", $result);
+        }); 
+
+    }
+
 
     public function delete($id)
     {

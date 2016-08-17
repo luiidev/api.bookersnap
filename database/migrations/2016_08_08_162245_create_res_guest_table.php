@@ -14,13 +14,13 @@ class CreateResGuestTable extends Migration
     {
         Schema::create('res_guest', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('first_name',128);
-            $table->string('last_name',128);
-            $table->date('birthdate',128)->nullable(); // es croquis
-            $table->string('genere', 1);
-            $table->bigInteger('user_add')->unsigned();
+            $table->string('first_name',45);
+            $table->string('last_name',45);
+            $table->date('birthdate');
+            $table->string('gender',1);
+            $table->bigInteger('user_add')->unsigned()->nullable()->default(NULL);
             $table->bigInteger('user_upd')->unsigned()->nullable()->default(NULL);
-            $table->dateTime('date_add');
+            $table->dateTime('date_add')->nullable()->default(NULL);
             $table->dateTime('date_upd')->nullable()->default(NULL);
         });
     }

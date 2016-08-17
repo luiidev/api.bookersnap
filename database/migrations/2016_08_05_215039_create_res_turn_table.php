@@ -26,7 +26,7 @@ class CreateResTurnTable extends Migration
             $table->dateTime('date_upd')->nullable();
             $table->bigInteger('user_add')->unsigned();
             $table->bigInteger('user_upd')->unsigned()->nullable();
-            $table->bigInteger('res_zone_id')->unsigned();
+            //$table->bigInteger('res_zone_id')->unsigned();
         });
     }
 

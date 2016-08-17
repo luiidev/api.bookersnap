@@ -14,7 +14,7 @@ class CreateResGuestPhoneTable extends Migration
     {
         Schema::create('res_guest_phone', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('number',128);
+            $table->string('number',45);
             $table->bigInteger('res_guest_id')->unsigned();
         });
     }

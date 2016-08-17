@@ -40,14 +40,19 @@ function routeMesas() {
         Route::delete('zones/{id}', 'ZoneController@delete');
         
         //-----------------------------------------------------
-        // MICROSITE::ZONAS
+        // MICROSITE::TURNOS
         //-----------------------------------------------------
-        Route::get('zones/{zone}/turns/', 'TurnController@index');
-        Route::get('zones/{zone}/turns/{id}', 'TurnController@show');
-        Route::post('zones/{zone}/turns/', 'TurnController@create');
-        Route::put('zones/{zone}/turns/{id}', 'TurnController@update');
+        Route::get('turns/', 'TurnController@index');
+        Route::get('turns/search/', 'TurnController@search');
+        Route::get('turns/{id}', 'TurnController@show');
+        Route::post('turns/', 'TurnController@create');
+        Route::put('turns/{id}', 'TurnController@update');
         Route::delete('zones/{zone}/turns/{id}', 'TurnController@delete');
-        
+
+        //-----------------------------------------------------
+        // MICROSITE:: HUESPEDES
+        //-----------------------------------------------------
+        Route::get('guest/', 'GuestController@index');
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS::TURNS

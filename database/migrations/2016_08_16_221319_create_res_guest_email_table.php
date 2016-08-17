@@ -14,7 +14,7 @@ class CreateResGuestEmailTable extends Migration
     {
         Schema::create('res_guest_email', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('email',128);
+            $table->string('email',45);
             $table->bigInteger('res_guest_id')->unsigned();
         });
     }
