@@ -19,4 +19,8 @@ class res_guest extends Model {
        return $this->hasMany('App\res_guest_phone', 'res_guest_id');
     }
 
+    public function tags() {
+        return $this->belongsToMany('App\res_guest_tag', 'res_guest_has_res_guest_tag', 'res_guest_id', 'res_guest_tag_id');
+    }
+    
 }

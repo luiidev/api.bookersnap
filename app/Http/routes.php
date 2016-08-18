@@ -24,7 +24,7 @@ Route::group(['prefix' => 'v1/{lang}',], function() {
 });
 
 function routeMesas() {
-    
+   
     //-----------------------------------------------------
     // MICROSITE
     //-----------------------------------------------------
@@ -52,10 +52,11 @@ function routeMesas() {
         //-----------------------------------------------------
         // MICROSITE:: HUESPEDES
         //-----------------------------------------------------
-        Route::get('guest', 'GuestController@index');
-        Route::get('guest/{guest_id}', 'GuestController@show');
-        Route::post('guest', 'GuestController@create');
-        Route::put('guest/{guest_id}', 'GuestController@update');
+        Route::get('guests', 'GuestController@index');
+        Route::get('guests/{guest_id}', 'GuestController@show');
+        Route::post('guests', 'GuestController@create');
+        Route::put('guests/{guest_id}', 'GuestController@update');
+        Route::get('guests/{guest_id}/form', 'GuestController@form');
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS::TURNS

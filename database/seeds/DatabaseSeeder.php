@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
         $this->call(seeder_bs_user_table::class);
         $this->call(seeder_ms_microsite_table::class);*/
         
+        $this->call(seeder_res_guest_tag_category_tables::class);
+        $this->call(seeder_res_guest_tag_tables::class);
         $this->call(seeder_res_type_turn_table::class);
         $this->call(seeder_res_guest_tables::class);
         $this->call(seeder_res_guest_email_tables::class);

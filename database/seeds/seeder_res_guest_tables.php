@@ -12,6 +12,7 @@ class seeder_res_guest_tables extends Seeder
     public function run()
     {
         DB::table('res_guest')->insert($this->getData());
+        DB::table('res_guest_has_res_guest_tag')->insert($this->getDataHasTags());
     }
     private function getData() {
         /* $this->getRow(1, $first_name, $last_name, $birthdate, $genere), */
@@ -32,4 +33,27 @@ class seeder_res_guest_tables extends Seeder
             'ms_microsite_id' => $microsite
         ];
     }
+    
+    private function getDataHasTags() {
+        return [
+            $this->getRowHasTags(1, 1),
+            $this->getRowHasTags(1, 5),
+            $this->getRowHasTags(1, 10),
+            $this->getRowHasTags(1, 15),
+            $this->getRowHasTags(2, 1),
+            $this->getRowHasTags(2, 16),
+            $this->getRowHasTags(2, 1),
+            $this->getRowHasTags(2, 20),
+            $this->getRowHasTags(3, 3),
+            $this->getRowHasTags(3, 15),
+            $this->getRowHasTags(3, 21),
+        ];
+    }
+    private function getRowHasTags($res_guest_id, $res_guest_tag_id) {
+        return [
+            "res_guest_id" => $res_guest_id,
+            "res_guest_tag_id" => $res_guest_tag_id,
+        ];
+    }
+    
 }

@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\res_guest;
-use Illuminate\Support\Facades\DB;
+use App\res_guest_tag;
 use App\Services\GuestEmailService;
+use App\Services\GuestPhoneService;
+use Illuminate\Support\Facades\DB;
 
 class GuestService {
 
@@ -19,7 +21,7 @@ class GuestService {
 
     public function getList(int $microsite_id, array $params) {
 
-        $rows = res_guest::where('ms_microsite_id', $microsite_id)->with('emails')->with('phones');
+        $rows = res_guest::where('ms_microsite_id', $microsite_id)->with('emails')->with('phones')->with('tags');
 
         $name = !isset($params['name']) ? '' : $params['name'];
         $page_size = (!empty($params['page_size']) && $params['page_size'] <= 100) ? $params['page_size'] : 30;
@@ -31,20 +33,14 @@ class GuestService {
 
     public function get(int $microsite_id, int $id) {
         try {
-            $rows = res_guest::where('id', $id)->where('ms_microsite_id', $microsite_id)->with('emails')->with('phones')->first();
-
-            if ($rows == null) {
-                abort(500, "Ocurrio un error");
-            }
-
-            return $rows->toArray();
+            $rows = res_guest::where('id', $id)->where('ms_microsite_id', $microsite_id)->with('emails')->with('phones')->with('tags')->first();
+            return $rows;
         } catch (\Exception $e) {
             abort(500, $e->getMessage());
         }
     }
 
     public function create(array $data, int $microsite_id) {
-
         try {
             $guest = new res_guest();
             $guest->first_name = $data['first_name'];
@@ -57,19 +53,11 @@ class GuestService {
 
             DB::BeginTransaction();
             $guest->save();
-            if (is_array($data['emails'])) {
-                foreach ($data['emails'] as $value) {
-                    $value["res_guest_id"] = $guest->id;
-                    $this->_GuestEmailService->create($guest, $value);
-                }
-            }
-            if (is_array($data['phones'])) {
-                foreach ($data['phones'] as $value) {
-                    $value["res_guest_id"] = $guest->id;
-                    $this->_GuestPhoneService->create($guest, $value);
-                }
-            }
+            is_array($data['emails']) ? $this->_GuestEmailService->saveAll($data['emails'], $guest->id) : FALSE;
+            is_array($data['phones']) ? $this->_GuestPhoneService->saveAll($data['phones'], $guest->id) : FALSE;
+            $this->asociateTags($data['tags'], $guest->id);
             DB::Commit();
+
             return $this->get($microsite_id, $guest->id);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -78,40 +66,48 @@ class GuestService {
     }
 
     public function update(array $data, int $id) {
-        $response = false;
         try {
-            $now = \Carbon\Carbon::now();
             $guest = res_guest::where('id', $id)->first();
             $guest->first_name = $data['first_name'];
             $guest->last_name = empty($data['last_name']) ? $guest->last_name : $data['last_name'];
             $guest->birthdate = empty($data['birthdate']) ? $guest->birthdate : $data['birthdate'];
             $guest->gender = empty($data['gender']) ? $guest->gender : $data['gender'];
             $guest->user_upd = $this->_userId;
-            $guest->date_upd = $now;
-            
+            $guest->date_upd = \Carbon\Carbon::now();
+
             DB::BeginTransaction();
-
             $guest->save();
-
-            if (is_array($data['emails'])) {
-                foreach ($data['emails'] as $value) {
-                    $this->_GuestEmailService->save($guest, $value);
-                }
-            }
-            
-            if (is_array($data['phones'])) {
-                foreach ($data['phones'] as $value) {
-                    $this->_GuestPhoneService->save($guest, $value);
-                }
-            }
+            is_array($data['emails']) ? $this->_GuestEmailService->saveAll($data['emails'], $guest->id) : FALSE;
+            is_array($data['phones']) ? $this->_GuestPhoneService->saveAll($data['phones'], $guest->id) : FALSE;
+            $this->asociateTags($data['tags'], $guest->id);
             DB::Commit();
-            $response = true;
+
+            return true;
         } catch (\Exception $e) {
             DB::rollBack();
             abort(500, $e->getMessage());
         }
+        return false;
+    }
 
-        return $response;
+    //****************************************************************************************************************************************************
+    //SERVICIO DE TAGS DE GUEST
+    //****************************************************************************************************************************************************
+
+    public function asociateTags(array $data, int $guest_id) {
+        if (is_array($data)) {
+            DB::table('res_guest_has_res_guest_tag')->where('res_guest_id', $guest_id)->delete();
+            foreach ($data as $value) {
+                $tag = res_guest_tag::where('id', $value["id"])->first();
+                if ($tag == null) {
+                    abort(500, "Ocurrio un error");
+                }
+                DB::table('res_guest_has_res_guest_tag')->insert([
+                    'res_guest_id' => $guest_id,
+                    'res_guest_tag_id' => $tag->id,
+                ]);
+            }
+        }
     }
 
 }
