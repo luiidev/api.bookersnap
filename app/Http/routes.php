@@ -20,6 +20,7 @@ Route::get('/docs', function () {
 });
 
 Route::group(['prefix' => 'v1/{lang}',], function() {
+    Route::get('guests-tags-categories', 'GuestTagCategoryController@index');
     routeMesas();
 });
 
@@ -28,7 +29,7 @@ function routeMesas() {
     //-----------------------------------------------------
     // MICROSITE
     //-----------------------------------------------------
-    Route::group(['prefix' => 'microsites/{micrositeId}','middleware' => ['cors','setLocale']], function() {
+    Route::group(['prefix' => 'microsites/{microsite_id}','middleware' => ['cors','setLocale']], function() {
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS
@@ -53,10 +54,10 @@ function routeMesas() {
         // MICROSITE:: HUESPEDES
         //-----------------------------------------------------
         Route::get('guests', 'GuestController@index');
+        Route::get('guests/tags', 'GuestTagCategoryController@index');
         Route::get('guests/{guest_id}', 'GuestController@show');
         Route::post('guests', 'GuestController@create');
-        Route::put('guests/{guest_id}', 'GuestController@update');
-        Route::get('guests/{guest_id}/form', 'GuestController@form');
+        Route::put('guests/{guest_id}', 'GuestController@update');        
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS::TURNS
