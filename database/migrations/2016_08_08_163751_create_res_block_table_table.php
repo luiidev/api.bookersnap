@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateResDayTurnZoneTable extends Migration
+class CreateResBlockTableTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,10 +12,9 @@ class CreateResDayTurnZoneTable extends Migration
      */
     public function up()
     {
-        Schema::create('res_day_turn_zone', function (Blueprint $table) {
-            $table->Integer('day');
-            $table->bigInteger('res_turn_id')->unsigned();
-            $table->bigInteger('res_type_turn_id')->unsigned();
+        Schema::create('res_block_table', function (Blueprint $table) {
+            $table->bigInteger('res_block_id')->unsigned();
+            $table->bigInteger('res_table_id')->unsigned();            
         });
     }
 
@@ -26,6 +25,6 @@ class CreateResDayTurnZoneTable extends Migration
      */
     public function down()
     {
-        Schema::drop('res_day_turn_zone');
+        Schema::drop('res_block_table');
     }
 }

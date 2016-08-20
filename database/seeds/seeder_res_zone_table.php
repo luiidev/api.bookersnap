@@ -25,11 +25,11 @@ class seeder_res_zone_table extends Seeder {
             $this->getRow(3, 1, "ZONA 3"),
             $this->getRow(4, 1, "ZONA 4"),
             $this->getRow(5, 1, "ZONA 6"),
-            $this->getRow(6, 1, "ZONA 7"),
-            $this->getRow(7, 1, "ZONA 8"),
-            $this->getRow(8, 1, "ZONA 9"),
-            $this->getRow(9, 1, "ZONA 10"),
-            $this->getRow(10, 1, "ZONA 11")
+            $this->getRow(6, 2, "ZONA 1"),
+            $this->getRow(7, 2, "ZONA 2"),
+            $this->getRow(8, 2, "ZONA 3"),
+            $this->getRow(9, 2, "ZONA 4"),
+            $this->getRow(10, 2, "ZONA 5")
         ];
     }
 

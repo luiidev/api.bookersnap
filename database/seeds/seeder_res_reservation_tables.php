@@ -17,11 +17,14 @@ class seeder_res_reservation_tables extends Seeder
         /* $this->getRow($id, $ms_microsite_id, $res_guest_id, $date_reservation, $hours_reservation, $hours_duration, $num_people), */
         return [
             $this->getRow(1, 1, 1, "2016-08-09", "7:00:00", "1:15:00", 2),
-            $this->getRow(2, 1, 2, "2016-08-09", "7:00:00", "1:15:00", 2),
+            $this->getRow(2, 1, 2, "2016-08-09", "7:00:00", "1:15:00", 2),            
             $this->getRow(3, 1, 3, "2016-08-09", "12:00:00", "1:15:00", 2),
             $this->getRow(4, 1, 4, "2016-08-09", "12:00:00", "1:15:00", 2),
             $this->getRow(5, 1, 5, "2016-08-09", "17:00:00", "1:15:00", 2),
             $this->getRow(6, 1, 6, "2016-08-09", "17:00:00", "1:15:00", 2),
+            
+            $this->getRow(7, 1, 1, "2016-08-09", "16:00:00", "1:15:00", 2),
+            $this->getRow(8, 1, 2, "2016-08-09", "16:00:00", "1:15:00", 2),
         ];
     }
 
@@ -38,6 +41,7 @@ class seeder_res_reservation_tables extends Seeder
             'num_people' => $num_people,
             'status_released' => 1,
             'type_reservation' => 2,
+            'user_add' => 1,
             'date_add' => Carbon\Carbon::now()
         ];
     }

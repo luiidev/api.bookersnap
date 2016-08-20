@@ -45,10 +45,12 @@ function routeMesas() {
         //-----------------------------------------------------
         Route::get('turns/', 'TurnController@index');
         Route::get('turns/search/', 'TurnController@search');
-        Route::get('turns/{id}', 'TurnController@show');
+        Route::get('turns/{turn_id}/availability', 'TurnController@tableAvailability');
+        Route::get('turns/{turn_id}', 'TurnController@show');
         Route::post('turns/', 'TurnController@create');
-        Route::put('turns/{id}', 'TurnController@update');
-        Route::delete('zones/{zone}/turns/{id}', 'TurnController@delete');
+        Route::put('turns/{turn_id}', 'TurnController@update');
+        Route::delete('zones/{zone_id}/turns/{turn_id}', 'TurnController@delete');
+        
 
         //-----------------------------------------------------
         // MICROSITE:: HUESPEDES
@@ -57,7 +59,8 @@ function routeMesas() {
         Route::get('guests/tags', 'GuestTagCategoryController@index');
         Route::get('guests/{guest_id}', 'GuestController@show');
         Route::post('guests', 'GuestController@create');
-        Route::put('guests/{guest_id}', 'GuestController@update');        
+        Route::put('guests/{guest_id}', 'GuestController@update');
+        Route::get('guests/{guest_id}/reservations', 'GuestController@reservation');
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS::TURNS

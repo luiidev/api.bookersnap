@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
-use App\Http\Requests;
 use Illuminate\Support\Facades\Input;
 
 use App\Services\TurnService;
@@ -65,5 +63,15 @@ class TurnController extends Controller
     public function delete($id)
     {
         //
+    }
+    
+    public function tableAvailability(Request $request)
+    {
+        $turn_id = $request->route('turn_id');
+        $data = $request->all();
+        return $this->TryCatch(function () use ($turn_id, $data){
+            $result = $this->_TurnService->tableAvailability($turn_id, $data);
+            return $this->CreateResponse(true, 201, "", $result);
+        });
     }
 }

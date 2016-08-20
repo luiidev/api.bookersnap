@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\res_guest;
 use App\res_guest_tag;
+use App\res_reservation;
 use App\Services\GuestEmailService;
 use App\Services\GuestPhoneService;
 use Illuminate\Support\Facades\DB;
@@ -108,6 +109,13 @@ class GuestService {
                 ]);
             }
         }
+    }
+
+    public function reservation(int $microsite_id, int $guest_id, array $params) {
+        
+        $page_size = (!empty($params['page_size']) && $params['page_size'] <= 100) ? $params['page_size'] : 30;
+        $rows = res_reservation::where('res_guest_id', $guest_id)->with('tables')->paginate($page_size);
+        return $rows;
     }
 
 }

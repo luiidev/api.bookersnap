@@ -20,8 +20,10 @@ class res_reservation extends Model {
     protected $table = "res_reservation";
     public $timestamps = false;
 //    protected $fillable = ['name', 'sketch', 'status', 'type_zone', 'join_table', 'status_smoker', 'people_standing', 'user_add', 'user_upd', 'ev_event_id', 'ms_microsite_id'];
-    protected $hidden = ['ms_microsite_id', 'ev_event_id', 'bs_user_id'];
+//    protected $hidden = ['ms_microsite_id', 'ev_event_id', 'bs_user_id'];
     
     
-    
+    public function tables() {
+        return $this->belongsToMany('App\res_table', 'res_table_reservation', 'res_reservation_id', 'res_table_id');
+    }
 }

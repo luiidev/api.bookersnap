@@ -8,7 +8,7 @@ class res_table extends Model
 {
     protected $table = "res_table";
      public $timestamps = false;
-    protected $hidden = ['res_zone_id', 'user_add', 'user_upd', 'date_add', 'date_upd'];
+    protected $hidden = ['res_zone_id', 'user_add', 'user_upd', 'date_add', 'date_upd', 'pivot'];
     //public $appends = ['newfield', 'estado'];
 
 
