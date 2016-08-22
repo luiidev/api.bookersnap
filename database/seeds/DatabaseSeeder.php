@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         $this->call(seeder_res_turn_rule_table::class);
         $this->call(seeder_res_guest_tag_category_tables::class);
         $this->call(seeder_res_guest_tag_tables::class);
+        $this->call(seeder_res_reservation_status_tables::class);
         
         /* RESGISTROS DE PRUEBA*/
         $this->call(seeder_bs_user_table::class);

@@ -3,16 +3,13 @@
 namespace App\Services;
 
 use App\res_turn;
-use App\res_day_turn_zone;
 use Illuminate\Support\Facades\DB;
 
 class TurnService {
 
     public function search(int $microsite_id, array $params) {
         $rows = res_turn::with('typeTurn')->where('ms_microsite_id', $microsite_id);
-
         if (!empty($params)) {
-
             if (!empty($params['hours_ini'])) {
                 $rows = $rows->where('hours_ini', $params['hours_ini']);
             }
@@ -20,21 +17,17 @@ class TurnService {
             if (!empty($params['hours_end'])) {
                 $rows = $rows->where('hours_end', $params['hours_end']);
             }
-
             if (!empty($params['type_turn'])) {
                 $rows = $rows->where('res_type_turn_id', $params['type_turn']);
             }
         }
-
         $rows = $rows->get();
 
         return $rows;
     }
 
     public function getList(int $microsite_id) {
-
         $rows = res_turn::where('ms_microsite_id', $microsite_id)->with('typeTurn')->get();
-
         return $rows->toArray();
     }
 
@@ -133,5 +126,5 @@ class TurnService {
         $turn = res_turn::where('id', $turn_id)->first();
         return $turn;
     }
-
+    
 }
