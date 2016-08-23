@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\res_table;
 use App\res_turn;
+use App\res_turn_zone_table;
 use Illuminate\Support\Facades\DB;
 
 class TurnService {
@@ -122,9 +124,25 @@ class TurnService {
 
       } */
 
-    public function tableAvailability(int $turn_id, array $data) {
+    public function tableAvailability(int $turn_id, int $zone_id) {
         $turn = res_turn::where('id', $turn_id)->first();
+        if ($turn != null) {
+            $tables_availability = res_turn_zone_table::where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id)->get();
+//            $tables = res_table::where('res_zone_id', $zone_id)->where('status', 1)->with('turns')->get(array('id','name', 'min_cover', 'max_cover', 'turns'))->map(function($item) {
+//                $item->availability=[];
+//                return $item;
+//            });
+            $tables = res_table::where('res_zone_id', $zone_id)->where('status', 1)->with(array('turns' => function($query) {
+                            $query->where();
+            }))->get()->map(function($item) {
+                $item->availability = [];
+                return $item;
+            });
+            return $tables;
+            $turnDomain = new \App\Domain\TurnDomain();
+            return $turnDomain->tablesAvailability($turn, $tables, $tables_availability);
+        }
         return $turn;
     }
-    
+
 }

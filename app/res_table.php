@@ -22,5 +22,9 @@ class res_table extends Model
     public function getEstadoAttribute(){
     	return $this->status;
     }
+    
+    public function turns() {
+        return $this->hasMany('App\res_turn_zone_table', 'res_table_id');
+    }
 
 }

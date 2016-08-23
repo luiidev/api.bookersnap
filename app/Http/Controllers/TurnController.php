@@ -68,9 +68,10 @@ class TurnController extends Controller
     public function tableAvailability(Request $request)
     {
         $turn_id = $request->route('turn_id');
+        $zone_id = $request->route('zone_id');
         $data = $request->all();
-        return $this->TryCatch(function () use ($turn_id, $data){
-            $result = $this->_TurnService->tableAvailability($turn_id, $data);
+        return $this->TryCatch(function () use ($turn_id, $zone_id){
+            $result = $this->_TurnService->tableAvailability($turn_id, $zone_id);
             return $this->CreateResponse(true, 201, "", $result);
         });
     }

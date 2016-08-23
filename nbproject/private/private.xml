@@ -2,6 +2,14 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Domain/TurnDomain.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/res_turn.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/res_guest.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/res_table.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Http/Controllers/TurnController.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Services/TurnService.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Http/routes.php</file>
+        </group>
     </open-files>
 </project-private>

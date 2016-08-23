@@ -51,14 +51,23 @@ class GuestController extends Controller {
                 });
     }
     
-    public function reservation(Request $request) {
+    public function upcomingReservation(Request $request) {
         $microsite_id = $request->route('microsite_id');
         $guest_id = $request->route('guest_id');
         $params = $request->input();
         return $this->TryCatch(function () use ($microsite_id, $guest_id, $params) {
-                    $result = $this->_GuestService->reservation($microsite_id, $guest_id, $params);
+                    $result = $this->_GuestService->upcomingReservation($microsite_id, $guest_id, $params);
                     return response()->json($result);
                 });
     }
-
+    
+    public function pastReservation(Request $request) {
+        $microsite_id = $request->route('microsite_id');
+        $guest_id = $request->route('guest_id');
+        $params = $request->input();
+        return $this->TryCatch(function () use ($microsite_id, $guest_id, $params) {
+                    $result = $this->_GuestService->pastReservation($microsite_id, $guest_id, $params);
+                    return response()->json($result);
+                });
+    }
 }
