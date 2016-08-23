@@ -14,7 +14,6 @@ namespace App\Services;
  * @author USER
  */
 use App\res_zone;
-use App\res_table;
 use Illuminate\Support\Facades\DB;
 use App\Services\ZoneTableService;
 
@@ -146,7 +145,7 @@ class ZoneService {
      */
     public function availableDaysForTypeturn(int $zone_id, int $type_turn_id) {
         try {            
-            $turnos = res_turn_zone::where('res_type_turn_zone_id', $type_turn_id)->where('res_zone_id', $zone_id)->get()->map(function($item, $key){
+            $turnos = \App\res_turn_zone::where('res_type_turn_zone_id', $type_turn_id)->where('res_zone_id', $zone_id)->get()->map(function($item, $key){
                 return $item->id;
             })->toArray();
             

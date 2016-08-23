@@ -28,9 +28,16 @@ class TurnService {
         return $rows;
     }
 
-    public function getList(int $microsite_id) {
-        $rows = res_turn::where('ms_microsite_id', $microsite_id)->with('typeTurn')->get();
-        return $rows->toArray();
+    public function getList(int $microsite_id, array $params) {
+        
+        $rows = res_turn::where('ms_microsite_id', $microsite_id);
+        if(isset($params['with'])){
+            $data = explode('|', $params['with']);
+            $rows = (in_array("availability",$data))?$rows->with('availability'):$rows;
+            $rows = (in_array("availability.zone",$data))?$rows->with('availability.zone'):$rows;
+            $rows = (in_array("availability.rule",$data))?$rows->with('availability.rule'):$rows;
+        }
+        return $rows->get();
     }
 
     public function get(int $microsite_id, int $id) {
@@ -127,20 +134,16 @@ class TurnService {
     public function tableAvailability(int $turn_id, int $zone_id) {
         $turn = res_turn::where('id', $turn_id)->first();
         if ($turn != null) {
-            $tables_availability = res_turn_zone_table::where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id)->get();
-//            $tables = res_table::where('res_zone_id', $zone_id)->where('status', 1)->with('turns')->get(array('id','name', 'min_cover', 'max_cover', 'turns'))->map(function($item) {
-//                $item->availability=[];
-//                return $item;
-//            });
-            $tables = res_table::where('res_zone_id', $zone_id)->where('status', 1)->with(array('turns' => function($query) {
-                            $query->where();
-            }))->get()->map(function($item) {
-                $item->availability = [];
+            $EnableTimesForTable = new \App\Domain\EnableTimesForTable();
+            
+            $tables = res_table::where('res_zone_id', $zone_id)->where('status', 1)->with(array('turns' => function($query) use($turn_id, $zone_id) {
+                    $query->where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id);
+            }))->get(array('id','name', 'min_cover', 'max_cover'))->map(function($item) use($turn, $EnableTimesForTable){                
+                $item->availability = $EnableTimesForTable->segment($turn, $item->turns);
+                unset($item->turns);
                 return $item;
             });
             return $tables;
-            $turnDomain = new \App\Domain\TurnDomain();
-            return $turnDomain->tablesAvailability($turn, $tables, $tables_availability);
         }
         return $turn;
     }

@@ -15,10 +15,12 @@ class TurnController extends Controller
         $this->_TurnService = $TurnService;
     }
 
-    public function index($lang, int $microsite_id )
+    public function index(Request $request)
     {
-        return $this->TryCatch(function () use ($microsite_id) {
-            $data = $this->_TurnService->getList($microsite_id);
+        $microsite_id = $request->route('microsite_id');
+        $params = $request->input();
+        return $this->TryCatch(function () use ($microsite_id, $params) {
+            $data = $this->_TurnService->getList($microsite_id, $params);
             return $this->CreateResponse(true, 201, "", $data);
         });
 
