@@ -32,7 +32,8 @@ class TurnService {
         
         $rows = res_turn::where('ms_microsite_id', $microsite_id);
         if(isset($params['with'])){
-            $data = explode('|', $params['with']);
+            $data = explode('|', $params['with']); 
+            $rows = (in_array("type_turn",$data))?$rows->with('typeTurn'):$rows;
             $rows = (in_array("availability",$data))?$rows->with('availability'):$rows;
             $rows = (in_array("availability.zone",$data))?$rows->with('availability.zone'):$rows;
             $rows = (in_array("availability.rule",$data))?$rows->with('availability.rule'):$rows;
@@ -40,14 +41,12 @@ class TurnService {
         return $rows->get();
     }
 
-    public function get(int $microsite_id, int $id) {
+    public function get(int $microsite_id, int $turn_id, $params) {
         try {
-            $rows = res_turn::where('id', $id)->where('ms_microsite_id', $microsite_id)->with('typeTurn')->first();
-
+            $rows = res_turn::where('id', $turn_id)->where('ms_microsite_id', $microsite_id)->with('typeTurn')->first();
             if ($rows == null) {
                 abort(500, "Ocurrio un error");
             }
-
             return $rows->toArray();
         } catch (\Exception $e) {
             abort(500, $e->getMessage());
@@ -131,7 +130,7 @@ class TurnService {
 
       } */
 
-    public function tableAvailability(int $turn_id, int $zone_id) {
+    public function getListTable(int $turn_id, int $zone_id) {
         $turn = res_turn::where('id', $turn_id)->first();
         if ($turn != null) {
             $EnableTimesForTable = new \App\Domain\EnableTimesForTable();
