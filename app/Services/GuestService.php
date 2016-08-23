@@ -111,16 +111,13 @@ class GuestService {
         }
     }
     
-    public function upcomingReservation(int $microsite_id, int $guest_id, array $params) {        
+    public function reservation(int $microsite_id, int $guest_id, array $params) {
         $page_size = (!empty($params['page_size']) && $params['page_size'] <= 100) ? $params['page_size'] : 30;
-        $rows = res_reservation::where('res_guest_id', $guest_id)->where('date_reservation', '>=', \Carbon\Carbon::now())->with('status')->with('tables')->paginate($page_size);
+        $rows = res_reservation::where('res_guest_id', $guest_id);
+        $rows = (!empty($params['start_date']))?$rows->where('date_reservation', '>=', $params['start_date']):$rows;
+        $rows = (!empty($params['end_date']))?$rows->where('date_reservation', '<=', $params['end_date']):$rows;
+        $rows = $rows->with('status')->with('tables')->paginate($page_size);        
         return $rows;
     }
     
-    public function pastReservation(int $microsite_id, int $guest_id, array $params) {        
-        $page_size = (!empty($params['page_size']) && $params['page_size'] <= 100) ? $params['page_size'] : 30;
-        $rows = res_reservation::where('res_guest_id', $guest_id)->where('date_reservation', '<', \Carbon\Carbon::now())->with('status')->with('tables')->paginate($page_size);
-        return $rows;
-    }
-
 }

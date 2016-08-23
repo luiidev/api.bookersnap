@@ -61,8 +61,7 @@ function routeMesas() {
         Route::get('guests/{guest_id}', 'GuestController@show');
         Route::post('guests', 'GuestController@create');
         Route::put('guests/{guest_id}', 'GuestController@update');
-        Route::get('guests/{guest_id}/upcoming-reservations', 'GuestController@upcomingReservation');
-        Route::get('guests/{guest_id}/past-reservations', 'GuestController@pastReservation');
+        Route::get('guests/{guest_id}/reservations', 'GuestController@reservation');
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS::TURNS
