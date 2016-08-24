@@ -33,7 +33,7 @@ class TurnService {
         $rows = res_turn::where('ms_microsite_id', $microsite_id);
         if (isset($params['with'])) {
             $data = explode('|', $params['with']);
-            $rows = (in_array("type_turn", $data)) ? $rows->with('type_turn') : $rows;
+            $rows = (in_array("type_turn", $data)) ? $rows->with('typeTurn') : $rows;
             $rows = (in_array("availability", $data)) ? $rows->with('availability') : $rows;
             $rows = (in_array("availability.zone", $data)) ? $rows->with('availability.zone') : $rows;
             $rows = (in_array("availability.rule", $data)) ? $rows->with('availability.rule') : $rows;
@@ -47,7 +47,7 @@ class TurnService {
             $rows = res_turn::where('id', $turn_id)->where('ms_microsite_id', $microsite_id);
             if (isset($params['with'])) {
                 $data = explode('|', $params['with']);
-                $rows = (in_array("type_turn", $data)) ? $rows->with('type_turn') : $rows;
+                $rows = (in_array("type_turn", $data)) ? $rows->with('typeTurn') : $rows;
                 $rows = (in_array("availability", $data)) ? $rows->with('availability') : $rows;
                 $rows = (in_array("availability.zone", $data)) ? $rows->with('availability.zone') : $rows;
                 $rows = (in_array("availability.rule", $data)) ? $rows->with('availability.rule') : $rows;
