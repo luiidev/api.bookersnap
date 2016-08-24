@@ -4,10 +4,9 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-abstract class Request extends FormRequest
-{
-    public function all()
-    {
+abstract class Request extends FormRequest {
+
+    public function all() {
         /*
          * Fixes an issue with FormRequest-based requests not
          * containing parameters added / modified by middleware
@@ -20,4 +19,5 @@ abstract class Request extends FormRequest
         $this->merge($this->request->all());
         return parent::all();
     }
+
 }

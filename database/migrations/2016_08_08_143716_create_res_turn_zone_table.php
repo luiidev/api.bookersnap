@@ -15,6 +15,8 @@ class CreateResTurnZoneTable extends Migration {
             $table->bigInteger('res_zone_id')->unsigned();
             $table->bigInteger('res_turn_id')->unsigned();
             $table->bigInteger('res_turn_rule_id')->unsigned();
+            /* KEY TABLE */
+            $table->primary(['res_zone_id', 'res_turn_id']);
         });
     }
 

@@ -32,15 +32,16 @@ class TurnController extends Controller {
     }
 
     public function create(TurnRequest $request) {
+        
         return $this->TryCatch(function () use ($request) {
                     $result = $this->_TurnService->create($request->all(), $request->route('microsite_id'), $request->_bs_user_id);
                     return response()->json($result);
                 });
     }
 
-    public function update(Request $request, $lang, int $microsite_id, int $id) {
-        return $this->TryCatch(function () use ($request, $microsite_id, $id) {
-                    $result = $this->_TurnService->update($request->all(), $id);
+    public function update(TurnRequest $request) {
+        return $this->TryCatch(function () use ($request) {
+                    $result = $this->_TurnService->update($request->all(), $request->route('microsite_id'), $request->route('turn_id'), $request->_bs_user_id);
                     return response()->json($result);
                 });
     }

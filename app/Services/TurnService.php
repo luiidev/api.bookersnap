@@ -10,12 +10,6 @@ use Illuminate\Support\Facades\DB;
 
 class TurnService {
 
-    protected $_TurnZoneService;
-
-    public function __construct(TurnZoneService $TurnZoneService) {
-        $this->_TurnZoneService = $TurnZoneService;
-    }
-
     public function search(int $microsite_id, array $params) {
         $rows = res_turn::with('typeTurn')->where('ms_microsite_id', $microsite_id);
         if (!empty($params)) {
@@ -86,7 +80,7 @@ class TurnService {
             DB::BeginTransaction();
             $turn->save();
             foreach ($data['turn_zone'] as $value) {
-                $this->_TurnZoneService->save($turn->id, $value['res_zone_id'], $value['res_turn_id']);
+                $turn->zones()->attach($value['res_zone_id'], ['res_turn_rule_id' => $value['res_turn_rule_id']]);
             }
             DB::Commit();
             return true;
@@ -96,53 +90,35 @@ class TurnService {
         }
     }
 
-    public function update(array $data, int $id_turn) {
-        $response = false;
-        $dataUpdate = array();
+    public function update(array $data, int $microsite_id, int $turn_id, int $user_id) {
 
         try {
-
-            $now = \Carbon\Carbon::now();
-
-            $turn = new res_turn();
-
-            $dataUpdate["name"] = $data["name"];
-            $dataUpdate["res_type_turn_id"] = $data["type_turn"]["id"];
-            $dataUpdate["hours_ini"] = $data["hours_ini"];
-            $dataUpdate["hours_end"] = $data["hours_end"];
-            $dataUpdate["date_upd"] = $now;
+            $turn = res_turn::where('id', $turn_id)->where('ms_microsite_id', $microsite_id)->first();
+            $turn->name = $data["name"];
+            $turn->res_type_turn_id = $data["res_type_turn_id"];
+            $turn->hours_ini = $data["hours_ini"];
+            $turn->hours_end = $data["hours_end"];
+            $turn->user_upd = $user_id;
+            $turn->date_upd = \Carbon\Carbon::now();
 
             DB::BeginTransaction();
-
-            $turn->where('id', $id_turn)->update($dataUpdate);
-
+            $turn->save();
+            foreach ($data['turn_zone'] as $value) {
+                if (DB::table('res_turn_zone')->where('res_turn_id', $turn_id)->where('res_zone_id', $value['res_zone_id'])->count() > 0) {
+                    $turn->zones()->updateExistingPivot($value['res_zone_id'], ['res_turn_rule_id' => $value['res_turn_rule_id']]);
+                } else {
+                    $turn->zones()->attach($value['res_zone_id'], ['res_turn_rule_id' => $value['res_turn_rule_id']]);
+                }
+            }
             DB::Commit();
-
-            $response = true;
+            return true;
         } catch (\Exception $e) {
             DB::rollBack();
             abort(500, $e->getMessage());
         }
-
-        return $response;
+        return false;
     }
 
-    private function saveTurnZone($turn, $zone_id, $rule_id) {
-        try {
-            $table = res_turn_zone::where('res_turn_id', $turn->id)->where('res_zone_id', $zone_id)->first();
-            if ($table == null) {
-                $table = new res_turn_zone();
-                $table->res_turn_id = $turn->id;
-                $table->res_zone_id = $zone_id;
-            }
-            $table->res_turn_rule_id = $rule_id;
-            $turn->turnZone()->save($table);
-        } catch (\Exception $e) {
-            //dd($e->getMessage());
-            abort(500, $e->getMessage());
-        }
-        return $turn;
-    }
 
     /* public function validateTimeByTypeTurn(array $params, int $microsite_id){
       try{

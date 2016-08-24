@@ -15,7 +15,7 @@ class AclMiddleware {
      */
     public function handle($request, Closure $next, $action = null) {
         
-        $request['_bs_user_id'] = 1;
+        $request->request->set('_bs_user_id', 1);
         return $next($request);
         
     }

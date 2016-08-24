@@ -27,16 +27,50 @@ class TurnRequest extends Request {
      * @return array
      */
     public function rules() {
+        
+        switch ($this->method()) {
+            case 'POST':
+            case 'post':
+                $rules = $this->RulesStore();
+                break;
+            case 'PUT':
+            case 'put':
+                $rules = $this->RulesUpdate();
+                break;
+            default:
+                $rules = [];
+                break;
+        }
+        return $rules;
+        
+    }
+    
+    private function RulesStore() {
         return [
             'name' => 'required|string',
             'hours_ini' => 'required',
             'hours_end' => 'required',
-            'status' => 'integer|in:0,1',
             'on_table' => 'integer|in:0,1',
             'early' => 'integer|in:0,1',
             'res_type_turn_id' => 'required|exists:res_type_turn,id',
             'turn_zone' => 'required|array',
-            'turn_zone.*.res_zone_id' => 'required|exists:res_zone,id',
+            'turn_zone.*.res_zone_id' => 'required|exists:res_zone,id,ms_microsite_id,'.$this->route('microsite_id'),
+            'turn_zone.*.res_turn_rule_id' => 'required|exists:res_turn_rule,id',
+        ];
+    }
+    
+    private function RulesUpdate() {
+        
+        return [
+            'id' => 'required|exists:res_turn,id,ms_microsite_id,'.$this->route('microsite_id'),
+            'name' => 'required|string',
+            'hours_ini' => 'required',
+            'hours_end' => 'required',
+            'on_table' => 'integer|in:0,1',
+            'early' => 'integer|in:0,1',
+            'res_type_turn_id' => 'required|exists:res_type_turn,id',
+            'turn_zone' => 'required|array',
+            'turn_zone.*.res_zone_id' => 'required|exists:res_zone,id,ms_microsite_id,'.$this->route('microsite_id'),
             'turn_zone.*.res_turn_rule_id' => 'required|exists:res_turn_rule,id',
         ];
     }
