@@ -43,11 +43,19 @@ class TurnService {
 
     public function get(int $microsite_id, int $turn_id, $params) {
         try {
-            $rows = res_turn::where('id', $turn_id)->where('ms_microsite_id', $microsite_id)->with('typeTurn')->first();
+            $rows = res_turn::where('id', $turn_id)->where('ms_microsite_id', $microsite_id);
+            if(isset($params['with'])){
+                $data = explode('|', $params['with']); 
+                $rows = (in_array("type_turn",$data))?$rows->with('typeTurn'):$rows;
+                $rows = (in_array("availability",$data))?$rows->with('availability'):$rows;
+                $rows = (in_array("availability.zone",$data))?$rows->with('availability.zone'):$rows;
+                $rows = (in_array("availability.rule",$data))?$rows->with('availability.rule'):$rows;
+            }
+            $rows = $rows->first();
             if ($rows == null) {
                 abort(500, "Ocurrio un error");
             }
-            return $rows->toArray();
+            return $rows;
         } catch (\Exception $e) {
             abort(500, $e->getMessage());
         }

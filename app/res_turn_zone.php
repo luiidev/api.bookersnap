@@ -10,7 +10,8 @@ class res_turn_zone extends Model {
     public $timestamps = false;
 //    protected $hidden = ['res_turn_id', 'res_zone_id', 'res_turn_rule__id'];    
     
-    public function turns() {
+    
+    public function turn() {
        return $this->belongsTo('App\res_turn', 'res_turn_id');
     }
     

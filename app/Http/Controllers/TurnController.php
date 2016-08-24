@@ -15,27 +15,25 @@ class TurnController extends Controller {
     }
 
     public function index(Request $request) {
-        $microsite_id = $request->route('microsite_id');
-        $params = $request->input();
-        return $this->TryCatch(function () use ($microsite_id, $params) {
-                    $data = $this->_TurnService->getList($microsite_id, $params);
+
+        return $this->TryCatch(function () use ($request) {
+                    $data = $this->_TurnService->getList($request->route('microsite_id'), $request->input());
                     return $this->CreateResponse(true, 201, "", $data);
                 });
     }
 
     public function show(Request $request) {
-        $microsite_id = $request->route('microsite_id');
-        $turn_id = $request->route('turn_id');
-        $params = $request->input();
-        return $this->TryCatch(function () use ($microsite_id, $turn_id, $params) {
-                    $result = $this->_TurnService->get($microsite_id, $turn_id, $params);
+
+        return $this->TryCatch(function () use ($request) {
+                    $result = $this->_TurnService->get($request->route('microsite_id'), $request->route('turn_id'), $request->input());
                     return $this->CreateResponse(true, 201, "", $result);
                 });
     }
 
-    public function create(Request $request, $lang, int $microsite_id) {
-        return $this->TryCatch(function () use ($request, $microsite_id) {
-                    $result = $this->_TurnService->create($request->all(), $microsite_id);
+    public function create(Request $request) {
+
+        return $this->TryCatch(function () use ($request) {
+                    $result = $this->_TurnService->create($request->all(), $request->route('microsite_id'));
                     return response()->json($result);
                 });
     }

@@ -35,10 +35,10 @@ function routeMesas() {
         // MICROSITE::ZONAS
         //-----------------------------------------------------
         Route::get('zones/', 'ZoneController@index');
-        Route::get('zones/{id}', 'ZoneController@show');
+        Route::get('zones/{zone_id}', 'ZoneController@show');
         Route::post('zones/', 'ZoneController@create');
-        Route::put('zones/{id}', 'ZoneController@update');
-        Route::delete('zones/{id}', 'ZoneController@delete');
+        Route::put('zones/{zone_id}', 'ZoneController@update');
+        Route::delete('zones/{zone_id}', 'ZoneController@delete');
 
         //-----------------------------------------------------
         // MICROSITE::TURNOS

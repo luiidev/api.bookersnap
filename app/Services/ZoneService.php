@@ -32,11 +32,8 @@ class ZoneService {
      */    
     public function getList(int $microsite_id) {
 
-        $rows = res_zone::where('ms_microsite_id', $microsite_id)->with('tables')->with('zoneTurns.turns')->get()->map(function($item){
-            return $item;
-        });
-  
-        return $rows->toArray();
+        $rows = res_zone::where('ms_microsite_id', $microsite_id)->with('tables')->with('turns.turn')->with('turns.rule')->get();  
+        return $rows;
     }
     
     public function get(int $microsite_id, int $id) {

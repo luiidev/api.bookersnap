@@ -6,10 +6,14 @@
             <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Domain/TurnDomain.php</file>
             <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/res_turn.php</file>
             <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/res_guest.php</file>
-            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/res_table.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/res_zone.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Http/Controllers/GuestController.php</file>
             <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Http/Controllers/TurnController.php</file>
             <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Services/TurnService.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/res_turn_zone.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Domain/EnableTimesForTable.php</file>
             <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Http/routes.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Services/GuestService.php</file>
         </group>
     </open-files>
 </project-private>
