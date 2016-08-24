@@ -10,15 +10,13 @@ class res_zone extends Model {
     public $timestamps = false;
 //    protected $fillable = ['name', 'sketch', 'status', 'type_zone', 'join_table', 'status_smoker', 'people_standing', 'user_add', 'user_upd', 'ev_event_id', 'ms_microsite_id'];
     protected $hidden = ['ms_microsite_id', 'user_add', 'user_upd', 'date_upd'];
-    
+
     public function tables() {
         return $this->hasMany('App\res_table', 'res_zone_id');
     }
-    
-    public function turns() {
-       return $this->hasMany('App\res_turn_zone', 'res_zone_id');
-    }
 
-    
+    public function turns() {
+        return $this->belongsToMany('App\res_turn', 'res_turn_zone', 'res_zone_id', 'res_turn_id');
+    }
 
 }

@@ -30,10 +30,14 @@ class ZoneService {
      * @param   int     $microsite_id  Identificador del micrositio.
      * @return  array   Lista de Estructura de zonas
      */    
-    public function getList(int $microsite_id) {
+    public function getList(int $microsite_id, array $params) {
 
-        $rows = res_zone::where('ms_microsite_id', $microsite_id)->with('tables')->with('turns.turn')->with('turns.rule')->get();  
-        return $rows;
+        $rows = res_zone::where('ms_microsite_id', $microsite_id)->with('tables');
+        if(isset($params['with'])){
+            $data = explode('|', $params['with']);
+            $rows = (in_array("turns",$data))?$rows->with('turns'):$rows;
+        }
+        return $rows->get();
     }
     
     public function get(int $microsite_id, int $id) {

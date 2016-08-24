@@ -29,14 +29,15 @@ class TurnService {
     }
 
     public function getList(int $microsite_id, array $params) {
-        
+
         $rows = res_turn::where('ms_microsite_id', $microsite_id);
-        if(isset($params['with'])){
-            $data = explode('|', $params['with']); 
-            $rows = (in_array("type_turn",$data))?$rows->with('typeTurn'):$rows;
-            $rows = (in_array("availability",$data))?$rows->with('availability'):$rows;
-            $rows = (in_array("availability.zone",$data))?$rows->with('availability.zone'):$rows;
-            $rows = (in_array("availability.rule",$data))?$rows->with('availability.rule'):$rows;
+        if (isset($params['with'])) {
+            $data = explode('|', $params['with']);
+            $rows = (in_array("type_turn", $data)) ? $rows->with('type_turn') : $rows;
+            $rows = (in_array("availability", $data)) ? $rows->with('availability') : $rows;
+            $rows = (in_array("availability.zone", $data)) ? $rows->with('availability.zone') : $rows;
+            $rows = (in_array("availability.rule", $data)) ? $rows->with('availability.rule') : $rows;
+            $rows = (in_array("zones", $data)) ? $rows->with('zones') : $rows;
         }
         return $rows->get();
     }
@@ -44,12 +45,13 @@ class TurnService {
     public function get(int $microsite_id, int $turn_id, $params) {
         try {
             $rows = res_turn::where('id', $turn_id)->where('ms_microsite_id', $microsite_id);
-            if(isset($params['with'])){
-                $data = explode('|', $params['with']); 
-                $rows = (in_array("type_turn",$data))?$rows->with('typeTurn'):$rows;
-                $rows = (in_array("availability",$data))?$rows->with('availability'):$rows;
-                $rows = (in_array("availability.zone",$data))?$rows->with('availability.zone'):$rows;
-                $rows = (in_array("availability.rule",$data))?$rows->with('availability.rule'):$rows;
+            if (isset($params['with'])) {
+                $data = explode('|', $params['with']);
+                $rows = (in_array("type_turn", $data)) ? $rows->with('type_turn') : $rows;
+                $rows = (in_array("availability", $data)) ? $rows->with('availability') : $rows;
+                $rows = (in_array("availability.zone", $data)) ? $rows->with('availability.zone') : $rows;
+                $rows = (in_array("availability.rule", $data)) ? $rows->with('availability.rule') : $rows;
+                $rows = (in_array("zones", $data)) ? $rows->with('zones') : $rows;
             }
             $rows = $rows->first();
             if ($rows == null) {
@@ -142,10 +144,10 @@ class TurnService {
         $turn = res_turn::where('id', $turn_id)->first();
         if ($turn != null) {
             $EnableTimesForTable = new \App\Domain\EnableTimesForTable();
-            
+
             $tables = res_table::where('res_zone_id', $zone_id)->where('status', 1)->with(array('turns' => function($query) use($turn_id, $zone_id) {
-                    $query->where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id);
-            }))->get(array('id','name', 'min_cover', 'max_cover'))->map(function($item) use($turn, $EnableTimesForTable){                
+                            $query->where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id);
+                        }))->get(array('id', 'name', 'min_cover', 'max_cover'))->map(function($item) use($turn, $EnableTimesForTable) {
                 $item->availability = $EnableTimesForTable->segment($turn, $item->turns);
                 unset($item->turns);
                 return $item;

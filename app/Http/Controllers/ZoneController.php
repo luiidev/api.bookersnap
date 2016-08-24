@@ -17,10 +17,10 @@ class ZoneController extends Controller {
         $this->_ZoneService = $ZoneService;
     }
 
-    public function index($lang, int $microsite_id) {
+    public function index(Request $request) {
 
-        return $this->TryCatch(function () use ($microsite_id) {
-            $data = $this->_ZoneService->getList($microsite_id);
+        return $this->TryCatch(function () use ($request) {
+            $data = $this->_ZoneService->getList($request->route('microsite_id'), $request->input());
             return $this->CreateResponse(true, 201, "", $data);
         });
     }
