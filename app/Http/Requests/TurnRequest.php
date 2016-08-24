@@ -18,6 +18,8 @@ class TurnRequest extends Request {
     public function authorize() {
         return true;
     }
+    
+    
 
     /**
      * Get the validation rules that apply to the request.
@@ -26,16 +28,16 @@ class TurnRequest extends Request {
      */
     public function rules() {
         return [
-            'name' => 'required|exists:bs_user,id',
+            'name' => 'required|string',
             'hours_ini' => 'required',
             'hours_end' => 'required',
             'status' => 'integer|in:0,1',
             'on_table' => 'integer|in:0,1',
             'early' => 'integer|in:0,1',
             'res_type_turn_id' => 'required|exists:res_type_turn,id',
-            'availability' => 'required|array',
-            'availability.*.res_zone_id' => 'required|exists:res_zone,id',
-            'availability.*.res_turn_rule_id' => 'required|exists:res_turn_rule,id',
+            'turn_zone' => 'required|array',
+            'turn_zone.*.res_zone_id' => 'required|exists:res_zone,id',
+            'turn_zone.*.res_turn_rule_id' => 'required|exists:res_turn_rule,id',
         ];
     }
     

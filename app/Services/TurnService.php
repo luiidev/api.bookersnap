@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\DB;
 
 class TurnService {
 
+    public function functionName($param) {
+        
+    }
+
     public function search(int $microsite_id, array $params) {
         $rows = res_turn::with('typeTurn')->where('ms_microsite_id', $microsite_id);
         if (!empty($params)) {
@@ -34,9 +38,9 @@ class TurnService {
         if (isset($params['with'])) {
             $data = explode('|', $params['with']);
             $rows = (in_array("type_turn", $data)) ? $rows->with('typeTurn') : $rows;
-            $rows = (in_array("availability", $data)) ? $rows->with('availability') : $rows;
-            $rows = (in_array("availability.zone", $data)) ? $rows->with('availability.zone') : $rows;
-            $rows = (in_array("availability.rule", $data)) ? $rows->with('availability.rule') : $rows;
+            $rows = (in_array("turn_zone", $data)) ? $rows->with('turnZone') : $rows;
+            $rows = (in_array("turn_zone.zone", $data)) ? $rows->with('turnZone.zone') : $rows;
+            $rows = (in_array("turn_zone.rule", $data)) ? $rows->with('turnZone.rule') : $rows;
             $rows = (in_array("zones", $data)) ? $rows->with('zones') : $rows;
         }
         return $rows->get();
@@ -48,9 +52,9 @@ class TurnService {
             if (isset($params['with'])) {
                 $data = explode('|', $params['with']);
                 $rows = (in_array("type_turn", $data)) ? $rows->with('typeTurn') : $rows;
-                $rows = (in_array("availability", $data)) ? $rows->with('availability') : $rows;
-                $rows = (in_array("availability.zone", $data)) ? $rows->with('availability.zone') : $rows;
-                $rows = (in_array("availability.rule", $data)) ? $rows->with('availability.rule') : $rows;
+                $rows = (in_array("turn_zone", $data)) ? $rows->with('turnZone') : $rows;
+                $rows = (in_array("turn_zone.zone", $data)) ? $rows->with('turnZone.zone') : $rows;
+                $rows = (in_array("turn_zone.rule", $data)) ? $rows->with('turnZone.rule') : $rows;
                 $rows = (in_array("zones", $data)) ? $rows->with('zones') : $rows;
             }
             $rows = $rows->first();
@@ -63,29 +67,32 @@ class TurnService {
         }
     }
 
-    public function create(array $data, int $microsite_id) {
+    public function create(array $data, int $microsite_id, int $user_id) {
         try {
             $turn = new res_turn();
             $turn->name = $data["name"];
             $turn->ms_microsite_id = $microsite_id;
-            $turn->res_type_turn_id = $data["type_turn"]["id"];
+            $turn->res_type_turn_id = $data["res_type_turn_id"];
             $turn->hours_ini = $data["hours_ini"];
             $turn->hours_end = $data["hours_end"];
-            $turn->user_add = 1;
+            $turn->user_add = $user_id;
+            $turn->user_upd = $user_id;
             $turn->date_add = \Carbon\Carbon::now();
+            $turn->date_upd = $turn->date_add;
+            return $turn;
             //$turn->res_zone_id = $zone;
 
             DB::BeginTransaction();
             $turn->save();
 
-            /* foreach ($data['days'] as $key => $value) {
-              $day_turn = new res_day_turn_zone();
-              $day_turn->day = $value['day'];
-              $day_turn->res_turn_id = $turn->id;
-              $day_turn->res_type_turn_id	 = $data["type_turn"]["id"];
+            foreach ($data['days'] as $key => $value) {
+                $day_turn = new res_turn_zone();
+                $day_turn->day = $value['day'];
+                $day_turn->res_turn_id = $turn->id;
+                $day_turn->res_type_turn_id = $data["type_turn"]["id"];
 
-              $day_turn->save();
-              } */
+                $day_turn->save();
+            }
 
             DB::Commit();
 

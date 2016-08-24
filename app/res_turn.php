@@ -56,6 +56,9 @@ class res_turn extends Model {
        return $this->belongsTo('App\res_type_turn', 'res_type_turn_id');
     }   
     
+    public function turnZone() {
+        return $this->hasMany('App\res_turn_zone', 'res_turn_id');
+    }
     
     public function availability() {
         return $this->hasMany('App\res_turn_zone', 'res_turn_id');

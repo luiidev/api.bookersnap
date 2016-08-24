@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\TurnRequest;
 use Illuminate\Support\Facades\Input;
 use App\Services\TurnService;
 
@@ -15,7 +16,7 @@ class TurnController extends Controller {
     }
 
     public function index(Request $request) {
-
+        
         return $this->TryCatch(function () use ($request) {
                     $data = $this->_TurnService->getList($request->route('microsite_id'), $request->input());
                     return $this->CreateResponse(true, 201, "", $data);
@@ -30,10 +31,9 @@ class TurnController extends Controller {
                 });
     }
 
-    public function create(Request $request) {
-
+    public function create(TurnRequest $request) {
         return $this->TryCatch(function () use ($request) {
-                    $result = $this->_TurnService->create($request->all(), $request->route('microsite_id'));
+                    $result = $this->_TurnService->create($request->all(), $request->route('microsite_id'), $request->_bs_user_id);
                     return response()->json($result);
                 });
     }

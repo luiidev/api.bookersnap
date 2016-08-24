@@ -29,7 +29,7 @@ function routeMesas() {
     //-----------------------------------------------------
     // MICROSITE
     //-----------------------------------------------------
-    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['cors', 'setLocale']], function() {
+    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['cors', 'setLocale', 'ACL:microsite']], function() {
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS
