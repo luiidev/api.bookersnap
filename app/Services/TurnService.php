@@ -4,13 +4,16 @@ namespace App\Services;
 
 use App\res_table;
 use App\res_turn;
-use App\res_turn_zone_table;
+use App\res_turn_zone;
+use App\Services\TurnZoneService;
 use Illuminate\Support\Facades\DB;
 
 class TurnService {
 
-    public function functionName($param) {
-        
+    protected $_TurnZoneService;
+
+    public function __construct(TurnZoneService $TurnZoneService) {
+        $this->_TurnZoneService = $TurnZoneService;
     }
 
     public function search(int $microsite_id, array $params) {
@@ -79,24 +82,14 @@ class TurnService {
             $turn->user_upd = $user_id;
             $turn->date_add = \Carbon\Carbon::now();
             $turn->date_upd = $turn->date_add;
-            return $turn;
-            //$turn->res_zone_id = $zone;
 
             DB::BeginTransaction();
             $turn->save();
-
-            foreach ($data['days'] as $key => $value) {
-                $day_turn = new res_turn_zone();
-                $day_turn->day = $value['day'];
-                $day_turn->res_turn_id = $turn->id;
-                $day_turn->res_type_turn_id = $data["type_turn"]["id"];
-
-                $day_turn->save();
+            foreach ($data['turn_zone'] as $value) {
+                $this->_TurnZoneService->save($turn->id, $value['res_zone_id'], $value['res_turn_id']);
             }
-
             DB::Commit();
-
-            return $turn;
+            return true;
         } catch (\Exception $e) {
             DB::rollBack();
             abort(500, $e->getMessage());
@@ -132,6 +125,23 @@ class TurnService {
         }
 
         return $response;
+    }
+
+    private function saveTurnZone($turn, $zone_id, $rule_id) {
+        try {
+            $table = res_turn_zone::where('res_turn_id', $turn->id)->where('res_zone_id', $zone_id)->first();
+            if ($table == null) {
+                $table = new res_turn_zone();
+                $table->res_turn_id = $turn->id;
+                $table->res_zone_id = $zone_id;
+            }
+            $table->res_turn_rule_id = $rule_id;
+            $turn->turnZone()->save($table);
+        } catch (\Exception $e) {
+            //dd($e->getMessage());
+            abort(500, $e->getMessage());
+        }
+        return $turn;
     }
 
     /* public function validateTimeByTypeTurn(array $params, int $microsite_id){
