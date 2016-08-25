@@ -37,8 +37,12 @@ class TurnService {
             $rows = (in_array("type_turn", $data)) ? $rows->with('typeTurn') : $rows;
             $rows = (in_array("turn_zone", $data)) ? $rows->with('turnZone') : $rows;
             $rows = (in_array("turn_zone.zone", $data)) ? $rows->with('turnZone.zone') : $rows;
+            $rows = (in_array("turn_zone.zone.turns", $data)) ? $rows->with('turnZone.zone.turns') : $rows;
+            $rows = (in_array("turn_zone.zone.tables", $data)) ? $rows->with('turnZone.zone.tables') : $rows;
             $rows = (in_array("turn_zone.rule", $data)) ? $rows->with('turnZone.rule') : $rows;
             $rows = (in_array("zones", $data)) ? $rows->with('zones') : $rows;
+            $rows = (in_array("zones.tables", $data)) ? $rows->with('zones.tables') : $rows;
+            $rows = (in_array("zones.turns", $data)) ? $rows->with('zones.turns') : $rows;
         }
         return $rows->get();
     }
@@ -51,8 +55,12 @@ class TurnService {
                 $rows = (in_array("type_turn", $data)) ? $rows->with('typeTurn') : $rows;
                 $rows = (in_array("turn_zone", $data)) ? $rows->with('turnZone') : $rows;
                 $rows = (in_array("turn_zone.zone", $data)) ? $rows->with('turnZone.zone') : $rows;
+                $rows = (in_array("turn_zone.zone.turns", $data)) ? $rows->with('turnZone.zone.turns') : $rows;
+                $rows = (in_array("turn_zone.zone.tables", $data)) ? $rows->with('turnZone.zone.tables') : $rows;
                 $rows = (in_array("turn_zone.rule", $data)) ? $rows->with('turnZone.rule') : $rows;
                 $rows = (in_array("zones", $data)) ? $rows->with('zones') : $rows;
+                $rows = (in_array("zones.tables", $data)) ? $rows->with('zones.tables') : $rows;
+                $rows = (in_array("zones.turns", $data)) ? $rows->with('zones.turns') : $rows;
             }
             $rows = $rows->first();
             if ($rows == null) {
@@ -119,7 +127,6 @@ class TurnService {
         return false;
     }
 
-
     /* public function validateTimeByTypeTurn(array $params, int $microsite_id){
       try{
       $turn = new res_turn();
@@ -137,7 +144,7 @@ class TurnService {
         $turn = res_turn::where('id', $turn_id)->first();
         if ($turn != null) {
             $EnableTimesForTable = new \App\Domain\EnableTimesForTable();
-            
+
             $tables = res_table::where('res_zone_id', $zone_id)->where('status', 1)->with(array('turns' => function($query) use($turn_id, $zone_id) {
                             $query->where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id);
                         }))->get(array('id', 'name', 'min_cover', 'max_cover'))->map(function($item) use($turn, $EnableTimesForTable) {

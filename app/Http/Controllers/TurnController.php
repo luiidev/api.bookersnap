@@ -16,42 +16,41 @@ class TurnController extends Controller {
     }
 
     public function index(Request $request) {
-        
-        return $this->TryCatch(function () use ($request) {
-                    $data = $this->_TurnService->getList($request->route('microsite_id'), $request->input());
+        $service = $this->_TurnService;
+        return $this->TryCatch(function () use ($request, $service) {
+                    $data = $service->getList($request->route('microsite_id'), $request->input());
                     return $this->CreateResponse(true, 201, "", $data);
                 });
     }
 
     public function show(Request $request) {
-
-        return $this->TryCatch(function () use ($request) {
-                    $result = $this->_TurnService->get($request->route('microsite_id'), $request->route('turn_id'), $request->input());
+        $service = $this->_TurnService;
+        return $this->TryCatch(function () use ($request, $service) {
+                    $result = $service->get($request->route('microsite_id'), $request->route('turn_id'), $request->input());
                     return $this->CreateResponse(true, 201, "", $result);
                 });
     }
 
     public function create(TurnRequest $request) {
-        
-        return $this->TryCatch(function () use ($request) {
-                    $result = $this->_TurnService->create($request->all(), $request->route('microsite_id'), $request->_bs_user_id);
+        $service = $this->_TurnService;
+        return $this->TryCatch(function () use ($request, $service) {
+                    $result = $service->create($request->all(), $request->route('microsite_id'), $request->_bs_user_id);
                     return response()->json($result);
                 });
     }
 
     public function update(TurnRequest $request) {
-        return $this->TryCatch(function () use ($request) {
-                    $result = $this->_TurnService->update($request->all(), $request->route('microsite_id'), $request->route('turn_id'), $request->_bs_user_id);
+        $service = $this->_TurnService;
+        return $this->TryCatch(function () use ($request, $service) {
+                    $result = $service->update($request->all(), $request->route('microsite_id'), $request->route('turn_id'), $request->_bs_user_id);
                     return response()->json($result);
                 });
     }
 
-    public function search($lang, int $microsite_id) {
-
-        $params = Input::get();
-
-        return $this->TryCatch(function () use ($microsite_id, $params) {
-                    $result = $this->_TurnService->search($microsite_id, $params);
+    public function search(Request $request) {
+        $service = $this->_TurnService;
+        return $this->TryCatch(function () use ($request, $service) {
+                    $result = $service->search($request->route('microsite_id'), $request->input());
                     return $this->CreateResponse(true, 201, "", $result);
                 });
     }
