@@ -9,69 +9,82 @@
 namespace App\Services;
 
 use App\res_table;
-use Illuminate\Support\Facades\DB;
 
 class ZoneTableService {
 
-    public function exists($id) {
-        $response = FALSE;
-        $row = res_table::where('id', $id)->get()->count();
-
-        if ($row > 0) {
-            $response = TRUE;
-        }
-
-        return $response;
+    /**
+     * Verificar si existe Id de una mesa.
+     * @param   int     $table_id  Identificador la mesa.
+     * @return  boolean [true: si existe la mesa] [false: mesa no existe]
+     */
+    public function exists(int $table_id) {
+        return (res_table::where('id', $table_id)->get()->count() > 0) ? true : false;
     }
 
-    public function create($zone, array $data) {
+    /**
+     * Obtener una zona de un micrositio.
+     * @param   array           $data  Estructura de datos de la mesa a registrar.
+     * @param   int             $zone_id  Identificador del la zona a la que pertenecera la mesa.
+     * @param   int             $user_id  Identificador del usuario que va ha registrar la mesa.
+     * @return  App\res_table   Objeto mesa de reservacion.
+     */
+    public function create(array $data, int $zone_id, int $user_id) {
         try {
-
-            $table = new res_table();
-            //$table->ms_microsite_id = $zone->ms_microsite_id;
-            $table->res_zone_id = $zone->id;
-            $table->name = $data['name'];
-            $table->min_cover = $data['min_cover'];
-            $table->max_cover = $data['max_cover'];
-            //$table->price = $data['price'];
-            //$table->status = $data['status'];
-            // $table->config_color = $data['config_color'];
-            $table->config_position = $data['config_position'];
-            $table->config_forme = $data['config_forme'];
-            $table->config_size = $data['config_size'];
-            $table->config_rotation = $data['config_rotation'];
-            $table->date_add = $zone->date_add;
-            $table->user_add = $zone->user_add;
-
-            $zone->tables()->save($table);
+            $date_now = \Carbon\Carbon::now();
+            $entity = new res_table();
+            $entity->res_zone_id = $zone_id;
+            $entity->name = $data['name'];
+            $entity->min_cover = $data['min_cover'];
+            $entity->max_cover = $data['max_cover'];
+            $entity->price = isset($data['price']) ? $data['price'] : 0.0;
+            $entity->config_color = isset($data['config_color']) ? $data['config_color'] : '#fff';
+            $entity->config_position = isset($data['config_position']) ? $data['config_position'] : rand(100, 500) . "," . rand(100, 500);
+            $entity->config_forme = isset($data['config_forme']) ? $data['config_forme'] : 1;
+            $entity->config_size = isset($data['config_size']) ? $data['config_size'] : 2;
+            $entity->config_rotation = isset($data['config_rotation']) ? $data['config_rotation'] : 0;
+            $entity->config_rotation_text = isset($data['config_rotation_text']) ? $data['config_rotation_text'] : 0;
+            $entity->user_upd = $user_id;
+            $entity->user_add = $user_id;
+            $entity->date_add = $date_now;
+            $entity->date_upd = $date_now;
+            $entity->save();
+            return $entity;
         } catch (\Exception $e) {
-            //dd($e->getMessage());
             abort(500, $e->getMessage());
         }
-        return $zone;
+        return null;
     }
-
-    public function update(array $data, int $id) {
+    
+    /**
+     * Obtener una zona de un micrositio.
+     * @param   array           $data       Estructura de datos de la mesa a editar.
+     * @param   int             $table_id   Identificador del la mesa a editar.
+     * @param   int             $user_id    Identificador del usuario que va ha editar la mesa.
+     * @return  boolean         [true: registro exitoso] [false: no se actualizaron los datos]
+     */
+    public function update(array $data, int $table_id, int $user_id) {
 
         try {
-            $table = res_table::where('id', $id)->first();
-            $table->name = empty($data['name']) ? $entity->name : $data['name'];
-            $table->min_cover = empty($data['min_cover']) ? $entity->min_cover : $data['min_cover'];
-            $table->max_cover = empty($data['max_cover']) ? $entity->max_cover : $data['max_cover'];            
-            $table->price = empty($data['price']) ? $entity->price : $data['price'];
-            $table->status = empty($data['status']) ? $entity->status : $data['status'];
-             $table->config_color = empty($data['config_color']) ? $entity->config_color : $data['config_color'];
-            
-            $table->config_position = empty($data['config_position']) ? $entity->config_position : $data['config_position'];
-            $table->config_forme = empty($data['config_forme']) ? $entity->config_forme : $data['config_forme'];
-            $table->config_size = empty($data['config_size']) ? $entity->config_size : $data['config_size'];
-            $table->config_rotation = empty($data['config_rotation']) ? $entity->config_rotation : $data['config_rotation'];
-            $table->date_upd = empty($data['date_upd']) ? $entity->date_upd : $data['date_upd'];
-            $table->user_upd = empty($data['user_upd']) ? $entity->user_upd : $data['user_upd'];
+            $date_now = \Carbon\Carbon::now();
+            $entity = res_table::where('id', $table_id)->first();
+            $entity->name = isset($data['name']) ? $data['name'] : $entity->name;
+            $entity->min_cover = isset($data['min_cover']) ? $data['min_cover'] : $entity->min_cover;
+            $entity->max_cover = isset($data['max_cover']) ? $data['max_cover'] : $entity->max_cover;
+            $entity->price = isset($data['price']) ? $data['price'] : $entity->price;
+            $entity->config_color = isset($data['config_color']) ? $data['config_color'] : $entity->config_color;
+            $entity->config_position = isset($data['config_position']) ? $data['config_position'] : $entity->config_position;
+            $entity->config_forme = isset($data['config_forme']) ? $data['config_forme'] : $entity->config_forme;
+            $entity->config_size = isset($data['config_size']) ? $data['config_size'] : $entity->config_size;
+            $entity->config_rotation = isset($data['config_rotation']) ? $data['config_rotation'] : $entity->config_rotation;
+            $entity->config_rotation_text = isset($data['config_rotation_text']) ? $data['config_rotation_text'] : $entity->config_rotation_text;
+            $entity->date_upd = $date_now;
+            $entity->user_upd = $user_id;
+            $entity->save();
+            return true;
         } catch (\Exception $e) {
-
             abort(500, $e->getMessage());
         }
+        return false;
     }
 
 }

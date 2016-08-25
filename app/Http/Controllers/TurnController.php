@@ -56,16 +56,10 @@ class TurnController extends Controller {
                 });
     }
 
-    public function delete($id) {
-        //
-    }
-
     public function listTable(Request $request) {
-        $turn_id = $request->route('turn_id');
-        $zone_id = $request->route('zone_id');
-        $data = $request->all();
-        return $this->TryCatch(function () use ($turn_id, $zone_id) {
-                    $result = $this->_TurnService->getListTable($turn_id, $zone_id);
+        $service = $this->_TurnService;
+        return $this->TryCatch(function () use ($request, $service) {
+                    $result = $service->getListTable($request->route('turn_id'), $request->route('zone_id'));
                     return $this->CreateResponse(true, 201, "", $result);
                 });
     }
