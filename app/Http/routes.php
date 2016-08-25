@@ -50,7 +50,6 @@ function routeMesas() {
         Route::post('turns/', 'TurnController@create');
         Route::put('turns/{turn_id}', 'TurnController@update');
         Route::delete('zones/{zone_id}/turns/{turn_id}', 'TurnController@delete');
-
         Route::get('turns/{turn_id}/zones/{zone_id}/tables', 'TurnController@listTable');
 
         //-----------------------------------------------------

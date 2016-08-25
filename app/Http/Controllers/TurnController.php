@@ -18,7 +18,7 @@ class TurnController extends Controller {
     public function index(Request $request) {
         $service = $this->_TurnService;
         return $this->TryCatch(function () use ($request, $service) {
-                    $data = $service->getList($request->route('microsite_id'), $request->input());
+                    $data = $service->getList($request->route('microsite_id'), $request->input('with'));
                     return $this->CreateResponse(true, 201, "", $data);
                 });
     }
@@ -26,7 +26,7 @@ class TurnController extends Controller {
     public function show(Request $request) {
         $service = $this->_TurnService;
         return $this->TryCatch(function () use ($request, $service) {
-                    $result = $service->get($request->route('microsite_id'), $request->route('turn_id'), $request->input());
+                    $result = $service->get($request->route('microsite_id'), $request->route('turn_id'), $request->input('with'));
                     return $this->CreateResponse(true, 201, "", $result);
                 });
     }
@@ -45,15 +45,23 @@ class TurnController extends Controller {
                     $result = $service->update($request->all(), $request->route('microsite_id'), $request->route('turn_id'), $request->_bs_user_id);
                     return response()->json($result);
                 });
-    }
-
-    public function search(Request $request) {
+    }    
+    
+    public function search(Request $request) {/* evaluando su eliminacion*/
         $service = $this->_TurnService;
         return $this->TryCatch(function () use ($request, $service) {
                     $result = $service->search($request->route('microsite_id'), $request->input());
                     return $this->CreateResponse(true, 201, "", $result);
                 });
     }
+    
+    public function deleteZone(TurnRequest $request) {
+        $service = $this->_TurnService;
+        return $this->TryCatch(function () use ($request, $service) {
+                    $result = $service->update($request->all(), $request->route('microsite_id'), $request->route('turn_id'), $request->_bs_user_id);
+                    return response()->json($result);
+                });
+    } 
 
     public function listTable(Request $request) {
         $service = $this->_TurnService;

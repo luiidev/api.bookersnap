@@ -24,7 +24,7 @@ class ZoneService {
      * @param   string  $with  ['turns'] obtener los turnos que puede usar una zona.
      * @return  array   Lista de Estructura de zonas
      */
-    public function getList(int $microsite_id, string $with) {
+    public function getList(int $microsite_id, $with) {
 
         $rows = res_zone::where('ms_microsite_id', $microsite_id)->with('tables');
         if (isset($with)) {
@@ -41,7 +41,7 @@ class ZoneService {
      * @param   string  $with  ['turns'] obtener los turnos que puede usar una zona.
      * @return  array   Lista de Estructura de zonas
      */
-    public function get(int $microsite_id, int $zone_id, string $with) {
+    public function get(int $microsite_id, int $zone_id, $with) {
         
         $rows = res_zone::where('id', $zone_id)->where('ms_microsite_id', $microsite_id)->with('tables');
         if (isset($with)) {

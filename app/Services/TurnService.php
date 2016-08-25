@@ -29,11 +29,11 @@ class TurnService {
         return $rows;
     }
 
-    public function getList(int $microsite_id, array $params) {
+    public function getList(int $microsite_id, $with) {
 
         $rows = res_turn::where('ms_microsite_id', $microsite_id);
-        if (isset($params['with'])) {
-            $data = explode('|', $params['with']);
+        if (isset($with)) {
+            $data = explode('|', $with);
             $rows = (in_array("type_turn", $data)) ? $rows->with('typeTurn') : $rows;
             $rows = (in_array("turn_zone", $data)) ? $rows->with('turnZone') : $rows;
             $rows = (in_array("turn_zone.zone", $data)) ? $rows->with('turnZone.zone') : $rows;
@@ -47,11 +47,11 @@ class TurnService {
         return $rows->get();
     }
 
-    public function get(int $microsite_id, int $turn_id, $params) {
+    public function get(int $microsite_id, int $turn_id, $with) {
         try {
             $rows = res_turn::where('id', $turn_id)->where('ms_microsite_id', $microsite_id);
-            if (isset($params['with'])) {
-                $data = explode('|', $params['with']);
+            if (isset($with)) {
+                $data = explode('|', $with);
                 $rows = (in_array("type_turn", $data)) ? $rows->with('typeTurn') : $rows;
                 $rows = (in_array("turn_zone", $data)) ? $rows->with('turnZone') : $rows;
                 $rows = (in_array("turn_zone.zone", $data)) ? $rows->with('turnZone.zone') : $rows;
