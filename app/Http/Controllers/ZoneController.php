@@ -34,17 +34,17 @@ class ZoneController extends Controller {
         });  
     }
 
-    public function create(ZoneRequest $request, $lang, int $microsite_id) {
-        return $this->TryCatch(function () use ($request,$microsite_id) {
-            $result = $this->_ZoneService->create($request->all(), $microsite_id);
+    public function create(ZoneRequest $request) {
+        return $this->TryCatch(function () use ($request) {
+            $result = $this->_ZoneService->create($request->all(), $request->route('microsite_id'), $request->_bs_user_id);
             return response()->json($result);
         });
     }
 
-    public function update(ZoneRequest $request, $lang, int $microsite_id, int $id) {
+    public function update(ZoneRequest $request) {
   
-        return $this->TryCatch(function () use ($request,$microsite_id,$id) {
-            $result = $this->_ZoneService->update($request->all(), $id);
+        return $this->TryCatch(function () use ($request) {
+            $result = $this->_ZoneService->update($request->all(), $request->route('zone_id'), $request->_bs_user_id);
             return response()->json($result);
         });
     }
