@@ -140,6 +140,22 @@ class TurnService {
 
       } */
 
+    public function unlinkZone(int $microsite_id, int $turn_id, int $zone_id) {
+        try {
+            if (res_turn::where('ms_microsite_id', $microsite_id)->where('id', $turn_id)->get()->count() > 0) {
+                //return $turn_zone = res_turn_zone::where('res_turn_id', $turn_id)->where('res_zone_id',$zone_id)->with('tables')->firstOrFail();
+                DB::BeginTransaction();                
+                DB::table('res_turn_zone_table')->where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id)->delete();                            
+                $turn = res_turn::findOrFail($turn_id);
+                $turn->zones()->detach($zone_id);
+                DB::Commit();
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            abort(500, $e->getMessage());
+        }
+    }
+
     public function getListTable(int $turn_id, int $zone_id) {
         $turn = res_turn::where('id', $turn_id)->first();
         if ($turn != null) {

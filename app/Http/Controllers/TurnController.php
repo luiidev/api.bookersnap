@@ -45,25 +45,25 @@ class TurnController extends Controller {
                     $result = $service->update($request->all(), $request->route('microsite_id'), $request->route('turn_id'), $request->_bs_user_id);
                     return response()->json($result);
                 });
-    }    
-    
-    public function search(Request $request) {/* evaluando su eliminacion*/
+    }
+
+    public function search(Request $request) {/* evaluando su eliminacion */
         $service = $this->_TurnService;
         return $this->TryCatch(function () use ($request, $service) {
                     $result = $service->search($request->route('microsite_id'), $request->input());
                     return $this->CreateResponse(true, 201, "", $result);
                 });
     }
-    
-    public function deleteZone(TurnRequest $request) {
+
+    public function unlinkZone(Request $request) {
         $service = $this->_TurnService;
         return $this->TryCatch(function () use ($request, $service) {
-                    $result = $service->update($request->all(), $request->route('microsite_id'), $request->route('turn_id'), $request->_bs_user_id);
-                    return response()->json($result);
+                    $service->unlinkZone($request->route('microsite_id'), $request->route('turn_id'), $request->route('zone_id'));
+                    return $this->CreateResponse(true, 200);
                 });
-    } 
+    }
 
-    public function listTable(Request $request) {
+    public function listTableZone(Request $request) {
         $service = $this->_TurnService;
         return $this->TryCatch(function () use ($request, $service) {
                     $result = $service->getListTable($request->route('turn_id'), $request->route('zone_id'));

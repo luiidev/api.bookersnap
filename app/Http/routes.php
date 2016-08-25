@@ -49,8 +49,8 @@ function routeMesas() {
         Route::get('turns/{turn_id}', 'TurnController@show');
         Route::post('turns/', 'TurnController@create');
         Route::put('turns/{turn_id}', 'TurnController@update');
-        Route::delete('zones/{zone_id}/turns/{turn_id}', 'TurnController@delete');
-        Route::get('turns/{turn_id}/zones/{zone_id}/tables', 'TurnController@listTable');
+        Route::get('turns/{turn_id}/unlink-zones/{zone_id}', 'TurnController@unlinkZone');
+        Route::get('turns/{turn_id}/zones/{zone_id}/tables', 'TurnController@listTableZone');
 
         //-----------------------------------------------------
         // MICROSITE:: HUESPEDES
