@@ -51,6 +51,11 @@ function routeMesas() {
         Route::put('turns/{turn_id}', 'TurnController@update');
         Route::get('turns/{turn_id}/unlink-zones/{zone_id}', 'TurnController@unlinkZone');
         Route::get('turns/{turn_id}/zones/{zone_id}/tables', 'TurnController@listTableZone');
+        
+        //-----------------------------------------------------
+        // MICROSITE::CALENDAR
+        //-----------------------------------------------------
+        Route::get('calendar/{date}', 'CalendarController@index');
 
         //-----------------------------------------------------
         // MICROSITE:: HUESPEDES

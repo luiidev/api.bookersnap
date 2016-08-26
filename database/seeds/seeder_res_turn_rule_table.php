@@ -19,9 +19,9 @@ class seeder_res_turn_rule_table extends Seeder {
 
     private function getData() {
         return [
-            $this->getRow(1, "Online"),
-            $this->getRow(2, "In House Only"),
-            $this->getRow(3, "Disabled"),
+            $this->getRow(99, "Disabled"),       
+            $this->getRow(1, "In House Only"), 
+            $this->getRow(2, "Online"),             
         ];
     }
 

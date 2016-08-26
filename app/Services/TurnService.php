@@ -29,7 +29,7 @@ class TurnService {
         return $rows;
     }
 
-    public function getList(int $microsite_id, $with) {
+    public function getList(int $microsite_id, string $with = null) {
 
         $rows = res_turn::where('ms_microsite_id', $microsite_id);
         if (isset($with)) {
@@ -45,6 +45,7 @@ class TurnService {
             $rows = (in_array("zones.turns", $data)) ? $rows->with('zones.turns') : $rows;
         }
         return $rows->get();
+        
     }
 
     public function get(int $microsite_id, int $turn_id, $with) {
@@ -127,23 +128,9 @@ class TurnService {
         return false;
     }
 
-    /* public function validateTimeByTypeTurn(array $params, int $microsite_id){
-      try{
-      $turn = new res_turn();
-
-      $rows = res_turn::where('id', $id)->where('ms_microsite_id', $microsite_id)->with('typeTurn')->get();
-
-      return $turn;
-      }  catch (\Exception $e){
-      abort(500, $e->getMessage());
-      }
-
-      } */
-
     public function unlinkZone(int $microsite_id, int $turn_id, int $zone_id) {
         try {
             if (res_turn::where('ms_microsite_id', $microsite_id)->where('id', $turn_id)->get()->count() > 0) {
-                //return $turn_zone = res_turn_zone::where('res_turn_id', $turn_id)->where('res_zone_id',$zone_id)->with('tables')->firstOrFail();
                 DB::BeginTransaction();                
                 DB::table('res_turn_zone_table')->where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id)->delete();                            
                 $turn = res_turn::findOrFail($turn_id);
@@ -172,5 +159,5 @@ class TurnService {
         }
         return $turn;
     }
-
+    
 }

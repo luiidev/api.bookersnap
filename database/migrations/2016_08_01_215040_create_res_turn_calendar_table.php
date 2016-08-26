@@ -22,6 +22,8 @@ class CreateResTurnCalendarTable extends Migration
             $table->dateTime('date_upd');
             $table->bigInteger('user_add')->unsigned();
             $table->bigInteger('user_upd')->unsigned();
+            
+            $table->primary(['res_turn_id', 'start_date']);
         });
     }
 

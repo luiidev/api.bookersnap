@@ -36,6 +36,7 @@ class DatabaseSeeder extends Seeder
         $this->call(seeder_res_zone_table::class);
         $this->call(seeder_res_table_table::class);
         $this->call(seeder_res_turn_table::class);
+        $this->call(seeder_res_turn_calendar_tables::class);
         $this->call(seeder_res_turn_zone_tables::class);
         $this->call(seeder_res_turn_zone_table_tables::class);
         $this->call(seeder_res_reservation_tables::class);
