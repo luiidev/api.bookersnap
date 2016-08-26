@@ -45,7 +45,6 @@ class TurnService {
             $rows = (in_array("zones.turns", $data)) ? $rows->with('zones.turns') : $rows;
         }
         return $rows->get();
-        
     }
 
     public function get(int $microsite_id, int $turn_id, $with) {
@@ -90,14 +89,23 @@ class TurnService {
             $turn->save();
             foreach ($data['turn_zone'] as $value) {
                 $turn->zones()->attach($value['res_zone_id'], ['res_turn_rule_id' => $value['res_turn_rule_id']]);
+//                if(is_array($value["tables"])){
+//                    foreach ($value["tables"] as $table) {
+//                        $rows = $this->createTurnTable($table["availability"], $turn->hours_ini, $turn->hours_end, $turn->id, $zone_id, $table_id);
+//                    }
+//                }
             }
             DB::Commit();
-            return true;
+            $res_turn = res_turn_zone::where('res_turn_id', $turn->id)->get();
         } catch (\Exception $e) {
             DB::rollBack();
             abort(500, $e->getMessage());
         }
     }
+    
+//    public function availabilityTables(array $data, int $turn_id, int $zone_id) {
+//        
+//    }
 
     public function update(array $data, int $microsite_id, int $turn_id, int $user_id) {
 
@@ -131,8 +139,8 @@ class TurnService {
     public function unlinkZone(int $microsite_id, int $turn_id, int $zone_id) {
         try {
             if (res_turn::where('ms_microsite_id', $microsite_id)->where('id', $turn_id)->get()->count() > 0) {
-                DB::BeginTransaction();                
-                DB::table('res_turn_zone_table')->where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id)->delete();                            
+                DB::BeginTransaction();
+                DB::table('res_turn_zone_table')->where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id)->delete();
                 $turn = res_turn::findOrFail($turn_id);
                 $turn->zones()->detach($zone_id);
                 DB::Commit();
@@ -144,6 +152,7 @@ class TurnService {
     }
 
     public function getListTable(int $turn_id, int $zone_id) {
+        
         $turn = res_turn::where('id', $turn_id)->first();
         if ($turn != null) {
             $EnableTimesForTable = new \App\Domain\EnableTimesForTable();
@@ -159,5 +168,36 @@ class TurnService {
         }
         return $turn;
     }
-    
+
+    public function createTurnTable(array $time_range, int $start_time, int $end_time, int $turn_id, int $zone_id, int $table_id) {
+
+        $time_ini = \App\Domain\TimeForTable::timeToIndex($start_time);
+        $time_end = \App\Domain\TimeForTable::timeToIndex($end_time);
+
+        $rowsTurnTable = [];
+        $new_rule = -1;
+        $turnTable = [
+            "res_turn_id" => $turn_id,
+            "res_zone_id" => $zone_id,
+            "res_table_id" => $table_id,
+        ];
+        for ($i = $time_ini; $i < $time_end; $i++) {
+            $rule = $time_range[$i];
+            $change = false;
+            if ((@$time_range[$i - 1] && $time_range[$i - 1] != $time_range[$i]) || $i == $time_ini) {
+                $turnTable['start_time'] = \App\Domain\TimeForTable::indexToTime($i);
+                $turnTable['end_time'] = $turnTable['start_time'];
+                $turnTable['res_turn_rule_id'] = ($time_range[$i] != -1) ? $time_range[$i] : 0;
+            }
+            if ((@$time_range[$i - 1] && $time_range[$i - 1] == $time_range[$i])) {
+                $turnTable['end_time'] = \App\Domain\TimeForTable::indexToTime($i);
+            }
+
+            if ((@$time_range[$i + 1] && $time_range[$i + 1] != $time_range[$i]) || $i == $time_end - 1) {
+                $rowsTurnTable[] = $turnTable;
+            }
+        }
+        return $rowsTurnTable;
+    }
+
 }

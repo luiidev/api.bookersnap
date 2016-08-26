@@ -14,11 +14,12 @@ class ZoneTableService {
 
     /**
      * Verificar si existe Id de una mesa.
+     * @param   int     $zone_id  Identificador la zona.
      * @param   int     $table_id  Identificador la mesa.
      * @return  boolean [true: si existe la mesa] [false: mesa no existe]
      */
-    public function exists(int $table_id) {
-        return (res_table::where('id', $table_id)->get()->count() > 0) ? true : false;
+    public function exists(int $zone_id, int $table_id = null) {
+        return (res_table::where('id', $table_id)->where('res_zone_id', $zone_id)->get()->count() > 0) ? true : false;
     }
 
     /**

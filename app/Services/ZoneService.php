@@ -110,7 +110,7 @@ class ZoneService {
             DB::BeginTransaction();
             $zone->save();
             foreach ($data['tables'] as $value) {
-                if ($this->_ZoneTableService->exists(@$value["id"])) {
+                if ($this->_ZoneTableService->exists($zone_id, @$value["id"])) {
                     $this->_ZoneTableService->update($value, $value["id"], $user_id);
                 } else {
                     $this->_ZoneTableService->create($value, $zone_id, $user_id);

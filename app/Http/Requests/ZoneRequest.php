@@ -88,7 +88,7 @@ class ZoneRequest extends Request {
             "status_smoker"=> 'integer|in:0,1',
             "people_standing"=> 'integer',
            //'tables' => 'required|array', 
-            "tables.*.id"=> 'exists:res_table,id,res_zone_id,'.$this->route('zone_id'),
+            "tables.*.id"=> 'integer',
             "tables.*.name"=> "required",
             "tables.*.min_cover"=> 'required|integer',
             "tables.*.max_cover"=> 'required|integer',
