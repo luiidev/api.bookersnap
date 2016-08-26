@@ -30,7 +30,12 @@ class CalendarService {
         }       
       
         foreach ($turns as $turn) {
-            $calendar->generateByWeekDay($turn, $turn->start_date, $turn->end_date);
+            $calendar->generateByWeekDay(array(
+                "title" => $turn->name,
+                "color" => $turn->color,
+                "start_date" => $turn->start_date,
+                "end_date" => $turn->end_date,
+            ), $turn->start_date, $turn->end_date);
         }
         
         return $calendar->get();
