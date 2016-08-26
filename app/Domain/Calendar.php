@@ -63,16 +63,23 @@ class Calendar {
         return $day->subDay($day->dayOfWeek);
     }
 
-    protected function getDateTiem(string $date) {
+    protected function firstDateTime(string $date) {
         list($year, $month, $day) = explode('-', $date);
-        return \Carbon\Carbon::create($year, $month, $day);
+        $startDatetime = \Carbon\Carbon::create($year, $month, $day);
+        $res = $this->FIRST_DATETIME->diff($startDatetime);
+        if ($res->invert == 1) {
+            $dayOfWeek = $startDatetime->dayOfWeek;
+            $startDatetime = \Carbon\Carbon::create($this->FIRST_DATETIME->year, $this->FIRST_DATETIME->month, $this->FIRST_DATETIME->day)->addDay($dayOfWeek);
+        }
+        return $startDatetime;
     }
 
     protected function endDateTime(string $date = null) {
         if ($date == null) {
             return $this->END_DATETIME;
         }
-        $endDatetime = $this->getDateTiem($date);
+        list($year, $month, $day) = explode('-', $date);
+        $endDatetime = \Carbon\Carbon::create($year, $month, $day);
         $res = $this->END_DATETIME->diff($endDatetime);
         if ($res->invert == 0) {
             $endDatetime = $this->END_DATETIME;
@@ -89,11 +96,10 @@ class Calendar {
      */
     public function generateByWeekDay($turn, string $start_date, string $end_date = null) {
 
-        $startDatetime = $this->getDateTiem($start_date);
+        $startDatetime = $this->firstDateTime($start_date);        
         $endDatetime = $this->endDateTime($end_date);
         $interval = $startDatetime->diff($endDatetime);
-
-        if ($interval->invert == 0) {            
+        if ($interval->invert == 0) {
             $turn_array = is_object($turn) ? (array) $turn : $turn;
             $turn_array['date'] = $startDatetime->format('Y-m-d');
             $this->DATA[] = $turn_array;            
