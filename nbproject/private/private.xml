@@ -2,20 +2,6 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/res_turn.php</file>
-            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/res_zone.php</file>
-            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Http/Controllers/CalendarController.php</file>
-            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Domain/EnableTimesForTable.php</file>
-            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Services/GuestEmailService.php</file>
-            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Providers/AuthServiceProvider.php</file>
-            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Providers/AppServiceProvider.php</file>
-            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Http/Requests/TurnRequest.php</file>
-            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Domain/Calendar.php</file>
-            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/res_turn_zone.php</file>
-            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Services/CalendarService.php</file>
-            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Http/routes.php</file>
-            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Providers/RouteServiceProvider.php</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>

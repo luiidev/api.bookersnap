@@ -47,9 +47,9 @@ class Calendar {
      * @return  DateTime        ultimo dia del calendario de un mes.
      */
     protected function endDayCalendar(int $year, int $month) {
-        $day = Carbon::create($year, $month);
+        $day = Carbon::create($year, $month); 
         $day->endOfMonth();
-        return $day->addDay(6 - $day->dayOfWeek);
+        return $day->addDay(6- $day->dayOfWeek);
     }
 
     /**

@@ -14,6 +14,7 @@ class CalendarController extends Controller {
     }
 
     public function index(Request $request) {
+        
         $service = $this->_CalendarService;
         return $this->TryCatch(function () use ($request, $service) {
                     $param = explode("-", $request->route('date'));
