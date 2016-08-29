@@ -7,6 +7,7 @@ namespace App\Services;
  * @author USER
  */
 use App\res_zone;
+use App\res_table;
 use Illuminate\Support\Facades\DB;
 use App\Services\ZoneTableService;
 
@@ -42,7 +43,7 @@ class ZoneService {
      * @return  array   Lista de Estructura de zonas
      */
     public function get(int $microsite_id, int $zone_id, $with) {
-        
+
         $rows = res_zone::where('id', $zone_id)->where('ms_microsite_id', $microsite_id)->with('tables');
         if (isset($with)) {
             $split = explode('|', $with);
@@ -68,7 +69,7 @@ class ZoneService {
             $zone->type_zone = isset($data['type_zone']) ? $data['type_zone'] : 0;
             $zone->join_table = isset($data['join_table']) ? $data['join_table'] : 0;
             $zone->status_smoker = isset($data['status_smoker']) ? $data['status_smoker'] : 0;
-            $zone->people_standing = isset($data['people_standing']) ? $data['people_standing'] : 0;            
+            $zone->people_standing = isset($data['people_standing']) ? $data['people_standing'] : 0;
             $zone->user_add = $user_id;
             $zone->user_upd = $user_id;
             $zone->date_add = $date_now;
@@ -86,7 +87,7 @@ class ZoneService {
         }
     }
 
-     /**
+    /**
      * Editar una zona de un micrositio.
      * @param   array   $data  Estructura de datos a editar (zona y sus mesas).
      * @param   int     $zone_id  Identificador de la zona.
@@ -98,8 +99,8 @@ class ZoneService {
         try {
             $date_now = \Carbon\Carbon::now();
             $zone = res_zone::where('id', $zone_id)->first();
-            $zone->name = isset($data['name']) ? $data['name']: $zone->name;
-            $zone->sketch = isset($data['sketch']) ? $data['sketch']: $zone->sketch;
+            $zone->name = isset($data['name']) ? $data['name'] : $zone->name;
+            $zone->sketch = isset($data['sketch']) ? $data['sketch'] : $zone->sketch;
             $zone->type_zone = isset($data['type_zone']) ? $data['type_zone'] : $zone->type_zone;
             $zone->join_table = isset($data['join_table']) ? $data['join_table'] : $zone->join_table;
             $zone->status_smoker = isset($data['status_smoker']) ? $data['status_smoker'] : $zone->status_smoker;
@@ -142,6 +143,16 @@ class ZoneService {
             DB::rollBack();
             abort(500, $e->getMessage());
         }
+    }
+
+    public function getListTable(int $microsite_id, int $zone_id) {
+        $EnableTimesForTable = new \App\Domain\EnableTimesForTable();
+        $disablet = $EnableTimesForTable->disabled();
+        $tables = res_table::where('res_zone_id', $zone_id)->where('status', 1)->get(array('id', 'name', 'min_cover', 'max_cover'))->map(function($item) use($disablet) {
+            $item->availability = $disablet;
+            return $item;
+        });
+        return $tables;
     }
 
     /**

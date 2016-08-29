@@ -43,7 +43,13 @@ class EnableTimesForTable {
             );
         }
     }
-
+    
+    public function disabled() {
+        $this->availability = [];
+        $this->initAvailability();
+        return $this->availability;
+    }
+    
     /*
      * Retorna el numero de segmento de 15 min de las  120 min = 30 horas.
      */

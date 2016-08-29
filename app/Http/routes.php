@@ -36,7 +36,8 @@ function routeMesas() {
         //-----------------------------------------------------
         Route::get('zones/', 'ZoneController@index');
         Route::get('zones/{zone_id}', 'ZoneController@show');
-        Route::post('zones/', 'ZoneController@create');
+        Route::get('zones/{zone_id}/tables', 'ZoneController@listTable');
+        Route::post('zones/', 'ZoneController@create');        
         Route::put('zones/{zone_id}', 'ZoneController@update');
         Route::delete('zones/{zone_id}', 'ZoneController@delete');
 
