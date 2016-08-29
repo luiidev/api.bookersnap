@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateResGuestEmailTable extends Migration
+class CreateResGuestPhoneTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,9 +12,9 @@ class CreateResGuestEmailTable extends Migration
      */
     public function up()
     {
-        Schema::create('res_guest_email', function (Blueprint $table) {
+        Schema::create('res_guest_phone', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('email',128);
+            $table->string('number',45);
             $table->bigInteger('res_guest_id')->unsigned();
         });
     }
@@ -26,6 +26,6 @@ class CreateResGuestEmailTable extends Migration
      */
     public function down()
     {
-        Schema::drop('res_guest_email');
+        Schema::drop('res_guest_phone');
     }
 }

@@ -21,6 +21,7 @@ class CreateResBlockTable extends Migration
             $table->bigInteger('user_upd')->unsigned()->nullable()->default(NULL);
             $table->dateTime('date_add');
             $table->dateTime('date_upd')->nullable()->default(NULL);
+            $table->bigInteger('ms_microsite_id');
         });
     }
 

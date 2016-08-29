@@ -30,7 +30,7 @@ class res_turn extends Model {
         'user_add',
         'user_upd',
         'early',
-        'res_zone_id',
+       // 'res_zone_id',
         'ms_microsite_id',
         'res_type_turn_id'
     ];
@@ -40,23 +40,30 @@ class res_turn extends Model {
         'date_upd',
         'user_add',
         'user_upd',
-        'res_zone_id',
         'ms_microsite_id',
-        'res_type_turn_id'
     ];
     
 
-//    public function days() {
-//        return $this->hasMany('App\res_day_turn_zone', 'res_turn_zone_id');
-//    }
+    /*public function days() {
+       return $this->hasMany('App\res_day_turn_zone', 'res_turn_id');
+    }*/
 
-//    public function type() {
-//        return $this->belongsTo('App\res_type_turn', 'res_type_turn_id');
-//    }
+    public function zones() {
+        return $this->belongsToMany('App\res_zone', 'res_turn_zone', 'res_turn_id', 'res_zone_id');
+    }
     
-//    public function zone() {
-//        return $this->belongsTo('App\res_zone', 'res_zone_id');
-//    }
+    public function typeTurn() {
+       return $this->belongsTo('App\res_type_turn', 'res_type_turn_id');
+    }   
+    
+    public function turnZone() {
+        return $this->hasMany('App\res_turn_zone', 'res_turn_id');
+        //return $this->belongsToMany('App\res_turn_zone', 'res_turn_id');
+    }
+    
+    public function availability() {
+        return $this->hasMany('App\res_turn_zone', 'res_turn_id');
+    }
     
 //    public function delete() {
 //        $this->days()->delete();

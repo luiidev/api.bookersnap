@@ -16,7 +16,7 @@ class CreateResTurnTable extends Migration
             $table->bigIncrements('id');
             $table->string('name');
             $table->bigInteger('res_type_turn_id')->unsigned();
-            $table->bigInteger('ms_microsite_id')->unsigned();            
+            $table->bigInteger('ms_microsite_id')->unsigned();         
             $table->time('hours_ini');
             $table->time('hours_end');
             $table->integer('status')->default(1);

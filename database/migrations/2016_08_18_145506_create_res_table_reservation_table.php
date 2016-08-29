@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateResTableBlockTable extends Migration
+class CreateResTableReservationTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,10 +12,11 @@ class CreateResTableBlockTable extends Migration
      */
     public function up()
     {
-        Schema::create('res_table_block', function (Blueprint $table) {
+        Schema::create('res_table_reservation', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->integer('num_people')->unsigned();
             $table->bigInteger('res_table_id')->unsigned();
-            $table->bigInteger('res_zone_id')->unsigned();
-            $table->bigInteger('res_block_id')->unsigned();
+            $table->bigInteger('res_reservation_id')->unsigned();
         });
     }
 
@@ -26,6 +27,6 @@ class CreateResTableBlockTable extends Migration
      */
     public function down()
     {
-        Schema::drop('res_table_block');
+        Schema::drop('res_table_reservation');
     }
 }

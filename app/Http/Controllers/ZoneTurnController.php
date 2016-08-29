@@ -16,11 +16,7 @@ class ZoneTurnController extends Controller {
 
     protected $_ZoneTurnService;
 
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
+ 
     public function __construct(ZoneTurnService $ZoneTurnService) {
         $this->_ZoneTurnService = $ZoneTurnService;
     }
@@ -46,11 +42,12 @@ class ZoneTurnController extends Controller {
         return response()->json($result);
     }
 
-    public function store(ZoneTurnRequest $request, $lang, int $zone_id) {
-
-        $save = $this->_ZoneTurnService->create($zone_id, $request->all());
-        $result = $this->_ZoneTurnService->getList($zone_id);
-        return response()->json($result);
+    public function create(ZoneTurnRequest $request, $lang, int $zone_id) {
+        return $this->TryCatch(function () use ($request,$microsite_id) {
+            $result = $this->_ZoneTurnService->create($zone_id, $request->all());
+            //$result = $this->_ZoneTurnService->getList($zone_id);
+            return response()->json($result);
+        });
     }
 
     public function update(ZoneTurnRequest $request, $lang, int $zone_id, int $id) {

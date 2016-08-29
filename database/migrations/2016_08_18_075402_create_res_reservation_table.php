@@ -16,7 +16,7 @@ class CreateResReservationTable extends Migration {
             $table->bigInteger('ev_event_id')->unsigned()->nullable();
             $table->bigInteger('ms_microsite_id')->unsigned();
             $table->bigInteger('bs_user_id')->unsigned()->nullable();
-            $table->bigInteger('res_guest_id')->unsigned();
+            $table->bigInteger('res_guest_id')->unsigned()->nullable();
             $table->bigInteger('res_reservation_status_id')->unsigned();
             $table->date('date_reservation')->comment();
             $table->time('hours_reservation')->comment();
@@ -30,7 +30,10 @@ class CreateResReservationTable extends Migration {
             $table->string('num_table', 80)->nullable()->comment();
             $table->string('colaborator', 45)->nullable()->comment();
             $table->string('note', 200)->nullable();
-            $table->string('type_reservation', 45)->nullable();            
+            $table->string('type_reservation', 45)->nullable(); 
+            $table->datetime('date_add')->comment();
+            $table->datetime('date_upd')->comment()->nullable();
+            $table->bigInteger('user_add')->comment();
         });
     }
 

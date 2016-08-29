@@ -14,8 +14,6 @@ namespace App\Domain;
  * @author USER
  */
 use App\res_day_turn_zone;
-use App\res_turn_zone;
-use App\res_type_turn_zone;
 use Illuminate\Database\Eloquent\Collection;
 
 class TurnDomain {
@@ -46,6 +44,12 @@ class TurnDomain {
             }
         }
         return false;
+    }
+
+    public function tablesAvailability($turn, $tables, $tables_availability) {
+        $ini = (date("H", strtotime($turn->hours_ini)) * 1 + (date("i", strtotime($turn->hours_ini))) / 15) * 4;
+        $end = (date("H", strtotime($turn->hours_end)) * 1 + (date("i", strtotime($turn->hours_end))) / 15) * 4;
+        
     }
 
 }

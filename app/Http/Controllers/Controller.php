@@ -11,4 +11,35 @@ use Illuminate\Foundation\Auth\Access\AuthorizesResources;
 class Controller extends BaseController
 {
     use AuthorizesRequests, AuthorizesResources, DispatchesJobs, ValidatesRequests;
+
+    protected function TryCatch($closure) {
+        $response = null;
+        try {
+            return $closure();
+        } catch (HttpException $e) {
+            $response = $this->CreateResponse(false, $e->getStatusCode(), null, null, false, null, $e->getMessage(), $e->getMessage() . "\n" . "{$e->getFile()}: {$e->getLine()}");
+        } catch (ModelNotFoundException $e) {
+            $response = $this->CreateResponse(false, 404, null, null, false, null, 'No se encontró el recurso solicitado.', $e->getMessage() . "\n" . "{$e->getFile()}: {$e->getLine()}");
+        } catch (\Exception $e) {
+            $response = $this->CreateResponse(false, 500, null, null, false, null, "Ocurrió un error interno", $e->getMessage() . "\n" . "{$e->getFile()}: {$e->getLine()}");
+        }
+        return response()->json($response, $response['statuscode']);
+    }
+
+    protected function CreateResponse($success, $statusCode, $msg = null, $data = null, $redirect = false, $url = null, $errorUserMsg = null, $errorInternalMsg = null, $arrayErrors = null) {
+        return [
+            "success" => $success,
+            "statuscode" => $statusCode,
+            "msg" => $msg,
+            "data" => $data,
+            "redirect" => $redirect,
+            "url" => $url,
+            "error" => [
+                "user_msg" => $errorUserMsg,
+                "internal_msg" => $errorInternalMsg,
+                "errors" => $arrayErrors
+            ]
+        ];
+    }
+
 }

@@ -17,11 +17,11 @@ class CreateResZoneTable extends Migration
 //            $table->timestamps();
             $table->string('name',64);
             $table->string('sketch',128)->nullable(); // es croquis
-            $table->integer('status')->unsigned();
-            $table->integer('type_zone')->unsigned();
-            $table->tinyInteger('join_table')->unsigned();
-            $table->boolean('status_smoker');
-            $table->integer('people_standing')->unsigned(); // personas de pie.
+            $table->integer('status')->unsigned()->default(1);
+            $table->integer('type_zone')->unsigned()->default(0);
+            $table->tinyInteger('join_table')->unsigned()->default(0);
+            $table->boolean('status_smoker')->nullable()->default(0);
+            $table->integer('people_standing')->unsigned()->default(0); // personas de pie.
             $table->bigInteger('user_add')->unsigned();
             $table->bigInteger('user_upd')->unsigned()->nullable()->default(NULL);
             $table->dateTime('date_add');

@@ -13,8 +13,9 @@ class CreateResTypeTurnTable extends Migration
     public function up()
     {
         Schema::create('res_type_turn', function (Blueprint $table) {
-             $table->bigIncrements('id');
+            $table->bigIncrements('id');
             $table->string('name',64);
+            $table->string('color',64);
             $table->integer('status');
         });
     }

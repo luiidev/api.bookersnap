@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateResTurnStateTable extends Migration
+class CreateResGuestHasResGuestTagTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,10 +12,9 @@ class CreateResTurnStateTable extends Migration
      */
     public function up()
     {
-        Schema::create('res_turn_state', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->string('name');
-            $table->integer('status');
+        Schema::create('res_guest_has_res_guest_tag', function (Blueprint $table) {
+            $table->bigInteger('res_guest_id')->unsigned();
+            $table->bigInteger('res_guest_tag_id')->unsigned();
         });
     }
 
@@ -26,6 +25,6 @@ class CreateResTurnStateTable extends Migration
      */
     public function down()
     {
-        Schema::drop('res_turn_state');
+        Schema::drop('res_guest_has_res_guest_tag');
     }
 }
