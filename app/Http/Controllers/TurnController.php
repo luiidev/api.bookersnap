@@ -62,7 +62,7 @@ class TurnController extends Controller {
                     return $this->CreateResponse(true, 200);
                 });
     }
-
+    
     public function listTableZone(Request $request) {
         $service = $this->_TurnService;
         return $this->TryCatch(function () use ($request, $service) {

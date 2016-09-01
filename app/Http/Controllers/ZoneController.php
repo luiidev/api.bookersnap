@@ -55,4 +55,13 @@ class ZoneController extends Controller {
                 });
     }
 
+    public function listTable(Request $request) {
+        $service = $this->_ZoneService;
+        return $this->TryCatch(function () use ($request, $service) {
+                    $result = $service->getListTable($request->route('microsite_id'), $request->route('zone_id'));
+                    return $this->CreateResponse(true, 201, "", $result);
+                });
+    }
+
+    
 }

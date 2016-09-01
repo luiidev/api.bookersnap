@@ -151,6 +151,24 @@ class TurnService {
         }
     }
 
+     public function formListTable(int $microsite, int $zone_id) {
+        
+        $turn = res_turn::where('id', $turn_id)->first();
+        if ($turn != null) {
+            $EnableTimesForTable = new \App\Domain\EnableTimesForTable();
+
+            $tables = res_table::where('res_zone_id', $zone_id)->where('status', 1)->with(array('turns' => function($query) use($turn_id, $zone_id) {
+                            $query->where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id);
+                        }))->get(array('id', 'name', 'min_cover', 'max_cover'))->map(function($item) use($turn, $EnableTimesForTable) {
+                $item->availability = $EnableTimesForTable->segment($turn, $item->turns);
+                unset($item->turns);
+                return $item;
+            });
+            return $tables;
+        }
+        return $turn;
+    }
+    
     public function getListTable(int $turn_id, int $zone_id) {
         
         $turn = res_turn::where('id', $turn_id)->first();
