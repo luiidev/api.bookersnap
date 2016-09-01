@@ -16,8 +16,8 @@ class DatabaseSeeder extends Seeder
 
     public function dataDemo(){
         /* REGISTROS DE TABLAS MAESTRAS*/
-        $this->call(seeder_bs_country_table::class);
-        $this->call(seeder_bs_city_table::class);
+//        $this->call(seeder_bs_country_table::class);
+//        $this->call(seeder_bs_city_table::class);
         /* Sistema de mesas */
         $this->call(seeder_res_type_turn_table::class);
         $this->call(seeder_res_turn_rule_table::class);
@@ -26,8 +26,8 @@ class DatabaseSeeder extends Seeder
         $this->call(seeder_res_reservation_status_tables::class);
         
         /* RESGISTROS DE PRUEBA*/
-        $this->call(seeder_bs_user_table::class);
-        $this->call(seeder_ms_microsite_table::class);
+//        $this->call(seeder_bs_user_table::class);
+//        $this->call(seeder_ms_microsite_table::class);
         
                 
         $this->call(seeder_res_guest_tables::class);

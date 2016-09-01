@@ -2,93 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2665a504-a5a2-4f7b-939b-5c332d53ca1c" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Domain/Calendar.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Domain/EnableTimesForTable.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Domain/TimeForTable.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Controllers/CalendarController.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Controllers/GuestController.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Controllers/GuestTagCategoryController.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Middleware/AclMiddleware.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Middleware/SetLocaleMiddleware.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Middleware/responseHeaderMiddleware.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Requests/GuestRequest.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Http/Requests/TurnRequest.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Services/CalendarService.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Services/GuestEmailService.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Services/GuestPhoneService.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Services/GuestService.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Services/GuestTagCategoryService.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Services/TurnService.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/Services/ZoneTableService.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/res_guest.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/res_guest_email.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/res_guest_phone.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/res_guest_tag.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/res_guest_tag_category.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/res_reservation_status.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/res_turn_calendar.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/res_turn_rule.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/res_turn_zone.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/res_turn_zone_table.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/config/cors.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/migrations/2016_08_01_215040_create_res_turn_calendar_table.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/migrations/2016_08_08_163720_create_res_turn_zone_table_table.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/migrations/2016_08_16_225648_create_res_guest_tag_table.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/migrations/2016_08_16_230415_create_res_guest_tag_category_table.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/migrations/2016_08_16_231243_create_res_guest_has_res_guest_tag_table.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/seeds/seeder_res_guest_email_tables.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/seeds/seeder_res_guest_phone_tables.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/seeds/seeder_res_guest_tag_category_tables.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/seeds/seeder_res_guest_tag_tables.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/seeds/seeder_res_turn_calendar_tables.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/seeds/seeder_res_turn_rule_table.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/seeds/seeder_res_turn_zone_table_tables.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/seeds/seeder_res_turn_zone_tables.php" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/app/res_zone_turn.php" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/database/migrations/2016_08_01_164546_create_res_day_turn_zone_table.php" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/database/migrations/2016_08_08_163726_create_res_table_server_table.php" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/database/seeds/seeder_res_zone_turn_tables.php" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Domain/TurnDomain.php" afterPath="$PROJECT_DIR$/app/Domain/TurnDomain.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Http/Controllers/Controller.php" afterPath="$PROJECT_DIR$/app/Http/Controllers/Controller.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Http/Controllers/TurnController.php" afterPath="$PROJECT_DIR$/app/Http/Controllers/TurnController.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Http/Controllers/ZoneController.php" afterPath="$PROJECT_DIR$/app/Http/Controllers/ZoneController.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Http/Controllers/ZoneTurnController.php" afterPath="$PROJECT_DIR$/app/Http/Controllers/ZoneTurnController.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Http/Kernel.php" afterPath="$PROJECT_DIR$/app/Http/Kernel.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Http/Requests/Request.php" afterPath="$PROJECT_DIR$/app/Http/Requests/Request.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Http/Requests/ZoneRequest.php" afterPath="$PROJECT_DIR$/app/Http/Requests/ZoneRequest.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Http/routes.php" afterPath="$PROJECT_DIR$/app/Http/routes.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Services/ZoneService.php" afterPath="$PROJECT_DIR$/app/Services/ZoneService.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Services/ZoneTurnService.php" afterPath="$PROJECT_DIR$/app/Services/ZoneTurnService.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/res_reservation.php" afterPath="$PROJECT_DIR$/app/res_reservation.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/res_table.php" afterPath="$PROJECT_DIR$/app/res_table.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/res_turn.php" afterPath="$PROJECT_DIR$/app/res_turn.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/res_zone.php" afterPath="$PROJECT_DIR$/app/res_zone.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/composer.json" afterPath="$PROJECT_DIR$/composer.json" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/config/app.php" afterPath="$PROJECT_DIR$/config/app.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/migrations/2016_08_08_163804_create_res_block_table.php" afterPath="$PROJECT_DIR$/database/migrations/2016_08_08_163804_create_res_block_table.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Domain/Calendar.php" afterPath="$PROJECT_DIR$/app/Domain/Calendar.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Services/CalendarService.php" afterPath="$PROJECT_DIR$/app/Services/CalendarService.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/migrations/2016_07_21_164613_create_bs_country_table.php" afterPath="$PROJECT_DIR$/database/migrations/2016_07_21_164613_create_bs_country_table.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/migrations/2016_07_21_164753_create_bs_city_table.php" afterPath="$PROJECT_DIR$/database/migrations/2016_07_21_164753_create_bs_city_table.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/migrations/2016_07_21_165017_create_ms_microsite_table.php" afterPath="$PROJECT_DIR$/database/migrations/2016_07_21_165017_create_ms_microsite_table.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/seeds/DatabaseSeeder.php" afterPath="$PROJECT_DIR$/database/seeds/DatabaseSeeder.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/seeds/seeder_res_guest_tables.php" afterPath="$PROJECT_DIR$/database/seeds/seeder_res_guest_tables.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/seeds/seeder_res_reservation_tables.php" afterPath="$PROJECT_DIR$/database/seeds/seeder_res_reservation_tables.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/seeds/seeder_res_table_reservation_tables.php" afterPath="$PROJECT_DIR$/database/seeds/seeder_res_table_reservation_tables.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/seeds/seeder_res_table_table.php" afterPath="$PROJECT_DIR$/database/seeds/seeder_res_table_table.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/seeds/seeder_res_turn_table.php" afterPath="$PROJECT_DIR$/database/seeds/seeder_res_turn_table.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/seeds/seeder_res_type_turn_table.php" afterPath="$PROJECT_DIR$/database/seeds/seeder_res_type_turn_table.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/seeds/seeder_res_zone_table.php" afterPath="$PROJECT_DIR$/database/seeds/seeder_res_zone_table.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/nbproject/private/private.xml" afterPath="$PROJECT_DIR$/nbproject/private/private.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/readme.md" afterPath="$PROJECT_DIR$/readme.md" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/migrations/2016_07_20_172228_create_res_zone_table.php" afterPath="$PROJECT_DIR$/database/migrations/2016_07_22_172228_create_res_zone_table.php" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/migrations/2016_07_20_172925_create_res_table_table.php" afterPath="$PROJECT_DIR$/database/migrations/2016_07_22_172925_create_res_table_table.php" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/migrations/2016_08_01_165448_create_res_turn_state_table.php" afterPath="$PROJECT_DIR$/database/migrations/2016_08_01_165448_create_res_turn_rule_table.php" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/migrations/2016_08_05_075402_create_res_reservation_table.php" afterPath="$PROJECT_DIR$/database/migrations/2016_08_18_075402_create_res_reservation_table.php" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/migrations/2016_08_05_215039_create_res_turn_table.php" afterPath="$PROJECT_DIR$/database/migrations/2016_08_01_215039_create_res_turn_table.php" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/migrations/2016_08_08_143716_create_res_zone_turn_table.php" afterPath="$PROJECT_DIR$/database/migrations/2016_08_08_143716_create_res_turn_zone_table.php" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/migrations/2016_08_08_145506_create_res_table_reservation_table.php" afterPath="$PROJECT_DIR$/database/migrations/2016_08_18_145506_create_res_table_reservation_table.php" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/migrations/2016_08_08_145927_create_res_reservation_status_table.php" afterPath="$PROJECT_DIR$/database/migrations/2016_08_18_145927_create_res_reservation_status_table.php" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/migrations/2016_08_08_162245_create_res_guest_table.php" afterPath="$PROJECT_DIR$/database/migrations/2016_08_16_162245_create_res_guest_table.php" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/migrations/2016_08_08_163321_create_res_guest_email_table.php" afterPath="$PROJECT_DIR$/database/migrations/2016_08_16_221319_create_res_guest_email_table.php" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/migrations/2016_08_08_163526_create_res_guest_phone_table.php" afterPath="$PROJECT_DIR$/database/migrations/2016_08_16_221605_create_res_guest_phone_table.php" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/migrations/2016_08_08_163751_create_res_table_block_table.php" afterPath="$PROJECT_DIR$/database/migrations/2016_08_08_163751_create_res_block_table_table.php" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/migrations/2016_08_09_144535_create_res_type_turn_table.php" afterPath="$PROJECT_DIR$/database/migrations/2016_08_01_154535_create_res_type_turn_table.php" />
     </list>
     <ignored path="api.mesas.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -110,25 +31,42 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name=".env" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/.env">
+      <file leaf-file-name="CalendarController.php" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/app/Http/Controllers/CalendarController.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="3" column="24" selection-start-line="3" selection-start-column="24" selection-end-line="3" selection-end-column="24" />
+            <state vertical-scroll-proportion="0.12643678">
+              <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="routes.php" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/app/Http/routes.php">
+      <file leaf-file-name="CalendarService.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/Services/CalendarService.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.36091954">
-              <caret line="55" column="30" selection-start-line="55" selection-start-column="30" selection-end-line="55" selection-end-column="30" />
-              <folding>
-                <element signature="e#7#409#0#PHP" expanded="true" />
-                <marker date="1472488061420" expanded="true" signature="5326:5332" placeholder="..." />
-              </folding>
+            <state vertical-scroll-proportion="-7.483871">
+              <caret line="14" column="54" selection-start-line="14" selection-start-column="54" selection-end-line="14" selection-end-column="54" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Calendar.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/Domain/Calendar.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-20.258064">
+              <caret line="127" column="32" selection-start-line="127" selection-start-column="32" selection-end-line="127" selection-end-column="32" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="res_turn_calendar.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/res_turn_calendar.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-15.612904">
+              <caret line="26" column="5" selection-start-line="26" selection-start-column="5" selection-end-line="26" selection-end-column="5" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -141,8 +79,14 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/.env" />
         <option value="$PROJECT_DIR$/app/Http/routes.php" />
+        <option value="$PROJECT_DIR$/.env" />
+        <option value="$PROJECT_DIR$/database/seeds/DatabaseSeeder.php" />
+        <option value="$PROJECT_DIR$/database/migrations/2016_07_21_164613_create_bs_country_table.php" />
+        <option value="$PROJECT_DIR$/database/migrations/2016_07_21_164753_create_bs_city_table.php" />
+        <option value="$PROJECT_DIR$/database/migrations/2016_07_21_165017_create_ms_microsite_table.php" />
+        <option value="$PROJECT_DIR$/app/Domain/Calendar.php" />
+        <option value="$PROJECT_DIR$/app/Services/CalendarService.php" />
       </list>
     </option>
   </component>
@@ -241,6 +185,28 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="api.mesas" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="api.mesas" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="app" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Http" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Controllers" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
       <pane id="Scratches" />
@@ -248,6 +214,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="js-jscs-nodeInterpreter" value="C:\Program Files\nodejs\node.exe" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -256,6 +223,31 @@
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\xampp\htdocs\proyectos\api.mesas\app" />
     </key>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug">
+      <method />
+    </configuration>
+    <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
+      <TestRunner />
+      <method />
+    </configuration>
+    <configuration default="true" type="PhpBehatConfigurationType" factoryName="Behat">
+      <BehatRunner />
+      <method />
+    </configuration>
+    <configuration default="true" type="PhpLocalRunConfigurationType" factoryName="PHP Console">
+      <method />
+    </configuration>
+    <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
+      <method />
+    </configuration>
+    <configuration default="true" type="js.build_tools.npm" factoryName="npm">
+      <command value="run-script" />
+      <scripts />
+      <envs />
+      <method />
+    </configuration>
   </component>
   <component name="ShelveChangesManager" show_recycled="false" />
   <component name="TaskManager">
@@ -268,11 +260,11 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-9" y="-9" width="1860" height="1098" extended-state="6" />
-    <editor active="false" />
+    <frame x="-9" y="-9" width="1860" height="1098" extended-state="7" />
+    <editor active="true" />
     <layout>
       <window_info id="Gulp" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24972856" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24972856" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
@@ -308,10 +300,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/.env">
+    <entry file="file://$PROJECT_DIR$/composer.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="3" column="24" selection-start-line="3" selection-start-column="24" selection-end-line="3" selection-end-column="24" />
+        <state vertical-scroll-proportion="0.42988506">
+          <caret line="17" column="6" selection-start-line="17" selection-start-column="5" selection-end-line="17" selection-end-column="6" />
           <folding />
         </state>
       </provider>
@@ -324,6 +316,142 @@
             <element signature="e#7#409#0#PHP" expanded="true" />
             <marker date="1472488061420" expanded="true" signature="5326:5332" placeholder="..." />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/migrations/2016_08_01_154535_create_res_type_turn_table.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/seeds/seeder_res_turn_calendar_tables.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.8344827">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/seeds/seeder_bs_user_table.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.env">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="14" column="17" selection-start-line="14" selection-start-column="17" selection-end-line="14" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/seeds/DatabaseSeeder.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-13.16129">
+          <caret line="30" column="8" selection-start-line="30" selection-start-column="8" selection-end-line="30" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/migrations/2014_10_12_000000_create_users_table.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/migrations/2016_07_21_164550_create_bs_user_table.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.1632184">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/migrations/2014_10_12_100000_create_password_resets_table.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/migrations/2016_07_21_164613_create_bs_country_table.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-24.838709">
+          <caret line="36" column="5" selection-start-line="36" selection-start-column="5" selection-end-line="36" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/migrations/2016_07_21_164753_create_bs_city_table.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-20.580645">
+          <caret line="30" column="5" selection-start-line="30" selection-start-column="5" selection-end-line="30" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/migrations/2016_07_21_165017_create_ms_microsite_table.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="1.4045978">
+          <caret line="70" column="5" selection-start-line="70" selection-start-column="5" selection-end-line="70" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/TurnController.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.87126434">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/res_turn_calendar.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-15.612904">
+          <caret line="26" column="5" selection-start-line="26" selection-start-column="5" selection-end-line="26" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/php/lib/php.jar!/com/jetbrains/php/lang/psi/stubs/data/standard_9.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.3448276">
+          <caret line="85" column="9" selection-start-line="85" selection-start-column="9" selection-end-line="85" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Domain/Calendar.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-20.258064">
+          <caret line="127" column="32" selection-start-line="127" selection-start-column="32" selection-end-line="127" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Services/CalendarService.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-7.483871">
+          <caret line="14" column="54" selection-start-line="14" selection-start-column="54" selection-end-line="14" selection-end-column="54" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/CalendarController.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.12643678">
+          <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
