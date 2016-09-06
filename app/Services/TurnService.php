@@ -89,7 +89,6 @@ class TurnService {
 
             DB::BeginTransaction();
             $turn->save();
-            $dd = array();
             foreach ($data['turn_zone'] as $value) {
                 $turn->zones()->attach($value['res_zone_id'], ['res_turn_rule_id' => $value['res_turn_rule_id']]);
                 $this->saveTurnTables($value["tables"], $turn->hours_ini, $turn->hours_end, $turn->id, $value['res_zone_id']);
@@ -194,8 +193,8 @@ class TurnService {
                 
                 res_turn_zone_table::where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id)->where('res_table_id', $table_id)->delete();
                 
-                $turnTables = $TurnServiceHelper->createTurnTable($table_availability, $hours_ini, $hours_end, $turn_id, $zone_id, $table_id);                
-                foreach ($turnTables as $key => $turnTable) {                    
+                $turnTables = $TurnServiceHelper->createTurnTable($table_availability, $hours_ini, $hours_end, $turn_id, $zone_id, $table_id);   
+                foreach ($turnTables as $key => $turnTable) {      
                     $entity = new res_turn_zone_table();
                     $entity->start_time = $turnTable['start_time'];
                     $entity->end_time = $turnTable['end_time'];
