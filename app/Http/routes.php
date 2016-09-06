@@ -26,6 +26,7 @@ Route::group(['prefix' => 'v1/{lang}',], function() {
 
 function routeMesas() {
 
+
     //-----------------------------------------------------
     // MICROSITE
     //-----------------------------------------------------
@@ -40,6 +41,18 @@ function routeMesas() {
         Route::post('zones/', 'ZoneController@create');        
         Route::put('zones/{zone_id}', 'ZoneController@update');
         Route::delete('zones/{zone_id}', 'ZoneController@delete');
+
+        //-----------------------------------------------------
+        // MICROSITE::BLOQUEO
+        //-----------------------------------------------------
+        Route::delete('blocks/{block_id}', 'BlockController@delete');
+        Route::post('blocks', 'BlockController@insert');
+        Route::get('blocks', 'BlockController@list');
+        Route::put('blocks/{block_id}', 'BlockController@update');
+        //Route::get('zones/{zone_id}/tables', 'ZoneController@listTable');
+        //Route::post('zones/', 'ZoneController@create');        
+        //Route::put('zones/{zone_id}', 'ZoneController@update');
+        //Route::delete('zones/{zone_id}', 'ZoneController@delete');
 
         //-----------------------------------------------------
         // MICROSITE::TURNOS
