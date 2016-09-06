@@ -26,6 +26,7 @@ Route::group(['prefix' => 'v1/{lang}',], function() {
 
 function routeMesas() {
 
+
     //-----------------------------------------------------
     // MICROSITE
     //-----------------------------------------------------
@@ -34,12 +35,24 @@ function routeMesas() {
         //-----------------------------------------------------
         // MICROSITE::ZONAS
         //-----------------------------------------------------
-        Route::get('zones/', 'ZoneController@index');
+        Route::get('zones/', ['uses'=> 'ZoneController@index']);
         Route::get('zones/{zone_id}', 'ZoneController@show');
         Route::get('zones/{zone_id}/tables', 'ZoneController@listTable');
         Route::post('zones/', 'ZoneController@create');        
         Route::put('zones/{zone_id}', 'ZoneController@update');
         Route::delete('zones/{zone_id}', 'ZoneController@delete');
+
+        //-----------------------------------------------------
+        // MICROSITE::BLOQUEO
+        //-----------------------------------------------------
+        Route::delete('blocks/{block_id}', 'BlockController@delete');
+        Route::post('blocks', 'BlockController@insert');
+        Route::get('blocks', 'BlockController@list');
+        Route::put('blocks/{block_id}', 'BlockController@update');
+        //Route::get('zones/{zone_id}/tables', 'ZoneController@listTable');
+        //Route::post('zones/', 'ZoneController@create');        
+        //Route::put('zones/{zone_id}', 'ZoneController@update');
+        //Route::delete('zones/{zone_id}', 'ZoneController@delete');
 
         //-----------------------------------------------------
         // MICROSITE::TURNOS
@@ -57,6 +70,7 @@ function routeMesas() {
         // MICROSITE::CALENDAR
         //-----------------------------------------------------
         Route::get('calendar/{date}', 'CalendarController@index');
+        Route::get('calendar/{date}/shifts', 'CalendarController@listShift');
 
         //-----------------------------------------------------
         // MICROSITE:: HUESPEDES

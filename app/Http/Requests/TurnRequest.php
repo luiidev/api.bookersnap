@@ -56,6 +56,10 @@ class TurnRequest extends Request {
             'turn_zone' => 'required|array',
             'turn_zone.*.res_zone_id' => 'required|exists:res_zone,id,ms_microsite_id,'.$this->route('microsite_id'),
             'turn_zone.*.res_turn_rule_id' => 'required|exists:res_turn_rule,id',
+            'turn_zone.*.tables' => 'array',
+            'turn_zone.*.tables.*.id' => 'required|integer|exists:res_table,id',
+            'turn_zone.*.tables.*.availability' => 'required|array',
+            'turn_zone.*.tables.*.availability.*.rule_id' => 'required|integer|in:-1,0,1,2',          
         ];
     }
     
@@ -72,6 +76,10 @@ class TurnRequest extends Request {
             'turn_zone' => 'required|array',
             'turn_zone.*.res_zone_id' => 'required|exists:res_zone,id,ms_microsite_id,'.$this->route('microsite_id'),
             'turn_zone.*.res_turn_rule_id' => 'required|exists:res_turn_rule,id',
+            'turn_zone.*.tables' => 'array',
+            'turn_zone.*.tables.*.id' => 'required|integer|exists:res_table,id',
+            'turn_zone.*.tables.*.availability' => 'required|array',
+            'turn_zone.*.tables.*.availability.*.rule_id' => 'required|integer|in:-1,0,1,2',
         ];
     }
     
