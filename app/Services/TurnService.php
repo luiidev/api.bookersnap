@@ -31,9 +31,12 @@ class TurnService {
         return $rows;
     }
 
-    public function getList(int $microsite_id, string $with = null) {
+    public function getList(int $microsite_id, string $with = null, string $type_turn = null) {
 
         $rows = res_turn::where('ms_microsite_id', $microsite_id);
+        
+        $rows =  isset($type_turn)? $rows->whereIn('res_type_turn_id', explode(",", $type_turn)) : $rows;
+        
         if (isset($with)) {
             $data = explode('|', $with);
             $rows = (in_array("type_turn", $data)) ? $rows->with('typeTurn') : $rows;
@@ -46,6 +49,7 @@ class TurnService {
             $rows = (in_array("zones.tables", $data)) ? $rows->with('zones.tables') : $rows;
             $rows = (in_array("zones.turns", $data)) ? $rows->with('zones.turns') : $rows;
         }
+        
         return $rows->get();
     }
 
@@ -120,7 +124,7 @@ class TurnService {
                     $turn->zones()->updateExistingPivot($value['res_zone_id'], ['res_turn_rule_id' => $value['res_turn_rule_id']]);
                 } else {
                     $turn->zones()->attach($value['res_zone_id'], ['res_turn_rule_id' => $value['res_turn_rule_id']]);
-                }                
+                }
                 $this->saveTurnTables($value["tables"], $turn->hours_ini, $turn->hours_end, $turn->id, $value['res_zone_id']);
             }
             DB::Commit();
@@ -182,19 +186,19 @@ class TurnService {
         }
         return $turn;
     }
-    
+
     private function saveTurnTables(array $tables, $hours_ini, $hours_end, int $turn_id, int $zone_id) {
-        
+
         if (is_array($tables)) {
             $TurnServiceHelper = new TurnServiceHelper();
             foreach ($tables as $table) {
                 $table_id = $table["id"];
                 $table_availability = $table["availability"];
-                
+
                 res_turn_zone_table::where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id)->where('res_table_id', $table_id)->delete();
-                
-                $turnTables = $TurnServiceHelper->createTurnTable($table_availability, $hours_ini, $hours_end, $turn_id, $zone_id, $table_id);   
-                foreach ($turnTables as $key => $turnTable) {      
+
+                $turnTables = $TurnServiceHelper->createTurnTable($table_availability, $hours_ini, $hours_end, $turn_id, $zone_id, $table_id);
+                foreach ($turnTables as $key => $turnTable) {
                     $entity = new res_turn_zone_table();
                     $entity->start_time = $turnTable['start_time'];
                     $entity->end_time = $turnTable['end_time'];

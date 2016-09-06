@@ -18,7 +18,7 @@ class TurnController extends Controller {
     public function index(Request $request) {
         $service = $this->_TurnService;
         return $this->TryCatch(function () use ($request, $service) {
-                    $data = $service->getList($request->route('microsite_id'), $request->input('with'));
+                    $data = $service->getList($request->route('microsite_id'), $request->input('with'), $request->input('type_turn'));
                     return $this->CreateResponse(true, 201, "", $data);
                 });
     }
