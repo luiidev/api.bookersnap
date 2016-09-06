@@ -29,12 +29,12 @@ function routeMesas() {
     //-----------------------------------------------------
     // MICROSITE
     //-----------------------------------------------------
-    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['cors', 'setLocale', 'ACL:microsite']], function() {
+    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['cors', 'setLocale']], function() {
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS
         //-----------------------------------------------------
-        Route::get('zones/', 'ZoneController@index');
+        Route::get('zones/', ['uses'=> 'ZoneController@index']);
         Route::get('zones/{zone_id}', 'ZoneController@show');
         Route::get('zones/{zone_id}/tables', 'ZoneController@listTable');
         Route::post('zones/', 'ZoneController@create');        
@@ -57,6 +57,7 @@ function routeMesas() {
         // MICROSITE::CALENDAR
         //-----------------------------------------------------
         Route::get('calendar/{date}', 'CalendarController@index');
+        Route::get('calendar/{date}/shifts', 'CalendarController@listShift');
 
         //-----------------------------------------------------
         // MICROSITE:: HUESPEDES
