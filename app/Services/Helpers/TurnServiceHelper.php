@@ -25,7 +25,7 @@ class TurnServiceHelper {
             "res_zone_id" => $zone_id,
             "res_table_id" => $table_id,
         ];
-
+        
         for ($i = $time_ini; $i < $time_end; $i++) {
 
             $rule_id = $this->getRuleId($time_range, $i);
@@ -48,7 +48,7 @@ class TurnServiceHelper {
     }
 
     public function getRuleId(array $data, int $index) {
-        if (is_array($data) && is_array($data[$index]) && isset($data[$index]["rule_id"])) {
+        if (is_array($data) && isset($data[$index]) && is_array($data[$index]) && isset($data[$index]["rule_id"])) {
             return $data[$index]["rule_id"];
         }
         return -1;
