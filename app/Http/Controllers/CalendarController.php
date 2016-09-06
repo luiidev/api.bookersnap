@@ -24,5 +24,15 @@ class CalendarController extends Controller {
                     return $this->CreateResponse(true, 201, "", $data);
                 });
     }
+    
+    
+    public function listShift(Request $request) {
+        
+        $service = $this->_CalendarService;
+        return $this->TryCatch(function () use ($request, $service) {
+                    $data = $service->getListShift($request->route('microsite_id'), $request->route('date'));
+                    return $this->CreateResponse(true, 201, "", $data);
+                });
+    }
 
 }
