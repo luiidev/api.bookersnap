@@ -28,8 +28,7 @@ class DatabaseSeeder extends Seeder
         /* RESGISTROS DE PRUEBA*/
 //        $this->call(seeder_bs_user_table::class);
 //        $this->call(seeder_ms_microsite_table::class);
-        
-                
+                        
         $this->call(seeder_res_guest_tables::class);
         $this->call(seeder_res_guest_email_tables::class);
         $this->call(seeder_res_guest_phone_tables::class);
@@ -38,7 +37,7 @@ class DatabaseSeeder extends Seeder
         $this->call(seeder_res_turn_table::class);
         $this->call(seeder_res_turn_calendar_tables::class);
         $this->call(seeder_res_turn_zone_tables::class);
-        $this->call(seeder_res_turn_zone_table_tables::class);
+        $this->call(seeder_res_turn_table_table::class);
         $this->call(seeder_res_reservation_tables::class);
         $this->call(seeder_res_table_reservation_tables::class);
     }

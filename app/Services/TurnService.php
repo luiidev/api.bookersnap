@@ -5,7 +5,7 @@ namespace App\Services;
 use App\res_table;
 use App\res_turn;
 use App\res_turn_zone;
-use App\res_turn_zone_table;
+use App\res_turn_table;
 use App\Services\Helpers\TurnServiceHelper;
 use App\Services\TurnZoneService;
 use Illuminate\Support\Facades\DB;
@@ -95,7 +95,7 @@ class TurnService {
             $turn->save();
             foreach ($data['turn_zone'] as $value) {
                 $turn->zones()->attach($value['res_zone_id'], ['res_turn_rule_id' => $value['res_turn_rule_id']]);
-                $this->saveTurnTables($value["tables"], $turn->hours_ini, $turn->hours_end, $turn->id, $value['res_zone_id']);
+                $this->saveTurnTables($value["tables"], $turn->hours_ini, $turn->hours_end, $turn->id);
             }
             DB::Commit();
             $res_turn = res_turn_zone::where('res_turn_id', $turn->id)->get();
@@ -125,7 +125,7 @@ class TurnService {
                 } else {
                     $turn->zones()->attach($value['res_zone_id'], ['res_turn_rule_id' => $value['res_turn_rule_id']]);
                 }
-                $this->saveTurnTables($value["tables"], $turn->hours_ini, $turn->hours_end, $turn->id, $value['res_zone_id']);
+                $this->saveTurnTables($value["tables"], $turn->hours_ini, $turn->hours_end, $turn->id);
             }
             DB::Commit();
             return true;
@@ -139,8 +139,9 @@ class TurnService {
     public function unlinkZone(int $microsite_id, int $turn_id, int $zone_id) {
         try {
             if (res_turn::where('ms_microsite_id', $microsite_id)->where('id', $turn_id)->get()->count() > 0) {
-                DB::BeginTransaction();
-                DB::table('res_turn_zone_table')->where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id)->delete();
+                DB::BeginTransaction();                
+                $arrayIdsTables = res_table::where('res_zone_id', $zone_id)->get()->pluck(['id']);
+                DB::table('res_turn_table')->whereIn('res_table_id', $arrayIdsTables)->where('res_turn_id', $turn_id)->delete();                
                 $turn = res_turn::findOrFail($turn_id);
                 $turn->zones()->detach($zone_id);
                 DB::Commit();
@@ -175,8 +176,8 @@ class TurnService {
         if ($turn != null) {
             $EnableTimesForTable = new \App\Domain\EnableTimesForTable();
 
-            $tables = res_table::where('res_zone_id', $zone_id)->where('status', 1)->with(array('turns' => function($query) use($turn_id, $zone_id) {
-                            $query->where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id);
+            $tables = res_table::where('res_zone_id', $zone_id)->where('status', 1)->with(array('turns' => function($query) use($turn_id) {
+                            $query->where('res_turn_id', $turn_id);
                         }))->get(array('id', 'name', 'min_cover', 'max_cover'))->map(function($item) use($turn, $EnableTimesForTable) {
                 $item->availability = $EnableTimesForTable->segment($turn, $item->turns);
                 unset($item->turns);
@@ -187,30 +188,30 @@ class TurnService {
         return $turn;
     }
 
-    private function saveTurnTables(array $tables, $hours_ini, $hours_end, int $turn_id, int $zone_id) {
-
+    private function saveTurnTables(array $tables, $hours_ini, $hours_end, int $turn_id) {
+        
         if (is_array($tables)) {
             $TurnServiceHelper = new TurnServiceHelper();
             foreach ($tables as $table) {
                 $table_id = $table["id"];
                 $table_availability = $table["availability"];
 
-                res_turn_zone_table::where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id)->where('res_table_id', $table_id)->delete();
+                res_turn_table::where('res_turn_id', $turn_id)->where('res_table_id', $table_id)->delete();
 
-                $turnTables = $TurnServiceHelper->createTurnTable($table_availability, $hours_ini, $hours_end, $turn_id, $zone_id, $table_id);
+                $turnTables = $TurnServiceHelper->createTurnTable($table_availability, $hours_ini, $hours_end, $turn_id, $table_id);
                 foreach ($turnTables as $key => $turnTable) {
-                    $entity = new res_turn_zone_table();
+                    $entity = new res_turn_table();
+                    $entity->res_table_id = $turnTable['res_table_id'];
+                    $entity->res_turn_id = $turnTable['res_turn_id'];
                     $entity->start_time = $turnTable['start_time'];
                     $entity->end_time = $turnTable['end_time'];
-                    $entity->res_turn_id = $turnTable['res_turn_id'];
-                    $entity->res_zone_id = $turnTable['res_zone_id'];
-                    $entity->res_table_id = $turnTable['res_table_id'];
                     $entity->res_turn_rule_id = $turnTable['res_turn_rule_id'];
                     $entity->save();
                 }
             }
         }
         return true;
+        
     }
 
 }
