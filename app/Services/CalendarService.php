@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\DB;
 use App\Domain\Calendar;
 use App\res_turn_calendar;
+use App\res_turn;
 
 class CalendarService {
 
@@ -53,16 +54,43 @@ class CalendarService {
         $tipeturns = \App\res_type_turn::where('status', 1)->get()->map(function($item) use($turns) {
             foreach ($turns as $value) {
                 $turn = $value['turn'];
-                if(@$turn['type_turn'] && $turn['type_turn']['id'] == $item->id){
+                if (@$turn['type_turn'] && $turn['type_turn']['id'] == $item->id) {
                     unset($turn['type_turn']);
                     $item->turn = $turn;
                 }
             }
-            $item->turn = !empty($item->turn)?$item->turn:null;
+            $item->turn = !empty($item->turn) ? $item->turn : null;
             return $item;
         });
-        
+
         return $tipeturns;
+    }
+
+    public function existConflictTurn($turn_id, $start_time, $end_time) {
+        $date = date('Y-m-d');
+//        $data = DB::select(
+//                        "SELECT c.res_type_turn_id, c.start_date, c.end_date, DATE_FORMAT(c.start_date, '%w') as weekday, c.start_time, c.end_time, c.res_turn_id "
+//                        . "FROM res_turn_calendar as c "
+//                        . "WHERE (c.start_date >= $date OR c.end_date = '9999-12-31') "
+//                        . "ORDER BY weekday ASC");
+//        
+//        $data = DB::select(
+//                        "SELECT c.res_type_turn_id, c.start_date, c.end_date, DATE_FORMAT(c.start_date, '%w') as weekday, c.start_time, c.end_time, c.res_turn_id "
+//                        . "FROM res_turn_calendar as c "
+//                        . "WHERE (c.start_date >= $date OR c.end_date = '9999-12-31') "
+//                        . "ORDER BY weekday ASC");
+//        foreach ($array as $key => $value) {
+//            
+//        }
+        
+        
+        $data = res_turn_calendar::where(function($query) use($date) {
+                    $query->where('end_date', '>=', $date)->orWhere('end_date', '9999-12-31');
+                })->orderBy('start_date')->get();
+                
+                
+
+        return $data;
     }
 
 }

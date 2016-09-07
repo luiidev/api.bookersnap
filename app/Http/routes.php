@@ -71,6 +71,7 @@ function routeMesas() {
         //-----------------------------------------------------
         Route::get('calendar/{date}', 'CalendarController@index');
         Route::get('calendar/{date}/shifts', 'CalendarController@listShift');
+        Route::get('calendar/{turn_id}/{start_time}/{end_time}', 'CalendarController@existConflictTurn');
 
         //-----------------------------------------------------
         // MICROSITE:: HUESPEDES

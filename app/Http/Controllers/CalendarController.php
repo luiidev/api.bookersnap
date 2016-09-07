@@ -34,5 +34,14 @@ class CalendarController extends Controller {
                     return $this->CreateResponse(true, 201, "", $data);
                 });
     }
+    
+    public function existConflictTurn(Request $request) {
+        
+        $service = $this->_CalendarService;
+        return $this->TryCatch(function () use ($request, $service) {
+                    $data = $service->existConflictTurn($request->route('turn_id'), $request->route('start_time'), $request->route('end_time'));
+                    return $this->CreateResponse(true, 201, "", $data);
+                });
+    }
 
 }

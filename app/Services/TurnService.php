@@ -80,6 +80,7 @@ class TurnService {
 
     public function create(array $data, int $microsite_id, int $user_id) {
         try {
+            return $data;
             $turn = new res_turn();
             $turn->name = $data["name"];
             $turn->ms_microsite_id = $microsite_id;
