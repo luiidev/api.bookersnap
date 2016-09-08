@@ -47,7 +47,7 @@ class TurnRequest extends Request {
         return [
             'name' => 'required|string',
             'hours_ini' => "required",
-            'hours_end' => 'required',
+            'hours_end' => 'required|different:hours_ini',
             'on_table' => 'integer|in:0,1',
             'early' => 'integer|in:0,1',
             'res_type_turn_id' => 'required|exists:res_type_turn,id',
@@ -67,7 +67,7 @@ class TurnRequest extends Request {
             'id' => 'required|exists:res_turn,id,ms_microsite_id,' . $this->route('microsite_id'),
             'name' => 'required|string',
             'hours_ini' => 'required',
-            'hours_end' => 'required',
+            'hours_end' => 'required|different:hours_ini',
             'on_table' => 'integer|in:0,1',
             'early' => 'integer|in:0,1',
             'res_type_turn_id' => 'required|exists:res_type_turn,id',
@@ -86,7 +86,7 @@ class TurnRequest extends Request {
         list($hours, $minute) = explode(":", $this->input('hours_ini'));
         $this->request->set('hours_ini', "$hours:$minute:00");
                 
-        list($hours, $minute) = explode(":", $this->input('hours_end'));        
+        list($hours, $minute) = explode(":", $this->input('hours_end'));
         $this->request->set('hours_end', "$hours:$minute:00");
         
     }
