@@ -113,7 +113,8 @@ function routeMesas() {
 //        Route::get('servers', 'ConfigZoneTypeturnDayController@available');
 //        
 //        
-//        Route::get('reservations', 'ConfigZoneTypeturnDayController@available');
+          Route::get('reservations', 'ReservationController@index');
+
 //        Route::get('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
 //        Route::post('reservations', 'ConfigZoneTypeturnDayController@available');
 //        Route::put('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
