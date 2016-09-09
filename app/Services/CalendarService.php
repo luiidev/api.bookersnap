@@ -7,7 +7,6 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Domain\Calendar;
 use App\res_turn_calendar;
-use App\res_turn;
 
 class CalendarService
 {
@@ -75,6 +74,7 @@ class CalendarService
 
         $res_turn_calendar = new res_turn_calendar();
         $res_turn_calendar->res_turn_id = $res_turn_id;
+        $res_turn_calendar->res_type_turn_id = $res_turn->res_type_turn_id;
         $res_turn_calendar->start_date = $date;
         $res_turn_calendar->end_date = $date;
         $res_turn_calendar->start_time = $res_turn->hours_ini;
