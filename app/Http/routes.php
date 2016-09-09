@@ -19,26 +19,27 @@ Route::get('/docs', function () {
     return "documentacion del API";
 });
 
-Route::group(['prefix' => 'v1/{lang}',], function() {
+Route::group(['prefix' => 'v1/{lang}',], function () {
     Route::get('guests-tags-categories', 'GuestTagCategoryController@index');
     routeMesas();
 });
 
-function routeMesas() {
+function routeMesas()
+{
 
 
     //-----------------------------------------------------
     // MICROSITE
     //-----------------------------------------------------
-    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['cors', 'setLocale', 'ACL:microsite']], function() {
+    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['cors', 'setLocale', 'ACL:microsite']], function () {
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS
         //-----------------------------------------------------
-        Route::get('zones/', ['uses'=> 'ZoneController@index']);
+        Route::get('zones/', ['uses' => 'ZoneController@index']);
         Route::get('zones/{zone_id}', 'ZoneController@show');
         Route::get('zones/{zone_id}/tables', 'ZoneController@listTable');
-        Route::post('zones/', 'ZoneController@create');        
+        Route::post('zones/', 'ZoneController@create');
         Route::put('zones/{zone_id}', 'ZoneController@update');
         Route::delete('zones/{zone_id}', 'ZoneController@delete');
 
@@ -65,13 +66,18 @@ function routeMesas() {
         Route::put('turns/{turn_id}', 'TurnController@update');
         Route::get('turns/{turn_id}/unlink-zones/{zone_id}', 'TurnController@unlinkZone');
         Route::get('turns/{turn_id}/zones/{zone_id}/tables', 'TurnController@listTableZone');
-        
+
         //-----------------------------------------------------
         // MICROSITE::CALENDAR
         //-----------------------------------------------------
         Route::get('calendar/{date}', 'CalendarController@index');
         Route::get('calendar/{date}/shifts', 'CalendarController@listShift');
+
+        Route::post('calendar', 'CalendarController@storeCalendar');
+        Route::delete('calendar', 'CalendarController@deleteCalendar');
+
         Route::get('calendar/{turn_id}/{start_time}/{end_time}', 'CalendarController@existConflictTurn');
+
 
         //-----------------------------------------------------
         // MICROSITE:: HUESPEDES
@@ -97,6 +103,7 @@ function routeMesas() {
         //-----------------------------------------------------
         Route::get('zones/{zone_id}/type-turns/{id}/days', 'ZoneTypeturnController@index');
         Route::get('zones/{zone_id}/type-turns/{id}/days/available', 'ZoneTypeturnController@available');
+
 
 //        Route::get('reservations', 'ZoneTypeturnDayController@available');
         //-----------------------------------------------------
