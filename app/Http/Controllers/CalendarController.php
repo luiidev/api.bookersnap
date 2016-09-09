@@ -47,10 +47,9 @@ class CalendarController extends Controller
         });
     }
 
-    public function deleteCalendar($lang, $microsite_id, Request $request)
+    public function deleteCalendar($lang, $microsite_id, Request $request, $res_turn_id)
     {
-        $res_turn_id = $request->input('res_turn_id');
-        $date = $request->input('date');
+        $date = request('date');
         return $this->TryCatch(function () use ($res_turn_id, $date) {
             $this->_CalendarService->deleteCalendar($res_turn_id, $date);
             return $this->CreateResponse(true, 200);

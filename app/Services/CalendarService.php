@@ -130,8 +130,10 @@ class CalendarService
                         ]);
                     $res_turn_calendar = new res_turn_calendar();
                     $res_turn_calendar->res_turn_id = $res_turn_calendar_aux->res_turn_id;
-                    $res_turn_calendar->start_date = Carbon::createFromFormat('Y-m-d', $date)->addDays(7);
+                    $res_turn_calendar->res_type_turn_id = $res_turn_calendar_aux->res_type_turn_id;
+                    $res_turn_calendar->start_date = Carbon::createFromFormat('Y-m-d', $date)->addDays(7)->toDateString();
                     $res_turn_calendar->end_date = $res_turn_calendar_aux->end_date;
+                    $res_turn_calendar->start_time = $res_turn_calendar_aux->start_time;
                     $res_turn_calendar->end_time = $res_turn_calendar_aux->end_time;
                     $res_turn_calendar->date_add = Carbon::now();
                     $res_turn_calendar->user_add = 1;

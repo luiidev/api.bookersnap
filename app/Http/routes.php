@@ -74,7 +74,7 @@ function routeMesas()
         Route::get('calendar/{date}/shifts', 'CalendarController@listShift');
 
         Route::post('calendar', 'CalendarController@storeCalendar');
-        Route::delete('calendar', 'CalendarController@deleteCalendar');
+        Route::delete('calendar/{res_turn_id}', 'CalendarController@deleteCalendar');
 
         Route::get('calendar/{turn_id}/{start_time}/{end_time}', 'CalendarController@existConflictTurn');
 
