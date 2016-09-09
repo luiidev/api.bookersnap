@@ -114,6 +114,7 @@ function routeMesas() {
 //        
 //        
           Route::get('reservations', 'ReservationController@index');
+          Route::post('reservations', 'ReservationController@create');
 
 //        Route::get('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
 //        Route::post('reservations', 'ConfigZoneTypeturnDayController@available');
