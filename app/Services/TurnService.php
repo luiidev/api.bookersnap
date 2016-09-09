@@ -49,7 +49,7 @@ class TurnService {
             $rows = (in_array("zones.tables", $data)) ? $rows->with('zones.tables') : $rows;
             $rows = (in_array("zones.turns", $data)) ? $rows->with('zones.turns') : $rows;
         }
-        
+
         return $rows->get();
     }
 
