@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2665a504-a5a2-4f7b-939b-5c332d53ca1c" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/Services/CalendarService.php" afterPath="$PROJECT_DIR$/app/Services/CalendarService.php" />
     </list>
     <ignored path="api.mesas.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -144,7 +142,7 @@
   </component>
   <component name="PhpWorkspaceProjectConfiguration" backward_compatibility_performed="true" />
   <component name="ProjectFrameBounds">
-    <option name="x" value="1272" />
+    <option name="x" value="1334" />
     <option name="y" value="-8" />
     <option name="width" value="1298" />
     <option name="height" value="856" />
@@ -286,7 +284,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1272" y="-8" width="1298" height="856" extended-state="6" />
+    <frame x="1334" y="-8" width="1298" height="856" extended-state="7" />
     <editor active="true" />
     <layout>
       <window_info id="Gulp" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />

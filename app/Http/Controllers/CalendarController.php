@@ -8,7 +8,6 @@ use App\Services\CalendarService;
 
 class CalendarController extends Controller
 {
-
     protected $_CalendarService;
 
     public function __construct(CalendarService $CalendarService)
@@ -18,7 +17,6 @@ class CalendarController extends Controller
 
     public function index(Request $request)
     {
-
         $service = $this->_CalendarService;
         return $this->TryCatch(function () use ($request, $service) {
             $param = explode("-", $request->route('date'));
@@ -32,7 +30,6 @@ class CalendarController extends Controller
 
     public function listShift(Request $request)
     {
-
         $service = $this->_CalendarService;
         return $this->TryCatch(function () use ($request, $service) {
             $data = $service->getListShift($request->route('microsite_id'), $request->route('date'));
@@ -60,13 +57,12 @@ class CalendarController extends Controller
         });
     }
     
-    public function existConflictTurn(Request $request) {
-        
+    public function existConflictTurn(Request $request)
+    {
         $service = $this->_CalendarService;
         return $this->TryCatch(function () use ($request, $service) {
-                    $data = $service->existConflictTurn($request->route('turn_id'), $request->route('start_time'), $request->route('end_time'));
-                    return $this->CreateResponse(true, 201, "", $data);
-                });
+            $data = $service->existConflictTurn($request->route('turn_id'), $request->route('start_time'), $request->route('end_time'));
+            return $this->CreateResponse(true, 201, "", $data);
+        });
     }
-
 }
