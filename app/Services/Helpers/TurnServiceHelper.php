@@ -13,16 +13,19 @@ namespace App\Services\Helpers;
  */
 class TurnServiceHelper {    
     
-    public function createTurnTable(array $time_range, string $start_time, string $end_time, int $turn_id, int $zone_id, int $table_id) {
+    public function createTurnTable(array $time_range, string $start_time, string $end_time, int $turn_id, int $table_id) {
 
         $time_ini = \App\Domain\TimeForTable::timeToIndex($start_time);
         $time_end = \App\Domain\TimeForTable::timeToIndex($end_time);
+        
+        if($time_ini > $time_end){
+            $time_end = 96 + $time_end;
+        }
 
         $rowsTurnTable = [];
         $new_rule = -1;
         $turnTable = [
             "res_turn_id" => $turn_id,
-            "res_zone_id" => $zone_id,
             "res_table_id" => $table_id,
         ];
         
@@ -31,8 +34,8 @@ class TurnServiceHelper {
             $rule_id = $this->getRuleId($time_range, $i);
             $rule_id_old = $this->getRuleId($time_range, $i - 1);
             $rule_id_next = $this->getRuleId($time_range, $i + 1);
-
-            if ($rule_id_old != $rule_id) {
+            
+            if ($rule_id_old != $rule_id || $i == $time_ini) {
                 $turnTable['start_time'] = \App\Domain\TimeForTable::indexToTime($i);
                 $turnTable['end_time'] = $turnTable['start_time'];
                 $turnTable['res_turn_rule_id'] = ($rule_id != -1) ? $rule_id : 0;

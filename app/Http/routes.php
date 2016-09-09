@@ -72,8 +72,12 @@ function routeMesas()
         //-----------------------------------------------------
         Route::get('calendar/{date}', 'CalendarController@index');
         Route::get('calendar/{date}/shifts', 'CalendarController@listShift');
+
         Route::post('calendar', 'CalendarController@storeCalendar');
         Route::delete('calendar', 'CalendarController@deleteCalendar');
+
+        Route::get('calendar/{turn_id}/{start_time}/{end_time}', 'CalendarController@existConflictTurn');
+
 
         //-----------------------------------------------------
         // MICROSITE:: HUESPEDES
@@ -116,7 +120,8 @@ function routeMesas()
 //        Route::get('servers', 'ConfigZoneTypeturnDayController@available');
 //        
 //        
-//        Route::get('reservations', 'ConfigZoneTypeturnDayController@available');
+          Route::get('reservations', 'ReservationController@index');
+
 //        Route::get('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
 //        Route::post('reservations', 'ConfigZoneTypeturnDayController@available');
 //        Route::put('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');

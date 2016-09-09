@@ -45,9 +45,9 @@ class TurnRequest extends Request {
 
     private function RulesStore() {
         return [
-            'name' => 'required|string',
+            'email' => 'required|string',
             'hours_ini' => "required",
-            'hours_end' => 'required|different:hours_ini',
+            'hours_end' => 'required',
             'on_table' => 'integer|in:0,1',
             'early' => 'integer|in:0,1',
             'res_type_turn_id' => 'required|exists:res_type_turn,id',
@@ -67,7 +67,7 @@ class TurnRequest extends Request {
             'id' => 'required|exists:res_turn,id,ms_microsite_id,' . $this->route('microsite_id'),
             'name' => 'required|string',
             'hours_ini' => 'required',
-            'hours_end' => 'required|different:hours_ini',
+            'hours_end' => 'required',
             'on_table' => 'integer|in:0,1',
             'early' => 'integer|in:0,1',
             'res_type_turn_id' => 'required|exists:res_type_turn,id',
@@ -86,27 +86,10 @@ class TurnRequest extends Request {
         list($hours, $minute) = explode(":", $this->input('hours_ini'));
         $this->request->set('hours_ini', "$hours:$minute:00");
                 
-        list($hours, $minute) = explode(":", $this->input('hours_end'));
+        list($hours, $minute) = explode(":", $this->input('hours_end'));        
         $this->request->set('hours_end', "$hours:$minute:00");
         
     }
 
-//    public function messages()
-//    {
-//        return [
-//            'hours_ini.required' => 'Ingrese hora de inicio.',
-//            'hours_end.required' => 'Ingresar hora de cierre.',
-//            'status.regex' => 'Ingresar estado.',
-//            'on_table.regex' => 'Ingresar on_table.',
-//            'early.regex' => 'Ingresar early.',
-//            'days.required' => 'Elejir dias para el turno.',
-//            'days.*.day.in' => 'Elejir un día de la semana turno.',
-//            'type_turn_id.required' => 'Tipo de turno requerido.',
-//            'type_turn_id.exists' => 'El tipo de turno no existe.',
-//            'microsite_id.required' => 'Micrositio requerido.',
-//            'microsite_id.exists' => 'El micrositio no existe.',
-//            'user_id.required' => 'Usuario requerido.',
-//            'user_id.exists' => 'El usuario ingresado no existe.'
-//        ];
-//    }
+
 }
