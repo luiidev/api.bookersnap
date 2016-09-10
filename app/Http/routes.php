@@ -75,6 +75,7 @@ function routeMesas()
 
         Route::post('calendar', 'CalendarController@storeCalendar');
         Route::delete('calendar/{res_turn_id}', 'CalendarController@deleteCalendar');
+        Route::put('calendar/change', 'CalendarController@changeCalendar');
 
         Route::get('calendar/{turn_id}/{start_time}/{end_time}', 'CalendarController@existConflictTurn');
 

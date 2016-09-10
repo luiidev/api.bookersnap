@@ -118,30 +118,12 @@ class CalendarService
                 $count = res_turn_calendar::where('start_date', $date)
                     ->where('res_turn_id', $res_turn_id)->count();
                 if ($count > 0) {
-                    DB::Table('res_turn_calendar')->where('start_date', $date)
-                        ->where('res_turn_id', $res_turn_id)->update([
-                            'start_date' => Carbon::createFromFormat('Y-m-d', $date)->addDays(7)
-                        ]);
+                    $this->deleteCalendarEquealStartDateCase($res_turn_id, $date);
                 } else {
-                    $res_turn_calendar_aux = res_turn_calendar::where('res_turn_id', $res_turn_id)->whereRaw('weekday(start_date) = weekday(\'' . $date . '\')')->orderBy('start_date', 'desc')->first();
-                    DB::Table('res_turn_calendar')->where('start_date', $res_turn_calendar_aux->start_date)
-                        ->where('res_turn_id', $res_turn_calendar_aux->res_turn_id)->update([
-                            'end_date' => Carbon::createFromFormat('Y-m-d', $date)->addDays(-7)
-                        ]);
-                    $res_turn_calendar = new res_turn_calendar();
-                    $res_turn_calendar->res_turn_id = $res_turn_calendar_aux->res_turn_id;
-                    $res_turn_calendar->res_type_turn_id = $res_turn_calendar_aux->res_type_turn_id;
-                    $res_turn_calendar->start_date = Carbon::createFromFormat('Y-m-d', $date)->addDays(7)->toDateString();
-                    $res_turn_calendar->end_date = $res_turn_calendar_aux->end_date;
-                    $res_turn_calendar->start_time = $res_turn_calendar_aux->start_time;
-                    $res_turn_calendar->end_time = $res_turn_calendar_aux->end_time;
-                    $res_turn_calendar->date_add = Carbon::now();
-                    $res_turn_calendar->user_add = 1;
-                    $res_turn_calendar->save();
+                    $this->deleteCalendarBetweenDatesCase($res_turn_id, $date);
                 }
             }
         });
-
     }
 
     public function existConflictTurn($turn_id, $start_time, $end_time)
@@ -172,4 +154,88 @@ class CalendarService
 
     }
 
+    /**
+     * Cambio de turno en calendario Service
+     * @param  int $res_turn_id  
+     * @param  int $res_shift_id 
+     * @param  date $date         
+     * @return Void               
+     */
+    public function changeCalendar($res_turn_id, $res_shift_id, $date)
+    {
+        DB::Transaction(function () use ($res_turn_id, $res_shift_id, $date) {
+            $count = res_turn_calendar::where('start_date', $date)
+                ->where('end_date', $date)->where('res_turn_id', $res_turn_id)->count();
+            if ($count  > 0) {
+
+                $res_turn = res_turn::find($res_shift_id);
+
+                res_turn_calendar::where('start_date', $date)
+                        ->where('end_date', $date)->where('res_turn_id', $res_turn_id)
+                        ->update([
+                                "res_type_turn_id"  =>  $res_turn->res_type_turn_id,
+                                "res_turn_id"            =>  $res_turn->id,
+                                "user_upd"               =>  2,
+                                "date_upd"               =>  Carbon::now(),
+                                "start_time"              =>  $res_turn->hours_ini,
+                                "end_time"               =>  $res_turn->hours_end,
+                            ]);
+            } else {
+                $count = res_turn_calendar::where('start_date', $date)
+                    ->where('res_turn_id', $res_turn_id)->count();
+                if ($count > 0) {
+                        $this->deleteCalendarEquealStartDateCase($res_turn_id, $date);
+                        $this->createCalendarHelper($res_shift_id, $date);
+                } else {
+                    $this->deleteCalendarBetweenDatesCase($res_turn_id, $date);
+                    $this->createCalendarHelper($res_shift_id, $date);
+                }
+            }
+        });
+    }
+
+    private function createCalendarHelper($res_shift_id, $date)
+    {
+        $res_turn = res_turn::find($res_shift_id);
+
+        $date_calendar = Carbon::createFromFormat('Y-m-d', $date)->toDateString();
+
+        res_turn_calendar::create([
+                        "res_type_turn_id"  =>  $res_turn->res_type_turn_id,
+                        "res_turn_id"            =>  $res_turn->id,
+                        "user_add"               =>  1,
+                        "date_add"               =>  Carbon::now(),
+                        "start_date"              =>  $date_calendar,
+                        "end_date"               =>  $date_calendar,
+                        "start_time"              =>  $res_turn->hours_ini,
+                        "end_time"               =>  $res_turn->hours_end,
+                    ]);
+    }
+
+    private function deleteCalendarEquealStartDateCase($res_turn_id, $date)
+    {
+        DB::Table('res_turn_calendar')->where('start_date', $date)
+            ->where('res_turn_id', $res_turn_id)->update([
+                'start_date' => Carbon::createFromFormat('Y-m-d', $date)->addDays(7)
+            ]);
+    }
+
+    private function deleteCalendarBetweenDatesCase($res_turn_id, $date)
+    {
+        $res_turn_calendar_aux = res_turn_calendar::where('res_turn_id', $res_turn_id)->whereRaw('weekday(start_date) = weekday(\'' . $date . '\')')->orderBy('start_date', 'desc')->first();
+        DB::Table('res_turn_calendar')->where('start_date', $res_turn_calendar_aux->start_date)
+            ->where('res_turn_id', $res_turn_calendar_aux->res_turn_id)->update([
+                'end_date' => Carbon::createFromFormat('Y-m-d', $date)->addDays(-7)
+            ]);
+        $res_turn_calendar = new res_turn_calendar();
+        $res_turn_calendar->res_turn_id             = $res_turn_calendar_aux->res_turn_id;
+        $res_turn_calendar->res_type_turn_id   = $res_turn_calendar_aux->res_type_turn_id;
+        $res_turn_calendar->start_date               = Carbon::createFromFormat('Y-m-d', $date)->addDays(7)->toDateString();
+        $res_turn_calendar->end_date                = $res_turn_calendar_aux->end_date;
+        $res_turn_calendar->start_time               = $res_turn_calendar_aux->start_time;
+        $res_turn_calendar->end_time                = $res_turn_calendar_aux->end_time;
+        $res_turn_calendar->date_add               = Carbon::now();
+        $res_turn_calendar->user_add                = 1;
+        $res_turn_calendar->save();
+    }
 }

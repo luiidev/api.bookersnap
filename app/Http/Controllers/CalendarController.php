@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CalendarRequest;
 use Illuminate\Http\Request;
 use App\Services\CalendarService;
+use Validator;
 
 class CalendarController extends Controller
 {
@@ -61,6 +62,30 @@ class CalendarController extends Controller
         $service = $this->_CalendarService;
         return $this->TryCatch(function () use ($request, $service) {
             $data = $service->existConflictTurn($request->route('turn_id'), $request->route('start_time'), $request->route('end_time'));
+            return $this->CreateResponse(true, 201, "", $data);
+        });
+    }
+
+    /**
+     * Cambio de turno en el calendario 
+     * @param  Illuminate\Http\Request $request 
+     * @return  Illuminate\Http\Response  
+     */
+    public function changeCalendar(Request $request)
+    {
+        $rules = [
+            "turn_id"   =>  "required|integer|exists:res_turn,id",
+            "shift_id"  =>  "required|integer|exists:res_turn,id",
+            "date"       =>  "required|date"
+        ];
+
+        if ( Validator::make($request->all(), $rules)->fails()){
+            return  $this->CreateResponse(true, 401, "No posee lo campos necesarios para realizar el cambio de turno");
+        }
+
+        $service = $this->_CalendarService;
+        return $this->TryCatch(function () use ($request, $service) {
+            $data = $service->changeCalendar(request("turn_id"), request("shift_id"), request("date"));
             return $this->CreateResponse(true, 201, "", $data);
         });
     }
