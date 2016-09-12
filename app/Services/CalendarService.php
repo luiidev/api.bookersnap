@@ -2,11 +2,12 @@
 
 namespace App\Services;
 
+use App\Domain\Calendar;
 use App\res_turn;
+use App\res_turn_calendar;
+use App\res_type_turn;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use App\Domain\Calendar;
-use App\res_turn_calendar;
 
 class CalendarService
 {
@@ -25,7 +26,7 @@ class CalendarService
                     'color' => $item->turn->typeTurn->color,
                     'start_date' => $item->start_date,
                     'end_date' => $item->end_date,
-                    'turn' => $item->turn
+                    'turn' => $item->turn->toArray()
                 ];
             });
             
@@ -77,7 +78,7 @@ class CalendarService
         list($year, $month, $day) = explode("-", $date);
         $turns = $this->getList($microsite_id, $year, $month, $day);
 
-        $tipeturns = \App\res_type_turn::where('status', 1)->get()->map(function ($item) use ($turns) {
+        $tipeturns = res_type_turn::where('status', 1)->get()->map(function ($item) use ($turns) {
             foreach ($turns as $value) {
                 $turn = $value['turn'];
                 if (@$turn['type_turn'] && $turn['type_turn']['id'] == $item->id) {
