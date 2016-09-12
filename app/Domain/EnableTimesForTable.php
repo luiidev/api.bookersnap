@@ -26,7 +26,7 @@ class EnableTimesForTable {
         $this->initAvailability();
         $ini = $this->timeToIntegerRangePosition($turn->hours_ini);
         $end = $this->timeToIntegerRangePosition($turn->hours_end);
-        for ($i = $ini; $i <= $end; $i++) {            
+        for ($i = $ini; $i < $end; $i++) {            
             $this->availability[$i]['rule_id'] = 1;
         }
         $this->defineRule($turns_table);
@@ -55,7 +55,7 @@ class EnableTimesForTable {
      */
 
     private function timeToIntegerRangePosition(string $time) {
-        return date("H", strtotime($time)) * 4 + (date("i", strtotime($time))) / 15 - 1;
+        return date("H", strtotime($time)) * 4 + (date("i", strtotime($time))) / 15;
     }
 
     private function rangeToTime($index) {
