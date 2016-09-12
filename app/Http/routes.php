@@ -49,6 +49,8 @@ function routeMesas()
         Route::delete('blocks/{block_id}', 'BlockController@delete');
         Route::post('blocks', 'BlockController@insert');
         Route::get('blocks', 'BlockController@list');
+        Route::get('blocks/tables', 'BlockController@getTables');
+        Route::get('blocks/{block_id}', 'BlockController@getBlock');
         Route::put('blocks/{block_id}', 'BlockController@update');
         //Route::get('zones/{zone_id}/tables', 'ZoneController@listTable');
         //Route::post('zones/', 'ZoneController@create');        
@@ -74,7 +76,8 @@ function routeMesas()
         Route::get('calendar/{date}/shifts', 'CalendarController@listShift');
 
         Route::post('calendar', 'CalendarController@storeCalendar');
-        Route::delete('calendar', 'CalendarController@deleteCalendar');
+        Route::delete('calendar/{res_turn_id}', 'CalendarController@deleteCalendar');
+        Route::put('calendar/change', 'CalendarController@changeCalendar');
 
         Route::get('calendar/{turn_id}/{start_time}/{end_time}', 'CalendarController@existConflictTurn');
 

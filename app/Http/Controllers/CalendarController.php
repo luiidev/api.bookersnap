@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CalendarRequest;
 use Illuminate\Http\Request;
 use App\Services\CalendarService;
+use Validator;
 
 class CalendarController extends Controller
 {
-
     protected $_CalendarService;
 
     public function __construct(CalendarService $CalendarService)
@@ -18,7 +18,6 @@ class CalendarController extends Controller
 
     public function index(Request $request)
     {
-
         $service = $this->_CalendarService;
         return $this->TryCatch(function () use ($request, $service) {
             $param = explode("-", $request->route('date'));
@@ -32,7 +31,6 @@ class CalendarController extends Controller
 
     public function listShift(Request $request)
     {
-
         $service = $this->_CalendarService;
         return $this->TryCatch(function () use ($request, $service) {
             $data = $service->getListShift($request->route('microsite_id'), $request->route('date'));
@@ -50,23 +48,47 @@ class CalendarController extends Controller
         });
     }
 
-    public function deleteCalendar($lang, $microsite_id, Request $request)
+    public function deleteCalendar($lang, $microsite_id, Request $request, $res_turn_id)
     {
-        $res_turn_id = $request->input('res_turn_id');
-        $date = $request->input('date');
+        $date = request('date');
         return $this->TryCatch(function () use ($res_turn_id, $date) {
             $this->_CalendarService->deleteCalendar($res_turn_id, $date);
             return $this->CreateResponse(true, 200);
         });
     }
     
-    public function existConflictTurn(Request $request) {
-        
+    public function existConflictTurn(Request $request)
+    {
         $service = $this->_CalendarService;
         return $this->TryCatch(function () use ($request, $service) {
-                    $data = $service->existConflictTurn($request->route('turn_id'), $request->route('start_time'), $request->route('end_time'));
-                    return $this->CreateResponse(true, 201, "", $data);
-                });
+            $data = $service->existConflictTurn($request->route('turn_id'), $request->route('start_time'), $request->route('end_time'));
+            return $this->CreateResponse(true, 201, "", $data);
+        });
     }
 
+    /**
+     * Cambio de turno en el calendario 
+     * @param  Illuminate\Http\Request $request 
+     * @return  Illuminate\Http\Response  
+     */
+    public function changeCalendar(Request $request)
+    {
+        $service = $this->_CalendarService;
+        return $this->TryCatch(function () use ($request, $service) {
+
+            $rules = [
+                "turn_id"   =>  "required|integer|exists:res_turn,id",
+                "shift_id"  =>  "required|integer|exists:res_turn,id",
+                "date"       =>  "required|date"
+            ];
+
+            if ( Validator::make($request->all(), $rules)->fails()){
+                abort(406, "No posee lo campos necesarios o validos para realizar el cambio de turno");
+            }
+
+            $service->changeCalendar(request("turn_id"), request("shift_id"), request("date"));
+            return $this->CreateResponse(true, 201, "");
+
+        });
+    }
 }

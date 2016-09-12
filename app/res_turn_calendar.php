@@ -19,8 +19,8 @@ class res_turn_calendar extends Model {
 
     protected $table = "res_turn_calendar";
     public $timestamps = false;
-//    protected $fillable = ['name', 'sketch', 'status', 'type_zone', 'join_table', 'status_smoker', 'people_standing', 'user_add', 'user_upd', 'ev_event_id', 'ms_microsite_id'];
-//    protected $hidden = ['ms_microsite_id', 'ev_event_id', 'bs_user_id'];
+   protected $fillable = ['res_type_turn_id', 'start_date', 'end_date', 'start_time', 'end_time', 'date_add', 'user_add', 'res_turn_id'];
+   // protected $hidden = ['ms_microsite_id', 'ev_event_id', 'bs_user_id'];
     
     public function turn() {
         return $this->belongsTo('App\res_turn', 'res_turn_id');
