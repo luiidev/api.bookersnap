@@ -18,6 +18,7 @@ class TurnServiceHelper {
         $time_ini = \App\Domain\TimeForTable::timeToIndex($start_time);
         $time_end = \App\Domain\TimeForTable::timeToIndex($end_time);
         
+        
         if($time_ini > $time_end){
             $time_end = 96 + $time_end;
         }
