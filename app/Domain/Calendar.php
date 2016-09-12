@@ -35,7 +35,7 @@ class Calendar
     {
         $this->NOW_DATETIME = Carbon::create($year, $month, $day);
         $this->FIRST_DATETIME = $this->firstDayCalendar($year, $month);
-        $this->END_DATETIME = $this->endDayCalendar($year, $month);
+        $this->END_DATETIME = $this->endDayCalendar($year, $month)->addDays(7);
         $this->FIRST_DATE = $this->FIRST_DATETIME->format('Y-m-d');
         $this->END_DATE = $this->END_DATETIME->format('Y-m-d');
         $this->NOW_DATE = $this->NOW_DATETIME->format('Y-m-d');
