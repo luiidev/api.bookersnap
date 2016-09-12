@@ -14,20 +14,10 @@ class CalendarService
     {
         $calendar = new Calendar($year, $month, $day);
 
-        $turns = res_turn_calendar::
-        whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
-            ->where('start_date', '<=', $calendar->FIRST_DATE)
-            ->where('end_date', '>=', $calendar->FIRST_DATE)
-            ->orWhere(function ($query) use ($calendar) {
-                $query
-                    ->where('start_date', '<=', $calendar->END_DATE)
-                    ->where('end_date', '>=', $calendar->END_DATE);
-            })
-            ->orWhere(function ($query) use ($calendar) {
-                $query
-                    ->whereRaw('case when start_date = end_date and start_date between \'' . $calendar->FIRST_DATE . '\' and \'' . $calendar->END_DATE . '\' then 1 else 0 end');
-            })
-            ->get()->map(function ($item) {
+        $turns = res_turn_calendar::with("turn")
+            -> whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
+            ->get()
+            ->map(function ($item) {
                 return (object)[
                     'title' => $item->turn->name,
                     'start_time' => $item->turn->hours_ini,
@@ -35,10 +25,10 @@ class CalendarService
                     'color' => $item->turn->typeTurn->color,
                     'start_date' => $item->start_date,
                     'end_date' => $item->end_date,
-                    'turn' => $item->turn->toArray()
+                    'turn' => $item->turn
                 ];
             });
-
+            
         foreach ($turns as $turn) {
             $calendar->generateByWeekDay($turn, $turn->start_date, $turn->end_date);
         }
