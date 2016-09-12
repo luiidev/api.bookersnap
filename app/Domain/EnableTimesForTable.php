@@ -26,7 +26,7 @@ class EnableTimesForTable {
         $this->initAvailability();
         $ini = $this->timeToIntegerRangePosition($turn->hours_ini);
         $end = $this->timeToIntegerRangePosition($turn->hours_end);
-        for ($i = $ini; $i < $end; $i++) {            
+        for ($i = $ini; $i <= $end; $i++) {            
             $this->availability[$i]['rule_id'] = 1;
         }
         $this->defineRule($turns_table);
