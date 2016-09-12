@@ -73,20 +73,22 @@ class CalendarController extends Controller
      */
     public function changeCalendar(Request $request)
     {
-        $rules = [
-            "turn_id"   =>  "required|integer|exists:res_turn,id",
-            "shift_id"  =>  "required|integer|exists:res_turn,id",
-            "date"       =>  "required|date"
-        ];
-
-        if ( Validator::make($request->all(), $rules)->fails()){
-            return  $this->CreateResponse(true, 401, "No posee lo campos necesarios para realizar el cambio de turno");
-        }
-
         $service = $this->_CalendarService;
         return $this->TryCatch(function () use ($request, $service) {
-            $data = $service->changeCalendar(request("turn_id"), request("shift_id"), request("date"));
-            return $this->CreateResponse(true, 201, "", $data);
+
+            $rules = [
+                "turn_id"   =>  "required|integer|exists:res_turn,id",
+                "shift_id"  =>  "required|integer|exists:res_turn,id",
+                "date"       =>  "required|date"
+            ];
+
+            if ( Validator::make($request->all(), $rules)->fails()){
+                abort(406, "No posee lo campos necesarios o validos para realizar el cambio de turno");
+            }
+
+            $service->changeCalendar(request("turn_id"), request("shift_id"), request("date"));
+            return $this->CreateResponse(true, 201, "");
+
         });
     }
 }

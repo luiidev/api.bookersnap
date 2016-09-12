@@ -105,22 +105,28 @@ class CalendarService
 
     public function deleteCalendar(int $res_turn_id, string $date)
     {
-        DB::Transaction(function () use ($res_turn_id, $date) {
-            $count = res_turn_calendar::where('start_date', $date)
-                ->where('end_date', $date)->where('res_turn_id', $res_turn_id)->count();
-            if ($count > 0) {
-                DB::Table('res_turn_calendar')->where('start_date', $date)
-                    ->where('end_date', $date)->where('res_turn_id', $res_turn_id)->delete();
-            } else {
+        $now = Carbon::now();
+        $val_date = Carbon::createFromFormat('Y-m-d', $date);
+        if ( $val_date->lt($now)){
+            abort(401, 'No puede eliminar un turno de una fecha menor a la actual.');
+        } else {
+            DB::Transaction(function () use ($res_turn_id, $date) {
                 $count = res_turn_calendar::where('start_date', $date)
-                    ->where('res_turn_id', $res_turn_id)->count();
+                    ->where('end_date', $date)->where('res_turn_id', $res_turn_id)->count();
                 if ($count > 0) {
-                    $this->deleteCalendarEquealStartDateCase($res_turn_id, $date);
+                    DB::Table('res_turn_calendar')->where('start_date', $date)
+                        ->where('end_date', $date)->where('res_turn_id', $res_turn_id)->delete();
                 } else {
-                    $this->deleteCalendarBetweenDatesCase($res_turn_id, $date);
+                    $count = res_turn_calendar::where('start_date', $date)
+                        ->where('res_turn_id', $res_turn_id)->count();
+                    if ($count > 0) {
+                        $this->deleteCalendarEquealStartDateCase($res_turn_id, $date);
+                    } else {
+                        $this->deleteCalendarBetweenDatesCase($res_turn_id, $date);
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     public function existConflictTurn($turn_id, $start_time, $end_time)
@@ -159,34 +165,43 @@ class CalendarService
      */
     public function changeCalendar($res_turn_id, $res_shift_id, $date)
     {
-        DB::Transaction(function () use ($res_turn_id, $res_shift_id, $date) {
-            $count = res_turn_calendar::where('start_date', $date)
-                ->where('end_date', $date)->where('res_turn_id', $res_turn_id)->count();
-            if ($count  > 0) {
-                $res_turn = res_turn::find($res_shift_id);
-
-                res_turn_calendar::where('start_date', $date)
-                        ->where('end_date', $date)->where('res_turn_id', $res_turn_id)
-                        ->update([
-                                "res_type_turn_id"   =>  $res_turn->res_type_turn_id,
-                                "res_turn_id"            =>  $res_turn->id,
-                                "user_upd"               =>  2,
-                                "date_upd"               =>  Carbon::now(),
-                                "start_time"              =>  $res_turn->hours_ini,
-                                "end_time"               =>  $res_turn->hours_end,
-                            ]);
-            } else {
+        $now = Carbon::now();
+        $val_date = Carbon::createFromFormat('Y-m-d', $date);
+        if ( $val_date->lt($now)){
+            abort(401, 'No puede cambiar un turno de una fecha menor a la actual.');
+        } else {
+            DB::Transaction(function () use ($res_turn_id, $res_shift_id, $date) {
                 $count = res_turn_calendar::where('start_date', $date)
-                    ->where('res_turn_id', $res_turn_id)->count();
-                if ($count > 0) {
-                    $this->deleteCalendarEquealStartDateCase($res_turn_id, $date);
-                    $this->createCalendarHelper($res_shift_id, $date);
+                    ->where('end_date', $date)->where('res_turn_id', $res_turn_id)->count();
+                if ($count  > 0) {
+                    $res_turn = res_turn::find($res_shift_id);
+
+                    res_turn_calendar::where('start_date', $date)
+                            ->where('end_date', $date)->where('res_turn_id', $res_turn_id)
+                            ->update([
+                                    "res_type_turn_id"   =>  $res_turn->res_type_turn_id,
+                                    "res_turn_id"            =>  $res_turn->id,
+                                    "user_upd"               =>  2,
+                                    "date_upd"               =>  Carbon::now(),
+                                    "start_time"              =>  $res_turn->hours_ini,
+                                    "end_time"               =>  $res_turn->hours_end,
+                                ]);
                 } else {
-                    $this->deleteCalendarBetweenDatesCase($res_turn_id, $date);
-                    $this->createCalendarHelper($res_shift_id, $date);
+                    $count = res_turn_calendar::where('start_date', $date)
+                        ->where('res_turn_id', $res_turn_id)->count();
+                    if ($count > 0) {
+                        $this->deleteCalendarEquealStartDateCase($res_turn_id, $date);
+                        $this->createCalendarHelper($res_shift_id, $date);
+                    } else {
+                        $this->deleteCalendarBetweenDatesCase($res_turn_id, $date);
+                        $this->createCalendarHelper($res_shift_id, $date);
+                    }
                 }
-            }
-        });
+            });
+
+            return true;
+        }
+        
     }
 
     private function createCalendarHelper($res_shift_id, $date)
