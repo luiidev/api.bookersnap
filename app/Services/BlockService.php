@@ -10,34 +10,82 @@ Use Exception;
 
 class BlockService {	
 
+    public function getBlock($microsite ,$id_block){
+            
+            //$fecha= (isset($variables["fecha"]) && $variables["fecha"]!="")?$variables["fecha"]:date("Y-m-d");
+            $data = array();
+            $block = Block::find($id_block);
 
-    public function listado($microsite) {
 
-        	$data = array();
-        	$blocks = Block::where("ms_microsite_id","=",$microsite)->get();
-        	$m=0;
-        	foreach ($blocks as $block) {
-        		//dd($block);
+                $data["id"] = $block->id;
+                $data["start_date"] = $block->start_date;
+                $data["start_time"] = $block->start_time;
+                $data["end_time"] = $block->end_time;
+                $data["tables"] = array();
 
-        		$data[$m]["id"] = $block->id;
-        		$data[$m]["start_date"] = $block->start_date;
-        		$data[$m]["start_time"] = $block->start_time;
-        		$data[$m]["end_time"] = $block->end_time;
-        		$data[$m]["tables"] = array();
-
-        		$blockTables= BlockTable::where("res_block_id", "=", $block->id)->get();
-	    
-        		$i=0;
-        		foreach ($blockTables as $item) {
-        			$data[$m]["tables"][$i]["id"] = $item->res_table_id;
-        			$i++;
-        		}
-        		
-        		$m++;
-        	}
-
+                $blockTables= BlockTable::where("res_block_id", "=", $id_block)->get();
+        
+                $i=0;
+                foreach ($blockTables as $item) {
+                    $data["tables"][$i]["id"] = $item->res_table_id;
+                    $i++;
+                }
              return $data;
 
+    }
+
+    public function listado($microsite, $variables ) {
+
+            $fecha= (isset($variables["fecha"]) && $variables["fecha"]!="")?$variables["fecha"]:date("Y-m-d");
+            $data = array();
+            $blocks = Block::where("ms_microsite_id","=",$microsite)->where("start_date",">", $fecha)->get();
+            //dd($blocks);
+            $m=0;
+            foreach ($blocks as $block) {
+
+                $data[$m]["id"] = $block->id;
+                $data[$m]["start_date"] = $block->start_date;
+                $data[$m]["start_time"] = $block->start_time;
+                $data[$m]["end_time"] = $block->end_time;
+                $data[$m]["tables"] = array();
+
+                $blockTables= BlockTable::where("res_block_id", "=", $block->id)->get();
+                //dd($blockTables);
+        
+                $i=0;
+                foreach ($blockTables as $item) {
+                    $data[$m]["tables"][$i]["id"] = $item->res_table_id;
+                    $i++;
+                }
+                  
+                $m++;
+            }
+             return $data;
+
+    }
+
+    public function getTables($microsite, $variables) {
+
+            $data = array();
+            $fecha= (isset($variables["fecha"]) && $variables["fecha"]!="")?$variables["fecha"]:date("Y-m-d");
+            $blocks = Block::where("ms_microsite_id","=",$microsite)->where("start_date","=", $fecha)->get();
+
+            foreach ($blocks as $block) {
+
+                $blockTables= BlockTable::where("res_block_id", "=", $block->id)->get();
+        
+                $i=0;
+                foreach ($blockTables as $item) {
+                    $data[$i]["res_table_id"] = $item->res_table_id;
+                    $data[$i]["res_block_id"] = $block->id;
+                    $data[$i]["res_zone_id"] = "";
+                    $data[$i]["start_date"] = $block->start_date;
+                    $data[$i]["start_time"] = $block->start_time;
+                    $data[$i]["end_time"] = $block->end_time;
+                    $i++;
+                }
+            }
+             return $data;
     }
 
     public function insert($microsite, $data) {
@@ -85,14 +133,13 @@ class BlockService {
 
     public function update($microsite, $block_id, $data) {
 
-
     	DB::beginTransaction();
         try {
 
 	        $model = Block::find($block_id);
-	        //dd($model);
-	        if ($model == NULL) {
-                throw new Exception('messages.block_not_exist_turn');
+
+	        if ($model === NULL) {
+                throw new Exception('messages.block_not_exist');
             }
 
 	        $model->start_date = isset($data["start_date"]) ? $data["start_date"] : $model->start_date;
