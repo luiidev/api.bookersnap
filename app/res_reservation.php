@@ -19,7 +19,7 @@ class res_reservation extends Model {
 
     protected $table = "res_reservation";
     public $timestamps = false;
-//    protected $fillable = ['name', 'sketch', 'status', 'type_zone', 'join_table', 'status_smoker', 'people_standing', 'user_add', 'user_upd', 'ev_event_id', 'ms_microsite_id'];
+	protected $fillable = ['date_reservation', 'hours_reservation', 'hours_duration', 'num_people', 'note', 'email', 'phone', 'res_guest_id'];
 //    protected $hidden = ['ms_microsite_id', 'ev_event_id', 'bs_user_id'];
     
     public function status() {
