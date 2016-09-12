@@ -55,7 +55,7 @@ class EnableTimesForTable {
      */
 
     private function timeToIntegerRangePosition(string $time) {
-        return (date("H", strtotime($time)) * 1 + (date("i", strtotime($time))) / 15) * 4;
+        return date("H", strtotime($time)) * 4 + (date("i", strtotime($time))) / 15;
     }
 
     private function rangeToTime($index) {

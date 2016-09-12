@@ -29,7 +29,7 @@ class TurnServiceHelper {
             "res_table_id" => $table_id,
         ];
         
-        for ($i = $time_ini; $i < $time_end; $i++) {
+        for ($i = $time_ini; $i <= $time_end; $i++) {
 
             $rule_id = $this->getRuleId($time_range, $i);
             $rule_id_old = $this->getRuleId($time_range, $i - 1);
@@ -43,7 +43,7 @@ class TurnServiceHelper {
                 $turnTable['end_time'] = \App\Domain\TimeForTable::indexToTime($i);
             }
 
-            if ($rule_id_next != $rule_id || $i == $time_end - 1) {
+            if ($rule_id_next != $rule_id || $i == $time_end) {
                 $rowsTurnTable[] = $turnTable;
             }
         }

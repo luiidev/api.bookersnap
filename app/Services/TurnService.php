@@ -183,6 +183,7 @@ class TurnService {
     public function getListTable(int $turn_id, int $zone_id) {
 
         $turn = res_turn::where('id', $turn_id)->first();
+        
         if ($turn != null) {
             $EnableTimesForTable = new \App\Domain\EnableTimesForTable();
 
