@@ -15,6 +15,8 @@ namespace App\Domain;
  */
 class TimeForTable {
     
+    /* 
+     */
     public static function timeToIndex(string $time) {        
         return date("H", strtotime($time)) * 4 + (date("i", strtotime($time))) / 15;
     }
