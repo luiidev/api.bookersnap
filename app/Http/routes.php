@@ -49,6 +49,8 @@ function routeMesas()
         Route::delete('blocks/{block_id}', 'BlockController@delete');
         Route::post('blocks', 'BlockController@insert');
         Route::get('blocks', 'BlockController@list');
+        Route::get('blocks/tables', 'BlockController@getTables');
+        Route::get('blocks/{block_id}', 'BlockController@getBlock');
         Route::put('blocks/{block_id}', 'BlockController@update');
         //Route::get('zones/{zone_id}/tables', 'ZoneController@listTable');
         //Route::post('zones/', 'ZoneController@create');        
@@ -123,6 +125,8 @@ function routeMesas()
 //        
           Route::get('reservations', 'ReservationController@index');
           Route::post('reservations', 'ReservationController@create');
+          Route::put('reservations/{reservation_id}', 'ReservationController@update');
+          Route::delete('reservations/{reservation_id}', 'ReservationController@delete');
 
 //        Route::get('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
 //        Route::post('reservations', 'ConfigZoneTypeturnDayController@available');
