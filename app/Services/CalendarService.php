@@ -44,7 +44,7 @@ class CalendarService
 
     public function create(int $microsite_id, int $res_turn_id, string $date)
     {
-            $this->createCalendarHelper($res_turn_id, $date, $microsite_id);
+            $this->createCalendarHelper(null , $res_turn_id, $date, $microsite_id);
     }
 
     public function getListShift(int $microsite_id, string $date)
@@ -165,7 +165,7 @@ class CalendarService
 
                     if ($count > 0) {
                         $this->deleteCalendarEquealStartDateCase($res_turn_id, $date);
-                        $this->createCalendarHelper($res_shift_id, $date, $microsite_id);
+                        $this->createCalendarHelper($res_turn_id, null, $date, $microsite_id);
                     } else {
                         $count = res_turn_calendar::where('end_date', $date)
                                     ->where('res_turn_id', $res_turn_id)
@@ -173,10 +173,10 @@ class CalendarService
 
                         if ($count > 0){
                             $this->deleteCalendarEquealEndDateCase($res_turn_id, $date);
-                            $this->createCalendarHelper($res_shift_id, $date, $microsite_id);
+                            $this->createCalendarHelper($res_turn_id, null, $date, $microsite_id);
                         } else {
                             $this->deleteCalendarBetweenDatesCase($res_turn_id, $date);
-                            $this->createCalendarHelper($res_shift_id, $date, $microsite_id);
+                            $this->createCalendarHelper($res_turn_id, null, $date, $microsite_id);
                         }
                     }
                 }
@@ -187,11 +187,11 @@ class CalendarService
         
     }
 
-    private function createCalendarHelper($res_shift_id, $date, $microsite_id)
+    private function createCalendarHelper($res_turn_id, $res_shift_id, $date, $microsite_id)
     {
         $res_turn = res_turn::find($res_shift_id);
 
-        $this->existConflictCalendarInDay($res_turn,  null, $res_shift_id, $date, $microsite_id);
+        $this->existConflictCalendarInDay($res_turn,  $res_turn_id, $date, $microsite_id);
 
         $date_calendar = Carbon::createFromFormat('Y-m-d', $date)->toDateString();
 
@@ -211,7 +211,7 @@ class CalendarService
     {
         $res_turn = res_turn::find($res_shift_id);
 
-        $this->existConflictCalendarInDay($res_turn, $res_turn_id, $res_shift_id, $date, $microsite_id);
+        $this->existConflictCalendarInDay($res_turn, $res_turn_id, $date, $microsite_id);
 
         res_turn_calendar::where('start_date', $date)
                 ->where('end_date', $date)->where('res_turn_id', $res_turn_id)
@@ -225,7 +225,7 @@ class CalendarService
                     ]);
     }
 
-    private function existConflictCalendarInDay(res_turn $res_turn, $res_turn_id, $res_shift_id, $date, $microsite_id){
+    private function existConflictCalendarInDay(res_turn $res_turn, $res_turn_id, $date, $microsite_id){
         $param = explode("-", $date);
         list($year, $month, $day) = $param;
 
