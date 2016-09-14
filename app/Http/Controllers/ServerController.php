@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 use App\Services\ServerService;
 use App\Http\Requests\ServerCreateRequest;
 use App\Http\Requests\ServerUpdateRequest;
-//use App\Http\Requests\BlockListRequest;
-//use App\Http\Requests\BlockUpdateRequest;
 use App\Http\Controllers\Controller as Controller;
 
 class ServerController  extends Controller {
