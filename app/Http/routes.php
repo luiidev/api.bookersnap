@@ -52,10 +52,21 @@ function routeMesas()
         Route::get('blocks/tables', 'BlockController@getTables');
         Route::get('blocks/{block_id}', 'BlockController@getBlock');
         Route::put('blocks/{block_id}', 'BlockController@update');
-        //Route::get('zones/{zone_id}/tables', 'ZoneController@listTable');
-        //Route::post('zones/', 'ZoneController@create');        
-        //Route::put('zones/{zone_id}', 'ZoneController@update');
-        //Route::delete('zones/{zone_id}', 'ZoneController@delete');
+
+        //-----------------------------------------------------
+        // MICROSITE::SERVERS
+        //-----------------------------------------------------
+        Route::get('servers', 'ServerController@listado');
+        Route::post('servers', 'ServerController@insert');
+        Route::put('servers/{server_id}', 'ServerController@update');
+        Route::delete('servers/{server_id}', 'ServerController@delete');
+        /*
+        Route::post('blocks', 'BlockController@insert');
+        Route::get('blocks', 'BlockController@list');
+        Route::get('blocks/tables', 'BlockController@getTables');
+        Route::get('blocks/{block_id}', 'BlockController@getBlock');
+        Route::put('blocks/{block_id}', 'BlockController@update');
+        */
 
         //-----------------------------------------------------
         // MICROSITE::TURNOS
