@@ -60,13 +60,6 @@ function routeMesas()
         Route::post('servers', 'ServerController@insert');
         Route::put('servers/{server_id}', 'ServerController@update');
         Route::delete('servers/{server_id}', 'ServerController@delete');
-        /*
-        Route::post('blocks', 'BlockController@insert');
-        Route::get('blocks', 'BlockController@list');
-        Route::get('blocks/tables', 'BlockController@getTables');
-        Route::get('blocks/{block_id}', 'BlockController@getBlock');
-        Route::put('blocks/{block_id}', 'BlockController@update');
-        */
 
         //-----------------------------------------------------
         // MICROSITE::TURNOS
