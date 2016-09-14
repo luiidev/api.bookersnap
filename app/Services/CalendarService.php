@@ -21,8 +21,10 @@ class CalendarService
             ->map(function ($item) {
                 return (object)[
                     'title' => $item->turn->name,
-                    'start_time' => $item->turn->hours_ini,
-                    'end_time' => $item->turn->hours_end,
+                    // 'start_time' => $item->turn->hours_ini,
+                    // 'end_time' => $item->turn->hours_end,
+                    'start_time' => $item->start_time,
+                    'end_time' => $item->end_time,
                     'color' => $item->turn->typeTurn->color,
                     'start_date' => $item->start_date,
                     'end_date' => $item->end_date,
@@ -103,18 +105,27 @@ class CalendarService
         } else {
             DB::Transaction(function () use ($res_turn_id, $date) {
                 $count = res_turn_calendar::where('start_date', $date)
-                    ->where('end_date', $date)->where('res_turn_id', $res_turn_id)->count();
+                                ->where('end_date', $date)
+                                ->where('res_turn_id', $res_turn_id)
+                                ->count();
+
                 if ($count > 0) {
                     DB::Table('res_turn_calendar')->where('start_date', $date)
-                        ->where('end_date', $date)->where('res_turn_id', $res_turn_id)->delete();
+                                ->where('end_date', $date)
+                                ->where('res_turn_id', $res_turn_id)
+                                ->delete();
                 } else {
                     $count = res_turn_calendar::where('start_date', $date)
-                        ->where('res_turn_id', $res_turn_id)->count();
+                                 ->where('res_turn_id', $res_turn_id)
+                                 ->count();
+
                     if ($count > 0) {
                         $this->deleteCalendarEquealStartDateCase($res_turn_id, $date);
                     } else {
                         $count = res_turn_calendar::where('end_date', $date)
-                            ->where('res_turn_id', $res_turn_id)->count();
+                                ->where('res_turn_id', $res_turn_id)
+                                ->count();
+
                         if ($count > 0){
                             $this->deleteCalendarEquealEndDateCase($res_turn_id, $date);
                         } else {
@@ -160,40 +171,34 @@ class CalendarService
      * @param  date $date
      * @return Void
      */
-    public function changeCalendar($res_turn_id, $res_shift_id, $date)
+    public function changeCalendar($microsite_id ,$res_turn_id, $res_shift_id, $date)
     {
         $now = Carbon::now();
         $val_date = Carbon::createFromFormat('Y-m-d', $date);
         if ( $val_date->lt($now)){
             abort(401, 'No puede cambiar un turno de una fecha menor a la actual.');
         } else {
-            DB::Transaction(function () use ($res_turn_id, $res_shift_id, $date) {
+            // DB::Transaction(function () use ($res_turn_id, $res_shift_id, $date) {
                 $count = res_turn_calendar::where('start_date', $date)
-                    ->where('end_date', $date)->where('res_turn_id', $res_turn_id)->count();
-
+                                    ->where('end_date', $date)
+                                    ->where('res_turn_id', $res_turn_id)
+                                    ->count();
 
                 if ($count  > 0) {
-                    $res_turn = res_turn::find($res_shift_id);
-
-                    res_turn_calendar::where('start_date', $date)
-                            ->where('end_date', $date)->where('res_turn_id', $res_turn_id)
-                            ->update([
-                                    "res_type_turn_id"   =>  $res_turn->res_type_turn_id,
-                                    "res_turn_id"            =>  $res_turn->id,
-                                    "user_upd"               =>  2,
-                                    "date_upd"               =>  Carbon::now(),
-                                    "start_time"              =>  $res_turn->hours_ini,
-                                    "end_time"               =>  $res_turn->hours_end,
-                                ]);
+                    $this->updateCalendarHelper($res_turn_id, $res_shift_id, $date, $microsite_id);
                 } else {
                     $count = res_turn_calendar::where('start_date', $date)
-                        ->where('res_turn_id', $res_turn_id)->count();
+                                    ->where('res_turn_id', $res_turn_id)
+                                    ->count();
+
                     if ($count > 0) {
                         $this->deleteCalendarEquealStartDateCase($res_turn_id, $date);
                         $this->createCalendarHelper($res_shift_id, $date);
                     } else {
                         $count = res_turn_calendar::where('end_date', $date)
-                            ->where('res_turn_id', $res_turn_id)->count();
+                                    ->where('res_turn_id', $res_turn_id)
+                                    ->count();
+
                         if ($count > 0){
                             $this->deleteCalendarEquealEndDateCase($res_turn_id, $date);
                             $this->createCalendarHelper($res_shift_id, $date);
@@ -203,7 +208,7 @@ class CalendarService
                         }
                     }
                 }
-            });
+            // });
 
             return true;
         }
@@ -226,6 +231,76 @@ class CalendarService
                         "start_time"              =>  $res_turn->hours_ini,
                         "end_time"               =>  $res_turn->hours_end,
                     ]);
+    }
+
+    private function updateCalendarHelper($res_turn_id, $res_shift_id, $date, $microsite_id)
+    {
+        $res_turn = res_turn::find($res_shift_id);
+
+        $this->existConflictCalendarInDay($res_turn, $res_turn_id, $res_shift_id, $date, $microsite_id);
+
+        res_turn_calendar::where('start_date', $date)
+                ->where('end_date', $date)->where('res_turn_id', $res_turn_id)
+                ->update([
+                        "res_type_turn_id"   =>  $res_turn->res_type_turn_id,
+                        "res_turn_id"            =>  $res_turn->id,
+                        "user_upd"               =>  2,
+                        "date_upd"               =>  Carbon::now(),
+                        "start_time"              =>  $res_turn->hours_ini,
+                        "end_time"               =>  $res_turn->hours_end,
+                    ]);
+    }
+
+    private function existConflictCalendarInDay(res_turn $res_turn, $res_turn_id, $res_shift_id, $date, $microsite_id){
+        $param = explode("-", $date);
+        list($year, $month, $day) = $param;
+
+       $data = $this->getList($microsite_id, $year, $month, $day);
+
+        foreach ($data as $row) {
+            if ($row["turn"]["id"]  !=  $res_turn_id){
+                $this->compareTimes(    
+                                                    $row["start_time"],
+                                                    $row["end_time"],
+                                                    $res_turn->hours_ini,
+                                                    $res_turn->hours_end,
+                                                    $date
+                                                );
+            }
+        }
+    }
+
+    private function existConflictCalendarHour(res_turn $res_turn, $date)
+    {
+        $now = Carbon::now()->toDateString();
+        $calendar = res_turn_calendar::whereRaw("dayofweek(start_date) = dayofweek(?)", array($date))
+                                            ->where("res_type_turn_id", "<>", $res_turn->res_type_turn_id)
+                                            ->where("end_date", ">=", $now)
+                                            ->get();
+
+        foreach ($calendar as $row) {
+            $this->compareTimes(    
+                                                $row->start_time,
+                                                $row->end_time,
+                                                $res_turn->hours_ini,
+                                                $res_turn->hours_end
+                                            );
+        }
+    }
+
+    private function compareTimes($start_time, $end_time, $start_point, $end_point, $date)
+    {
+        $now = time();
+        $start_time = strtotime( $start_time, $now );
+        $end_time = strtotime(  $end_time, $now );
+        $start_point = strtotime( $start_point, $now );
+        $end_point = strtotime( $end_point, $now );
+
+        if( $start_point > $start_time && $start_point < $end_time ) {
+            abort(421, "La hora de inicio genera conflicto con otro turno, no es posible el cambio de turno.");
+        } else if ($end_point > $start_time && $end_point < $end_time){
+            abort(421, "La hora de fin genera conflicto con otro turno, no es posible el cambio de turno.");
+        }
     }
 
     private function deleteCalendarEquealStartDateCase($res_turn_id, $date)
