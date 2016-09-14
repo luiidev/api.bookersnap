@@ -165,7 +165,7 @@ class CalendarService
 
                     if ($count > 0) {
                         $this->deleteCalendarEquealStartDateCase($res_turn_id, $date);
-                        $this->createCalendarHelper(null, $res_turn_id, $date, $microsite_id);
+                        $this->createCalendarHelper(null, $res_shift_id, $date, $microsite_id);
                     } else {
                         $count = res_turn_calendar::where('end_date', $date)
                                     ->where('res_turn_id', $res_turn_id)
@@ -173,10 +173,10 @@ class CalendarService
 
                         if ($count > 0){
                             $this->deleteCalendarEquealEndDateCase($res_turn_id, $date);
-                            $this->createCalendarHelper(null, $res_turn_id, $date, $microsite_id);
+                            $this->createCalendarHelper(null, $res_shift_id, $date, $microsite_id);
                         } else {
                             $this->deleteCalendarBetweenDatesCase($res_turn_id, $date);
-                            $this->createCalendarHelper(null, $res_turn_id, $date, $microsite_id);
+                            $this->createCalendarHelper(null, $res_shift_id, $date, $microsite_id);
                         }
                     }
                 }
