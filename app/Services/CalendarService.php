@@ -165,7 +165,7 @@ class CalendarService
 
                     if ($count > 0) {
                         $this->deleteCalendarEquealStartDateCase($res_turn_id, $date);
-                        $this->createCalendarHelper(null, $res_shift_id, $date, $microsite_id);
+                        $this->createCalendarHelper($res_turn_id, $res_shift_id, $date, $microsite_id);
                     } else {
                         $count = res_turn_calendar::where('end_date', $date)
                                     ->where('res_turn_id', $res_turn_id)
@@ -173,10 +173,10 @@ class CalendarService
 
                         if ($count > 0){
                             $this->deleteCalendarEquealEndDateCase($res_turn_id, $date);
-                            $this->createCalendarHelper(null, $res_shift_id, $date, $microsite_id);
+                            $this->createCalendarHelper($res_turn_id, $res_shift_id, $date, $microsite_id);
                         } else {
                             $this->deleteCalendarBetweenDatesCase($res_turn_id, $date);
-                            $this->createCalendarHelper(null, $res_shift_id, $date, $microsite_id);
+                            $this->createCalendarHelper($res_turn_id, $res_shift_id, $date, $microsite_id);
                         }
                     }
                 }
@@ -265,6 +265,7 @@ class CalendarService
     private function compareTimes($start_time, $end_time, $start_point, $end_point, $date)
     {
         $time = time();
+        
         $_start_time = strtotime( $start_time, $time );
         $_end_time = strtotime(  $end_time, $time );
 

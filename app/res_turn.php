@@ -13,6 +13,7 @@ namespace App;
  *
  * @author USER
  */
+use App\res_turn_calendar;
 use Illuminate\Database\Eloquent\Model;
 
 class res_turn extends Model {
@@ -63,6 +64,16 @@ class res_turn extends Model {
     
     public function availability() {
         return $this->hasMany('App\res_turn_zone', 'res_turn_id');
+    }
+
+    public function daysInUse()
+    {
+        return $this->hasOne(res_turn_calendar::class)
+                            ->select(\DB::raw("group_concat(dayofweek(start_date) order by 1 separator ' | ') as res_turn_id"))
+                            // ->select('res_turn_id')
+                            ->where("res_turn_id", 6)
+                            ->where("end_date",  "9999-12-31")
+                            ;
     }
     
 //    public function delete() {

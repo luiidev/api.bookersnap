@@ -2,12 +2,13 @@
 
 namespace App\Services;
 
-use App\res_table;
-use App\res_turn;
-use App\res_turn_zone;
-use App\res_turn_table;
 use App\Services\Helpers\TurnServiceHelper;
 use App\Services\TurnZoneService;
+use App\res_table;
+use App\res_turn;
+use App\res_turn_calendar;
+use App\res_turn_table;
+use App\res_turn_zone;
 use Illuminate\Support\Facades\DB;
 
 class TurnService {
@@ -55,27 +56,39 @@ class TurnService {
 
     public function get(int $microsite_id, int $turn_id, $with) {
         try {
-            $rows = res_turn::where('id', $turn_id)->where('ms_microsite_id', $microsite_id);
+            $query = res_turn::where('id', $turn_id)->where('ms_microsite_id', $microsite_id);
+
             if (isset($with)) {
                 $data = explode('|', $with);
-                $rows = (in_array("type_turn", $data)) ? $rows->with('typeTurn') : $rows;
-                $rows = (in_array("turn_zone", $data)) ? $rows->with('turnZone') : $rows;
-                $rows = (in_array("turn_zone.zone", $data)) ? $rows->with('turnZone.zone') : $rows;
-                $rows = (in_array("turn_zone.zone.turns", $data)) ? $rows->with('turnZone.zone.turns') : $rows;
-                $rows = (in_array("turn_zone.zone.tables", $data)) ? $rows->with('turnZone.zone.tables') : $rows;
-                $rows = (in_array("turn_zone.rule", $data)) ? $rows->with('turnZone.rule') : $rows;
-                $rows = (in_array("zones", $data)) ? $rows->with('zones') : $rows;
-                $rows = (in_array("zones.tables", $data)) ? $rows->with('zones.tables') : $rows;
-                $rows = (in_array("zones.turns", $data)) ? $rows->with('zones.turns') : $rows;
+                if (in_array("type_turn", $data))                      $query->with('typeTurn');
+                if (in_array("turn_zone", $data))                     $query->with('turnZone');
+                if (in_array("turn_zone.zone", $data))             $query->with('turnZone.zone');
+                if (in_array("turn_zone.zone.turns", $data))    $query->with('turnZone.zone.turns');
+                if (in_array("turn_zone.zone.tables", $data))   $query->with('turnZone.zone.tables');
+                if (in_array("turn_zone.rule", $data))               $query->with('turnZone.rule');
+                if (in_array("zones", $data))                            $query->with('zones');
+                if (in_array("zones.tables", $data))                  $query->with('zones.tables');
+                if (in_array("zones.turns", $data))                   $query->with('zones.turns');
             }
-            $rows = $rows->first();
-            if ($rows == null) {
+            $turn = $query->first();
+            if ($turn == null) {
                 abort(500, "Ocurrio un error");
             }
-            return $rows;
+            $turn->days = $this->getDaysTemp($turn->id);
+            return $turn;
         } catch (\Exception $e) {
             abort(500, $e->getMessage());
         }
+    }
+
+    private function getDaysTemp($res_turn_id)
+    {
+        $days = res_turn_calendar::select(DB::raw("dayofweek(start_date) as day") )
+                        ->where("res_turn_id", $res_turn_id)
+                        ->where("end_date",  "9999-12-31")
+                        ->groupBy("day")
+                        ->get()->pluck("day");
+        return  $days;
     }
 
     public function create(array $data, int $microsite_id, int $user_id) {
