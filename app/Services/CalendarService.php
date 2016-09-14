@@ -113,7 +113,13 @@ class CalendarService
                     if ($count > 0) {
                         $this->deleteCalendarEquealStartDateCase($res_turn_id, $date);
                     } else {
-                        $this->deleteCalendarBetweenDatesCase($res_turn_id, $date);
+                        $count = res_turn_calendar::where('end_date', $date)
+                            ->where('res_turn_id', $res_turn_id)->count();
+                        if ($count > 0){
+                            $this->deleteCalendarEquealEndDateCase($res_turn_id, $date);
+                        } else {
+                            $this->deleteCalendarBetweenDatesCase($res_turn_id, $date);
+                        }
                     }
                 }
             });
@@ -164,6 +170,8 @@ class CalendarService
             DB::Transaction(function () use ($res_turn_id, $res_shift_id, $date) {
                 $count = res_turn_calendar::where('start_date', $date)
                     ->where('end_date', $date)->where('res_turn_id', $res_turn_id)->count();
+
+
                 if ($count  > 0) {
                     $res_turn = res_turn::find($res_shift_id);
 
@@ -184,8 +192,15 @@ class CalendarService
                         $this->deleteCalendarEquealStartDateCase($res_turn_id, $date);
                         $this->createCalendarHelper($res_shift_id, $date);
                     } else {
-                        $this->deleteCalendarBetweenDatesCase($res_turn_id, $date);
-                        $this->createCalendarHelper($res_shift_id, $date);
+                        $count = res_turn_calendar::where('end_date', $date)
+                            ->where('res_turn_id', $res_turn_id)->count();
+                        if ($count > 0){
+                            $this->deleteCalendarEquealEndDateCase($res_turn_id, $date);
+                            $this->createCalendarHelper($res_shift_id, $date);
+                        } else {
+                            $this->deleteCalendarBetweenDatesCase($res_turn_id, $date);
+                            $this->createCalendarHelper($res_shift_id, $date);
+                        }
                     }
                 }
             });
@@ -215,19 +230,38 @@ class CalendarService
 
     private function deleteCalendarEquealStartDateCase($res_turn_id, $date)
     {
+        $dateUpdate = Carbon::createFromFormat('Y-m-d', $date)->addDays(7);
         DB::Table('res_turn_calendar')->where('start_date', $date)
             ->where('res_turn_id', $res_turn_id)->update([
-                'start_date' => Carbon::createFromFormat('Y-m-d', $date)->addDays(7)
+                'start_date' => $dateUpdate
+            ]);
+    }
+
+    private function deleteCalendarEquealEndDateCase($res_turn_id, $date)
+    {
+        $dateUpdate = Carbon::createFromFormat('Y-m-d', $date)->addDays(-7);
+        DB::Table('res_turn_calendar')->where('end_date', $date)
+            ->where('res_turn_id', $res_turn_id)->update([
+                'end_date' => $dateUpdate
             ]);
     }
 
     private function deleteCalendarBetweenDatesCase($res_turn_id, $date)
     {
-        $res_turn_calendar_aux = res_turn_calendar::where('res_turn_id', $res_turn_id)->whereRaw('weekday(start_date) = weekday(\'' . $date . '\')')->orderBy('start_date', 'desc')->first();
-        DB::Table('res_turn_calendar')->where('start_date', $res_turn_calendar_aux->start_date)
-            ->where('res_turn_id', $res_turn_calendar_aux->res_turn_id)->update([
-                'end_date' => Carbon::createFromFormat('Y-m-d', $date)->addDays(-7)
-            ]);
+        $res_turn_calendar_aux = res_turn_calendar::where('res_turn_id', $res_turn_id)
+                                                        ->whereRaw('weekday(start_date) = weekday(\'' . $date . '\')')
+                                                        ->orderBy('start_date', 'desc')
+                                                        ->first();
+
+        $dateUpdate = Carbon::createFromFormat('Y-m-d', $date)->addDays(-7);
+
+        DB::Table('res_turn_calendar')
+                    ->where('start_date', $res_turn_calendar_aux->start_date)
+                    ->where('res_turn_id', $res_turn_calendar_aux->res_turn_id)
+                    ->update([
+                            'end_date' => $dateUpdate
+                    ]);
+
         $res_turn_calendar = new res_turn_calendar();
         $res_turn_calendar->res_turn_id             = $res_turn_calendar_aux->res_turn_id;
         $res_turn_calendar->res_type_turn_id    = $res_turn_calendar_aux->res_type_turn_id;

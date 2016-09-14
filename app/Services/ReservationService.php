@@ -88,6 +88,73 @@ class ReservationService {
         return (object) $response;
     }
 
+    public function update(array $data, int $microsite_id, int $reservation_id, int $user_id) {
+        DB::BeginTransaction();
+        try {
+            $reservation = res_reservation::where('id', $reservation_id)->where('ms_microsite_id', $microsite_id)->first();
+            if ($reservation == NULL) {
+                throw new Exception('messages.block_not_exist_turn');
+            }
+
+            $reservation->email = $data["email"];
+            $reservation->ms_microsite_id = $microsite_id;
+            $reservation->phone = $data["phone"];
+            $reservation->date_reservation = date("Y-m-d",strtotime($data["date_reservation"]));
+            $reservation->hours_reservation = date("Y-m-d",strtotime($data["hours_reservation"]));
+            $reservation->hours_duration = date("h:i:s",strtotime($data["hours_duration"]));
+            $reservation->num_people = $data["num_people"];
+            $reservation->note = $data["note"];
+            $reservation->res_reservation_status_id = 1;    
+            $reservation->user_add = $user_id;
+            $reservation->date_add = \Carbon\Carbon::now();
+            $reservation->date_upd = $reservation->date_add;
+
+            $guest_id = res_guest::find($data["res_guest_id"]);
+            if($guest_id==NULL){
+                $data_guest=["first_name"=>$data["first_name"],"last_name"=>$data['last_name']];              
+                $res_guest_id = $this->createGuest($data_guest, $microsite_id, $user_id);
+                $reservation->res_guest_id = $res_guest_id;
+
+            }else{
+                $reservation->res_guest_id = $data["res_guest_id"];
+            }  
+
+            if (!$reservation->save()) {
+                throw new Exception('messages.reservation_error_update');
+            }
+
+            DB::commit();
+            $response["mensaje"] = "messages.reservation_update_success";
+            $response["estado"] = true;
+
+        } catch (\Exception $e) {
+            $response["mensaje"] = $e->getMessage();
+            $response["estado"] = false;
+            DB::rollBack();
+        }
+        return (object) $response;
+    }
+
+    public function delete(int $microsite_id, int $reservation_id) {
+        DB::BeginTransaction();
+        try {
+            $reservation = new res_reservation();
+            
+            $reservation->where('id', $reservation_id)->where('ms_microsite_id', $microsite_id)->update(["res_reservation_status_id" => 2]);
+            DB::Commit();
+            $response["mensaje"] = "messages.reservation_update_success";
+            $response["estado"] = true;
+            //return true;
+        } catch (\Exception $e) {
+            $response["mensaje"] = $e->getMessage();
+            $response["estado"] = false;
+            DB::rollBack();
+            //abort(500, $e->getMessage());
+        }
+        return (object) $response;
+    }
+
+
     public function createGuest(array $data, int $microsite_id, int $user_id) {
          try {
             $guest = new res_guest();
