@@ -56,7 +56,7 @@ class TurnService {
 
     public function get(int $microsite_id, int $turn_id, $with) {
         try {
-            $query = res_turn::where('id', $turn_id)->where('ms_microsite_id', $microsite_id);
+            $query = res_turn::where('id', $turn_id)->where('ms_microsite_id', $microsite_id)->with("weekDays");
 
             if (isset($with)) {
                 $data = explode('|', $with);
@@ -74,21 +74,13 @@ class TurnService {
             if ($turn == null) {
                 abort(500, "Ocurrio un error");
             }
-            $turn->days = $this->getDaysTemp($turn->id);
+
+            $turn->days = $turn->weekDays;
+            
             return $turn;
         } catch (\Exception $e) {
             abort(500, $e->getMessage());
         }
-    }
-
-    private function getDaysTemp($res_turn_id)
-    {
-        $days = res_turn_calendar::select(DB::raw("dayofweek(start_date) as day") )
-                        ->where("res_turn_id", $res_turn_id)
-                        ->where("end_date",  "9999-12-31")
-                        ->groupBy("day")
-                        ->get()->pluck("day");
-        return  $days;
     }
 
     public function create(array $data, int $microsite_id, int $user_id) {
