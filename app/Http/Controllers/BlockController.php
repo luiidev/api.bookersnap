@@ -43,7 +43,6 @@ class BlockController  extends Controller {
     }
 
 	public function list($lang, $microsite, BlockListRequest $request){
-
         return $this->TryCatch(function () use ($microsite, $request) {
             $data = $this->_blockService->listado($microsite, $request->all());
             return $this->CreateJsonResponse(true, 201, "messages.block_list",$data);

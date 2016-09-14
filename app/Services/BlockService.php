@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Entities\Block;
 use App\Entities\Table;
+use App\Entities\TableReservation;
+use App\Entities\Reservation;
 use App\Entities\BlockTable;
 Use DB;
 Use Exception;
@@ -12,10 +14,8 @@ class BlockService {
 
     public function getBlock($microsite ,$id_block){
             
-            //$fecha= (isset($variables["fecha"]) && $variables["fecha"]!="")?$variables["fecha"]:date("Y-m-d");
             $data = array();
             $block = Block::find($id_block);
-
 
                 $data["id"] = $block->id;
                 $data["start_date"] = $block->start_date;
@@ -35,11 +35,9 @@ class BlockService {
     }
 
     public function listado($microsite, $variables ) {
-
             $fecha= (isset($variables["fecha"]) && $variables["fecha"]!="")?$variables["fecha"]:date("Y-m-d");
             $data = array();
-            $blocks = Block::where("ms_microsite_id","=",$microsite)->where("start_date",">", $fecha)->get();
-            //dd($blocks);
+            $blocks = Block::where("ms_microsite_id","=",$microsite)->where("start_date","=", $fecha)->get();
             $m=0;
             foreach ($blocks as $block) {
 
@@ -50,7 +48,6 @@ class BlockService {
                 $data[$m]["tables"] = array();
 
                 $blockTables= BlockTable::where("res_block_id", "=", $block->id)->get();
-                //dd($blockTables);
         
                 $i=0;
                 foreach ($blockTables as $item) {
@@ -65,27 +62,55 @@ class BlockService {
     }
 
     public function getTables($microsite, $variables) {
+            
+            dd($this->getTablesReservation($microsite, $variables));
 
             $data = array();
-            $fecha= (isset($variables["fecha"]) && $variables["fecha"]!="")?$variables["fecha"]:date("Y-m-d");
-            $blocks = Block::where("ms_microsite_id","=",$microsite)->where("start_date","=", $fecha)->get();
+            $date= (isset($variables["date"]) && $variables["date"]!="")?$variables["date"]:date("Y-m-d");
 
+            $blocks = Block::where("ms_microsite_id","=",$microsite)->where("start_date", "=", $date)->get();
+            $i=0;
             foreach ($blocks as $block) {
-
                 $blockTables= BlockTable::where("res_block_id", "=", $block->id)->get();
-        
-                $i=0;
                 foreach ($blockTables as $item) {
                     $data[$i]["res_table_id"] = $item->res_table_id;
                     $data[$i]["res_block_id"] = $block->id;
-                    $data[$i]["res_zone_id"] = "";
+                    $data[$i]["res_reservation_id"] = null;
+                    $data[$i]["num_people"] = 0;
                     $data[$i]["start_date"] = $block->start_date;
                     $data[$i]["start_time"] = $block->start_time;
                     $data[$i]["end_time"] = $block->end_time;
-                    $i++;
+                $i++;
                 }
             }
-             return $data;
+            return $data;
+    }
+
+    public function getTablesReservation($microsite, $variables) {
+
+            $data = array();
+            $date= (isset($variables["date"]) && $variables["date"]!="")?$variables["date"]:date("Y-m-d");
+
+            $reservations = Reservation::where("ms_microsite_id","=",$microsite)->where("date_reservation", "=", $date)->get();
+
+            $i=0;
+            foreach ($reservations as $reservation) {
+                //dd($reservation);
+
+                $tableReservations= TableReservation::where("res_reservation_id", "=", $reservation->id)->get();
+                //dd($tableReservations);
+                foreach ($tableReservations as $tableReservation) {
+                    $data[$i]["res_table_id"] = $tableReservation->res_table_id;
+                    $data[$i]["res_block_id"] = null;
+                    $data[$i]["res_reservation_id"] = $tableReservation->res_reservation_id;
+                    $data[$i]["num_people"] = $tableReservation->num_people;
+                    $data[$i]["start_date"] = $reservation->date_reservation;
+                    $data[$i]["start_time"] = $reservation->hours_reservation;
+                    $data[$i]["end_time"] = $reservation->hours_duration;
+                $i++;
+                }
+            }
+            return $data;
     }
 
     public function insert($microsite, $data) {
@@ -153,7 +178,6 @@ class BlockService {
             }
 
             $blockTable = BlockTable::where("res_block_id","=", $block_id);
-            //dd(count($blockTable->get()));
             if(count($blockTable->get())>0){
 				if (!$blockTable->delete()) {
                 	throw new Exception('messages.block_table_error_delete_turn');
@@ -195,12 +219,12 @@ class BlockService {
                 throw new Exception('messages.block_not_exist_turn');
             }
             if (!$block->delete()) {
-                throw new Exception('messages.block_error_update_turn');
+                throw new Exception('messages.block_error_delete_tables');
             }
 
             $blockTable = BlockTable::where("res_block_id","=",$block_id);
-			if (!$blockTable->delete()) {
-                throw new Exception('messages.block_table_error_update_turn');
+            if (!$blockTable->delete()) {
+                throw new Exception('messages.block_table_error_delete_tables');
             }            
 
             DB::commit();
