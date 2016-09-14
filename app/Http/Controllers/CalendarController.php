@@ -86,7 +86,7 @@ class CalendarController extends Controller
                 abort(406, "No posee lo campos necesarios o validos para realizar el cambio de turno");
             }
 
-            $service->changeCalendar(request("turn_id"), request("shift_id"), request("date"));
+            $service->changeCalendar($request->route("microsite_id"), request("turn_id"), request("shift_id"), request("date"));
             return $this->CreateResponse(true, 201, "");
 
         });
