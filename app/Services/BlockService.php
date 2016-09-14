@@ -7,6 +7,7 @@ use App\Entities\Table;
 use App\Entities\TableReservation;
 use App\Entities\Reservation;
 use App\Entities\BlockTable;
+use App\Helpers\Utilitarios;
 Use DB;
 Use Exception;
 
@@ -63,7 +64,6 @@ class BlockService {
 
     public function getTables($microsite, $variables) {
             
-            dd($this->getTablesReservation($microsite, $variables));
 
             $data = array();
             $date= (isset($variables["date"]) && $variables["date"]!="")?$variables["date"]:date("Y-m-d");
@@ -83,7 +83,10 @@ class BlockService {
                 $i++;
                 }
             }
-            return $data;
+
+            $dataReservation = $this->getTablesReservation($microsite, $variables);
+            $response = array_merge($data, $dataReservation);
+            return $response;
     }
 
     public function getTablesReservation($microsite, $variables) {
@@ -95,10 +98,8 @@ class BlockService {
 
             $i=0;
             foreach ($reservations as $reservation) {
-                //dd($reservation);
 
                 $tableReservations= TableReservation::where("res_reservation_id", "=", $reservation->id)->get();
-                //dd($tableReservations);
                 foreach ($tableReservations as $tableReservation) {
                     $data[$i]["res_table_id"] = $tableReservation->res_table_id;
                     $data[$i]["res_block_id"] = null;
@@ -106,9 +107,10 @@ class BlockService {
                     $data[$i]["num_people"] = $tableReservation->num_people;
                     $data[$i]["start_date"] = $reservation->date_reservation;
                     $data[$i]["start_time"] = $reservation->hours_reservation;
-                    $data[$i]["end_time"] = $reservation->hours_duration;
+                    $data[$i]["end_time"] = Utilitarios::sumarTiempos($reservation->hours_duration, $reservation->hours_reservation);
                 $i++;
                 }
+
             }
             return $data;
     }
