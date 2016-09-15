@@ -21,11 +21,12 @@ class ReservationService {
     public function getList(int $microsite_id, string $date = null) {
         //return [$microsite_id,$date];
 
-        //$rows = Block::where('ms_microsite_id', $microsite_id)->with('tables')->get();
+        //$rowsBlocked = Block::where('ms_microsite_id', $microsite_id)->where('start_date', $date)->with('tables')->get();
         $rowsBlocked = BlockTable::with('block')->get();
         $response_b = array();
         $b = 0;
         foreach ($rowsBlocked as $row) {
+            if($row->block->start_date==$date){
             $response_b[$b]["res_reservation_id"] = "";
             $response_b[$b]["start_time"] = $row->block->start_time;
             $response_b[$b]["end_time"] = $row->block->end_time;
@@ -34,7 +35,7 @@ class ReservationService {
             $response_b[$b]["last_name"] = "";
             $response_b[$b]["res_table_id"] = $row->res_table_id;
             $response_b[$b]["res_block_id"] = $row->res_block_id;
-            
+            }
             $b++;
         }
 
