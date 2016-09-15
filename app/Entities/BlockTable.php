@@ -10,5 +10,10 @@ class BlockTable extends Model {
     public $timestamps = false;
     protected $table = 'res_block_table';
 
+    public function block() {
+    	//return $this->hasMany('App\Entities\Block','id');
+    	return $this->belongsTo('App\Entities\Block','res_block_id');
+        
+    }
 
 }
