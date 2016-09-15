@@ -3,11 +3,12 @@
 namespace App\Services;
 
 use App\Domain\Calendar;
+use App\Services\Helpers\DateTimesHelper;
 use App\res_turn;
 use App\res_turn_calendar;
 use App\res_type_turn;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+use DB;
 
 class CalendarService
 {
@@ -232,35 +233,19 @@ class CalendarService
        $data = $this->getList($microsite_id, $year, $month, $day);
 
         foreach ($data as $row) {
-            if ($row["turn"]["id"]  !==  $res_turn_id){
-                $this->compareTimes(    
-                                                    $row["start_time"],
-                                                    $row["end_time"],
-                                                    $res_turn->hours_ini,
-                                                    $res_turn->hours_end,
-                                                    $date
-                                                );
+            if ($row["turn"]["id"]  !==  $res_turn_id){    
+                DateTimesHelper::compareTimes(    
+                                                                        $row["start_time"],
+                                                                        $row["end_time"],
+                                                                        $res_turn->hours_ini,
+                                                                        $res_turn->hours_end,
+                                                                        $date,
+                                                                        true
+                                                                    );
+
             }
         }
     }
-
-    // private function existConflictCalendarHour(res_turn $res_turn, $date)
-    // {
-    //     $now = Carbon::now()->toDateString();
-    //     $calendar = res_turn_calendar::whereRaw("dayofweek(start_date) = dayofweek(?)", array($date))
-    //                                         ->where("res_type_turn_id", "<>", $res_turn->res_type_turn_id)
-    //                                         ->where("end_date", ">=", $now)
-    //                                         ->get();
-
-    //     foreach ($calendar as $row) {
-    //         $this->compareTimes(    
-    //                                             $row->start_time,
-    //                                             $row->end_time,
-    //                                             $res_turn->hours_ini,
-    //                                             $res_turn->hours_end
-    //                                         );
-    //     }
-    // }
 
     private function compareTimes($start_time, $end_time, $start_point, $end_point, $date)
     {

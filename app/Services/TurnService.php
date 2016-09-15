@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Http\Requests\TurnRequest;
+use App\Services\Helpers\DateTimesHelper;
 use App\Services\Helpers\TurnServiceHelper;
 use App\Services\TurnZoneService;
 use App\res_table;
@@ -9,6 +11,8 @@ use App\res_turn;
 use App\res_turn_calendar;
 use App\res_turn_table;
 use App\res_turn_zone;
+use App\res_type_turn;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class TurnService {
@@ -83,14 +87,47 @@ class TurnService {
         }
     }
 
-    public function create(array $data, int $microsite_id, int $user_id) {
+    public function create(TurnRequest $request, int $microsite_id, int $user_id) {
         try {
+            $now = Carbon::now()->toDateString();
+            $days = array(2 ,3 , 4);
+            $conflict_calendar = res_turn_calendar::whereIn(DB::raw("dayofweek(start_date)"), $days)
+                                                ->where("res_type_turn_id", "<>", 2)
+                                                ->where("end_date", ">=", $now)->get();
+
+           $dates_conflct = array();
+            foreach ($conflict_calendar as $calendar) {
+                    $validate = DateTimesHelper::compareTimes(    
+                                                                            $calendar->start_time,
+                                                                            $calendar->end_time,
+                                                                            "05:00:00",
+                                                                            "15:00:00",
+                                                                            $now
+                                                                        );
+                    if ($validate->fail){
+                        $calendar->turn;
+                        $dates_conflct[] = $calendar;
+                    }
+            }
+
+            if (count($dates_conflct)) {
+                return $dates_conflct;
+            }
+
+            return $conflict_calendar;
+
+            // SELECT *,
+            //  dayofweek(start_date) as day_week FROM bookersnap.res_turn_calendar
+            //  where dayofweek(start_date) in (dayofweek('2016-09-19'), dayofweek('2016-09-20'), dayofweek('2016-09-21')) and
+            //  res_type_turn_id <> 2 and
+            //  end_date >= now();
+
             $turn = new res_turn();
-            $turn->name = $data["name"];
+            $turn->name = $request->name;
             $turn->ms_microsite_id = $microsite_id;
-            $turn->res_type_turn_id = $data["res_type_turn_id"];
-            $turn->hours_ini = $data["hours_ini"];
-            $turn->hours_end = $data["hours_end"];
+            $turn->res_type_turn_id = $request->res_type_turn_id;
+            $turn->hours_ini = $request->hours_ini;
+            $turn->hours_end = $request->hours_end;
             $turn->user_add = $user_id;
             $turn->user_upd = $user_id;
             $turn->date_add = \Carbon\Carbon::now();
@@ -98,13 +135,21 @@ class TurnService {
 
             DB::BeginTransaction();
             $turn->save();
-            foreach ($data['turn_zone'] as $value) {
-                $turn->zones()->attach($value['res_zone_id'], ['res_turn_rule_id' => $value['res_turn_rule_id']]);
-                $this->saveTurnTables(@$value["tables"], $turn->hours_ini, $turn->hours_end, $turn->id);
+
+            $turn_zones = array();
+            foreach ($request->turn_zone as $value) {
+                $turn_zones[ $value['res_zone_id'] ] = array('res_turn_rule_id' => $value['res_turn_rule_id']);
             }
+
+            $turn->zones()->attach($turn_zones);
+
+            // $this->saveTurnTables(@$value["tables"], $turn->hours_ini, $turn->hours_end, $turn->id);
+
             DB::Commit();
-            $res_turn = res_turn_zone::where('res_turn_id', $turn->id)->get();
-            return $res_turn;
+
+            $turn->turnZone;
+
+            return $turn->turnZone;
         } catch (\Exception $e) {
             DB::rollBack();
             abort(500, $e->getMessage());
