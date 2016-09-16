@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Http\Requests\TurnRequest;
-use App\Services\Helpers\DateTimesHelper;
+use App\Services\Helpers\CreateTurnHelper;
 use App\Services\Helpers\TurnServiceHelper;
 use App\Services\TurnZoneService;
 use App\res_table;
@@ -88,50 +88,79 @@ class TurnService {
     }
 
     public function create(TurnRequest $request, int $microsite_id, int $user_id) {
+
+
+            $days = array(7);
+            $type_turn_id = 2;
+
+            $calendar = CreateTurnHelper::make($days, $type_turn_id);
+            $calendar->generate("13:00:00", "15:00:00");
+
+            if ( $calendar->fails() ) {
+                return $calendar->getConflict();
+            }
+
+            $turn = $this->createTurnService($request, $microsite_id, $user_id);
+
+            foreach ($days as $day) {
+                $periodic = $calendar->existsPeriodic($day);
+                $uniques = $calendar->existsUniques($day);
+
+                // return [$periodic, $uniques];
+
+                $date = CreateTurnHelper::dateForDayWeek(array(2,3,4,5,6));
+
+                return $date;
+
+                if ( $periodic ){
+                    // Reemplazar el  turno del calendario periodico por nuevo turno creado
+                } else if ( $uniques ){
+                    // Crear un nuevo calendario periodico con el nuevo turno, creando cortes en los dias unicos del tipo de turno a crear
+                } else {
+                    // Crear un nuevo calendario periodico con el nuevo turno
+                }
+            }
+
+
+            // $unique_days = $calendar->getUniqueDays();
+
+            // if( $unique_days->count() > 0) {
+            //     return "Caso con dias especificos";
+            // } else {
+            //     $turn = $this->createTurnService($request, $microsite_id, $user_id);
+            //     return CreateTurnHelper::dateForDayWeek($days);
+            // }
+    }
+
+    private function createCalendarForTurn($res_turn)
+    {
+        $date_calendar = Carbon::createFromFormat('Y-m-d', $date)->toDateString();
+
+        res_turn_calendar::create([
+                        "res_type_turn_id"   =>  $res_turn->res_type_turn_id,
+                        "res_turn_id"            =>  $res_turn->id,
+                        "user_add"               =>  1,
+                        "date_add"               =>  Carbon::now(),
+                        "start_date"              =>  $date_calendar,
+                        "end_date"               =>  $date_calendar,
+                        "start_time"              =>  $res_turn->hours_ini,
+                        "end_time"               =>  $res_turn->hours_end,
+                    ]);
+    }
+
+    private function createTurnService(TurnRequest $request, int $microsite_id, int $user_id)
+    {
         try {
-            $now = Carbon::now()->toDateString();
-            $days = array(2 ,3 , 4);
-            $conflict_calendar = res_turn_calendar::whereIn(DB::raw("dayofweek(start_date)"), $days)
-                                                ->where("res_type_turn_id", "<>", 2)
-                                                ->where("end_date", ">=", $now)->get();
-
-           $dates_conflct = array();
-            foreach ($conflict_calendar as $calendar) {
-                    $validate = DateTimesHelper::compareTimes(    
-                                                                            $calendar->start_time,
-                                                                            $calendar->end_time,
-                                                                            "05:00:00",
-                                                                            "15:00:00",
-                                                                            $now
-                                                                        );
-                    if ($validate->fail){
-                        $calendar->turn;
-                        $dates_conflct[] = $calendar;
-                    }
-            }
-
-            if (count($dates_conflct)) {
-                return $dates_conflct;
-            }
-
-            return $conflict_calendar;
-
-            // SELECT *,
-            //  dayofweek(start_date) as day_week FROM bookersnap.res_turn_calendar
-            //  where dayofweek(start_date) in (dayofweek('2016-09-19'), dayofweek('2016-09-20'), dayofweek('2016-09-21')) and
-            //  res_type_turn_id <> 2 and
-            //  end_date >= now();
-
             $turn = new res_turn();
-            $turn->name = $request->name;
-            $turn->ms_microsite_id = $microsite_id;
-            $turn->res_type_turn_id = $request->res_type_turn_id;
-            $turn->hours_ini = $request->hours_ini;
-            $turn->hours_end = $request->hours_end;
-            $turn->user_add = $user_id;
-            $turn->user_upd = $user_id;
-            $turn->date_add = \Carbon\Carbon::now();
-            $turn->date_upd = $turn->date_add;
+            $turn->name                      = $request->name;
+            $turn->ms_microsite_id      = $microsite_id;
+            $turn->res_type_turn_id    = $request->res_type_turn_id;
+            $turn->hours_ini                = $request->hours_ini;
+            $turn->hours_end              = $request->hours_end;
+            $turn->user_add                = $user_id;
+            $turn->user_upd                = $user_id;
+            $turn->date_add                = Carbon::now();
+            $turn->date_upd                = $turn->date_add;
 
             DB::BeginTransaction();
             $turn->save();
@@ -147,9 +176,7 @@ class TurnService {
 
             DB::Commit();
 
-            $turn->turnZone;
-
-            return $turn->turnZone;
+            return $turn;
         } catch (\Exception $e) {
             DB::rollBack();
             abort(500, $e->getMessage());

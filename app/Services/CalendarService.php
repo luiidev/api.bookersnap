@@ -247,39 +247,6 @@ class CalendarService
         }
     }
 
-    private function compareTimes($start_time, $end_time, $start_point, $end_point, $date)
-    {
-        $time = time();
-        
-        $_start_time = strtotime( $start_time, $time );
-        $_end_time = strtotime(  $end_time, $time );
-
-        $start_time = Carbon::parse($date.' '.$start_time);
-        $end_time = Carbon::parse($date.' '.$end_time);
-
-        if($_end_time < $_start_time) {
-            $end_time->addDay();
-        }
-
-        $_start_point = strtotime( $start_point, $time );
-        $_end_point = strtotime( $end_point, $time );
-
-        $start_point = Carbon::parse($date.' '.$start_point);
-        $end_point = Carbon::parse($date.' '.$end_point);
-
-        if($_end_point < $_start_point) {
-            $end_point ->addDay();
-        }
-
-        if ( $start_point->between($start_time, $end_time, false) ) {
-            abort(421, "La hora de inicio genera conflicto con otro turno, no es posible el cambio de turno.");
-        } else if ( $end_point->between($start_time, $end_time, false) ) {
-            abort(421, "La hora de fin genera conflicto con otro turno, no es posible el cambio de turno.");
-        } else if ($start_point->lt($start_time) && $end_point->gt($end_time) ) {
-            abort(421, "El horario genera conflicto con otro turno, no es posible el cambio de turno.");
-        }
-    }
-
     private function deleteCalendarEquealStartDateCase($res_turn_id, $date)
     {
         $dateUpdate = Carbon::createFromFormat('Y-m-d', $date)->addDays(7);
