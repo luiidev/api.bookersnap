@@ -31,6 +31,7 @@ class ReservationService {
             $response_b[$b]["start_time"] = $row->block->start_time;
             $response_b[$b]["end_time"] = $row->block->end_time;
             $response_b[$b]["num_people"] = "";
+            $response_b[$b]["res_reservation_status_id"] ="";
             $response_b[$b]["first_name"] = "";
             $response_b[$b]["last_name"] = "";
             $response_b[$b]["res_table_id"] = $row->res_table_id;
@@ -65,7 +66,7 @@ class ReservationService {
             //$response[$i]["email"] = $row->email;
             //$response[$i]["phone"] = $row->phone;
             //$response[$i]["res_guest_id"] = $row->res_guest_id;
-            //$response[$i]["res_reservation_status_id"] = $row->res_reservation_status_id;
+            $response[$i]["res_reservation_status_id"] = $row->res_reservation_status_id;
             $response[$i]["first_name"] = $row->guest->first_name;
             $response[$i]["last_name"] = $row->guest->last_name;
             $response[$i]["res_table_id"] = $row->tables->res_table_id;
