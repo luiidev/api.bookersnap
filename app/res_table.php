@@ -27,4 +27,6 @@ class res_table extends Model
         return $this->hasMany('App\res_turn_table', 'res_table_id');
     }
 
+    
+
 }

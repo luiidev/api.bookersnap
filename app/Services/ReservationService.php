@@ -21,21 +21,26 @@ class ReservationService {
     public function getList(int $microsite_id, string $date = null) {
         //return [$microsite_id,$date];
 
-        //$rowsBlocked = Block::where('ms_microsite_id', $microsite_id)->where('start_date', $date)->with('tables')->get();
-        $rowsBlocked = BlockTable::with('block')->get();
+        $rowsBlocked = Block::where('ms_microsite_id', $microsite_id)->where('start_date', $date)->with('tables')->get();
+        //$rowsBlocked = BlockTable::with('block')->get();
+        
         $response_b = array();
         $b = 0;
         foreach ($rowsBlocked as $row) {
-            if($row->block->start_date==$date){
-            $response_b[$b]["res_reservation_id"] = "";
-            $response_b[$b]["start_time"] = $row->block->start_time;
-            $response_b[$b]["end_time"] = $row->block->end_time;
-            $response_b[$b]["num_people"] = "";
-            $response_b[$b]["res_reservation_status_id"] ="";
-            $response_b[$b]["first_name"] = "";
-            $response_b[$b]["last_name"] = "";
-            $response_b[$b]["res_table_id"] = $row->res_table_id;
-            $response_b[$b]["res_block_id"] = $row->res_block_id;
+            $tables=$row->tables;
+            $m = 0;
+            foreach ($tables as $table) {
+                $response_b[$m]["res_reservation_id"] = "";
+                $response_b[$m]["start_time"] = $row->start_time;
+                $response_b[$m]["end_time"] = $row->end_time;
+                $response_b[$m]["num_people"] = "";
+                $response_b[$m]["res_reservation_status_id"] ="";
+                $response_b[$m]["first_name"] = "";
+                $response_b[$m]["last_name"] = "";
+                $response_b[$m]["res_table_id"] = $table->id;
+                $response_b[$m]["res_table_name"] = $table->name;
+                $response_b[$m]["res_block_id"] = $row->id;
+                $m++;
             }
             $b++;
         }
@@ -69,13 +74,14 @@ class ReservationService {
             $response[$i]["res_reservation_status_id"] = $row->res_reservation_status_id;
             $response[$i]["first_name"] = $row->guest->first_name;
             $response[$i]["last_name"] = $row->guest->last_name;
-            $response[$i]["res_table_id"] = $row->tables->res_table_id;
+            $response[$i]["res_table_id"] = $row->tables[0]->id;
+            $response[$i]["res_table_name"] = $row->tables[0]->name;
             $response[$i]["res_block_id"] = "";
             
             $i++;
         }
 
-        $resultado_f = array_merge($response, $response_b);
+       $resultado_f = array_merge($response, $response_b);
         
         return $resultado_f;
     }
