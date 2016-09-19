@@ -34,7 +34,7 @@ class TurnController extends Controller {
     public function create(TurnRequest $request) {
         $service = $this->_TurnService;
         return $this->TryCatch(function () use ($request, $service) {
-                    $result = $service->create($request->all(), $request->route('microsite_id'), $request->_bs_user_id);
+                    $result = $service->create($request, $request->route('microsite_id'), $request->_bs_user_id);
                     return response()->json($result);
                 });
     }

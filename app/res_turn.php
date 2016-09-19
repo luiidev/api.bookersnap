@@ -13,7 +13,9 @@ namespace App;
  *
  * @author USER
  */
+use App\res_turn_calendar;
 use Illuminate\Database\Eloquent\Model;
+use DB;
 
 class res_turn extends Model {
 
@@ -63,6 +65,20 @@ class res_turn extends Model {
     
     public function availability() {
         return $this->hasMany('App\res_turn_zone', 'res_turn_id');
+    }
+
+    public function weekDays()
+    {
+        return $this->hasMany(res_turn_calendar::class)
+                                ->select( "res_turn_id", DB::raw("dayofweek(start_date) as day") )
+                                ->where("end_date",  "9999-12-31")
+                                ->groupBy("day");
+    }
+
+    public function getWeekDaysAttribute()
+    {
+        $this->addHidden(["weekDays"]);
+        return $this->relations["weekDays"]->pluck("day");
     }
     
 //    public function delete() {
