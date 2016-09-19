@@ -90,11 +90,11 @@ class TurnService {
     public function create(TurnRequest $request, int $microsite_id, int $user_id) {
 
 
-            $days = array(7);
+            $days = array(1,6);
             $type_turn_id = 2;
 
             $calendar = CreateTurnHelper::make($days, $type_turn_id);
-            $calendar->generate("13:00:00", "15:00:00");
+            $calendar->generate($request->hours_ini, $request->hours_end);
 
             if ( $calendar->fails() ) {
                 return $calendar->getConflict();
@@ -102,50 +102,180 @@ class TurnService {
 
             $turn = $this->createTurnService($request, $microsite_id, $user_id);
 
+            $response = array();
             foreach ($days as $day) {
                 $periodic = $calendar->existsPeriodic($day);
                 $uniques = $calendar->existsUniques($day);
 
-                // return [$periodic, $uniques];
+                $date = CreateTurnHelper::nextDayWeek($day);
 
-                $date = CreateTurnHelper::dateForDayWeek(array(2,3,4,5,6));
-
-                return $date;
+                // DEBUG
+                $response[$day]["bool"] = array($periodic, $uniques);
+                // $response[$day]["date"] = $date;
+                // $response[$day]["Unique_Days"][] = $calendar->getUniqueDays($day);
+                // $response[$day]["Periodic"][] = $calendar->getPeriodic($day); 
 
                 if ( $periodic ){
                     // Reemplazar el  turno del calendario periodico por nuevo turno creado
+                    
+                    $old_turn = $calendar->getPeriodic($day);
+                    $this->replaceCalendarForTurn($turn, $old_turn, $date);
                 } else if ( $uniques ){
                     // Crear un nuevo calendario periodico con el nuevo turno, creando cortes en los dias unicos del tipo de turno a crear
+
+                    $pieces = $calendar->getUniqueDays($day);
+                    $this->piecesCalendarForTurn($turn, $pieces, $date);
                 } else {
                     // Crear un nuevo calendario periodico con el nuevo turno
+                    
+                    $this->createCalendarForTurn($turn, $date);
                 }
             }
 
+            // $response["debug"]["conflict_calendar"] = $calendar->conflict_calendar;
+            // $response["debug"]["periodic"] = $calendar->periodic;
+            // $response["debug"]["unique_days"] = $calendar->unique_days;
 
-            // $unique_days = $calendar->getUniqueDays();
-
-            // if( $unique_days->count() > 0) {
-            //     return "Caso con dias especificos";
-            // } else {
-            //     $turn = $this->createTurnService($request, $microsite_id, $user_id);
-            //     return CreateTurnHelper::dateForDayWeek($days);
-            // }
+            return $response;
     }
 
-    private function createCalendarForTurn($res_turn)
+    private function createCalendarForTurn(res_turn $res_turn,  Carbon $date)
     {
-        $date_calendar = Carbon::createFromFormat('Y-m-d', $date)->toDateString();
+        $date = $date->toDateString();
 
         res_turn_calendar::create([
                         "res_type_turn_id"   =>  $res_turn->res_type_turn_id,
                         "res_turn_id"            =>  $res_turn->id,
                         "user_add"               =>  1,
                         "date_add"               =>  Carbon::now(),
-                        "start_date"              =>  $date_calendar,
-                        "end_date"               =>  $date_calendar,
+                        "date_upd"               =>  Carbon::now(),
+                        "start_date"              =>  $date,
+                        "end_date"               =>  "9999-12-31",
                         "start_time"              =>  $res_turn->hours_ini,
                         "end_time"               =>  $res_turn->hours_end,
                     ]);
+    }
+
+    private function replaceCalendarForTurn(res_turn $res_turn, res_turn_calendar $old_turn, Carbon $date)
+    {
+        $now = Carbon::now();
+
+        $list = res_turn_calendar::where("res_turn_id", $old_turn->res_turn_id)
+                                        ->where("end_date", ">=", $now)
+                                        ->whereRaw("dayofweek(start_date) = dayofweek(?)", array($old_turn->start_date))
+                                        ->orderby("end_date", "asc")
+                                        ->get();
+
+        $turn_periodic = $list->first();
+
+        if ($list->count() > 1) {
+            // Hay un periodico con fechas desperdiagadas
+
+            $this->replaceCalendarForTurnCut($date);
+            $this->replaceCalendarForTurnInPieces($res_turn, $old_turn, $date);
+        } else if ($list->count() ==1){
+            // Solo hay un una unica fecha periodica
+            
+            $this->replaceCalendarForTurnCut($date);
+            $this->replaceCalendarForTurnOnly($res_turn, $date);
+        }
+
+    }
+
+    private function piecesCalendarForTurn(res_turn $res_turn, res_turn_calendar $pieces, Carbon $date)
+    {
+        $now = Carbon::now();
+        $date = $date->toDateString();
+
+        foreach ($pieces as $i => $calendar) {
+
+            if ( $i == 0){
+                $date_start = Carbon::now();
+            } else {
+                $date_start = Carbon::parse( $calendar->start_date )->addDays(7)->toDateString();
+            }
+
+            // Caso de la primera vuelta - solo en este caso se tiene que validar esta opcion
+            if ( $date_start  ==  $calendar->start_date) {
+                // Caso en que la fecha de inicio exista una pieza | dia unico
+                
+            } else {
+                // Caso de que no exista pieza | dia unico en la fecha de inicio
+
+                $now = Carbon::now();
+                
+                $res_turn_calendar = new res_turn_calendar();
+                $res_turn_calendar->res_turn_id             = $res_turn->id;
+                $res_turn_calendar->res_type_turn_id    = $res_turn->res_type_turn_id;
+                $res_turn_calendar->start_date               = $date->toDateString();
+                $res_turn_calendar->end_date                = "9999-12-31";
+                $res_turn_calendar->start_time               = $res_turn->hours_ini;
+                $res_turn_calendar->end_time                = $res_turn->hours_end;
+                $res_turn_calendar->date_add               = $now->toDateString();
+                $res_turn_calendar->date_upd               = $now->toDateString();
+                $res_turn_calendar->user_add               = 1;
+                $res_turn_calendar->save();
+            }
+
+        }
+
+    }
+
+    private function replaceCalendarForTurnCut(Carbon $date)
+    {
+        $date_update =$date->copy()->addDays(-7);
+
+        res_turn_calendar::where('start_date', $turn_periodic->start_date)
+                    ->where('res_turn_id', $turn_periodic->res_turn_id)
+                    ->update([
+                            'end_date' => $date_update
+                    ]);
+    }
+
+    private function replaceCalendarForTurnInPieces(res_turn $res_turn, res_turn_calendar $old_turn, Carbon $date)
+    {
+        $now = Carbon::now();
+
+        $res_turn_calendar = new res_turn_calendar();
+        $res_turn_calendar->res_turn_id             = $turn_periodic->res_turn_id;
+        $res_turn_calendar->res_type_turn_id    = $turn_periodic->res_type_turn_id;
+        $res_turn_calendar->start_date               = $date->toDateString();
+        $res_turn_calendar->end_date                = $turn_periodic->end_date;
+        $res_turn_calendar->start_time               = $turn_periodic->start_time;
+        $res_turn_calendar->end_time                = $turn_periodic->end_time;
+        $res_turn_calendar->date_add               = $now->toDateString();
+        $res_turn_calendar->date_upd               = $now->toDateString();
+        $res_turn_calendar->user_add               = 1;
+        $res_turn_calendar->save();
+
+        res_turn_calendar::where("res_turn_id", $old_turn->res_turn_id)
+                                        ->where("end_date", ">=", $now)
+                                        ->whereRaw("dayofweek(start_date) = dayofweek(?)", array($old_turn->start_date))
+                                        ->update([
+                                                "res_type_turn_id"   =>  $res_turn->res_type_turn_id,
+                                                "res_turn_id"            =>  $res_turn->id,
+                                                "user_upd"               =>  2,
+                                                "date_upd"               =>  $now->toDateString(),
+                                                "start_time"              =>  $res_turn->hours_ini,
+                                                "end_time"               =>  $res_turn->hours_end,
+                                            ]);
+    }
+
+    private function replaceCalendarForTurnOnly(res_turn $res_turn, Carbon $date)
+    {
+        $now = Carbon::now();
+        
+        $res_turn_calendar = new res_turn_calendar();
+        $res_turn_calendar->res_turn_id             = $res_turn->id;
+        $res_turn_calendar->res_type_turn_id    = $res_turn->res_type_turn_id;
+        $res_turn_calendar->start_date               = $date->toDateString();
+        $res_turn_calendar->end_date                = "9999-12-31";
+        $res_turn_calendar->start_time               = $res_turn->hours_ini;
+        $res_turn_calendar->end_time                = $res_turn->hours_end;
+        $res_turn_calendar->date_add               = $now->toDateString();
+        $res_turn_calendar->date_upd               = $now->toDateString();
+        $res_turn_calendar->user_add               = 1;
+        $res_turn_calendar->save();
     }
 
     private function createTurnService(TurnRequest $request, int $microsite_id, int $user_id)
