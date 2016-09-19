@@ -20,8 +20,9 @@ class ReservationService {
 
     public function getList(int $microsite_id, string $date = null) {
         $rows = res_reservation::where('ms_microsite_id', $microsite_id)
-                ->where('date_reservation', $date)->get();
+                ->where('date_reservation', $date)->with('guest')->get();
 
+        $response =[];
         $i=0;
         foreach ($rows as $row) {
             $response[$i]["id"] = $row->id;
@@ -39,7 +40,8 @@ class ReservationService {
             $response[$i]["email"] = $row->email;
             $response[$i]["phone"] = $row->phone;
             $response[$i]["res_guest_id"] = $row->res_guest_id;
-            $response[$i]["res_reservation_status_id"] = $row->res_reservation_status_id;  
+            $response[$i]["res_reservation_status_id"] = $row->res_reservation_status_id;
+            $response[$i]["guest"] = $row->guest; 
             $i++;
         }
         return $response;
