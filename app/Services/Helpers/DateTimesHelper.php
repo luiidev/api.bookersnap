@@ -47,7 +47,7 @@ class DateTimesHelper
             $message = "La hora de inicio genera conflicto con otro turno, no es posible el cambio de turno.";
         } elseif ($end_point->between($start_time, $end_time, false)) {
             $message = "La hora de fin genera conflicto con otro turno, no es posible el cambio de turno.";
-        } elseif ($start_point->lt($start_time) && $end_point->gt($end_time)) {
+        } elseif ($start_point->lte($start_time) && $end_point->gte($end_time)) {
             $message = "El horario genera conflicto con otro turno, no es posible el cambio de turno.";
         }
 

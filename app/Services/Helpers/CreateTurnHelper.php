@@ -7,34 +7,28 @@ use App\res_turn_calendar;
 use Carbon\Carbon;
 use DB;
 
-
-/**
- * Pendiente codigo de micrositio
- */
-
-
 /**
 * Helpers para manejo de conflicto de turnos y horaios al crear un nuevo turno  con calendario periodico
 */
 class CreateTurnHelper
 {
 
-    public $fails;
-    public $conflicts;
-    public $conflict_calendar;
-    public $periodic;
-    public $unique_days;
-    public $turn_conflct;
-    public $now;
+    private $fails;
+    private $conflicts;
+    private $conflict_calendar;
+    private $periodic;
+    private $unique_days;
+    private $turn_conflct;
+    private $now;
 
 
-    public function __construct($days, $type_turn_id)
+    public function __construct(array $days,  int $type_turn_id, int $ms_microsite_id)
     {
         $this->fails = false;
         $this->turn_conflct = array();
         $this->now = Carbon::now()->toDateString();
 
-        $this->CalendarConflict($days, $type_turn_id);
+        $this->CalendarConflict($days, $type_turn_id, $ms_microsite_id);
     }
 
     /**
@@ -42,18 +36,28 @@ class CreateTurnHelper
      * @param array $days         lista de dias a filtrar
      * @param int $type_turn_id tipo de turno a evaluar, para agregar excepciones
      */
-    private function CalendarConflict($days, $type_turn_id)
+    private function CalendarConflict($days, $type_turn_id, $ms_microsite_id = 1)
     {
 
-        $this->periodic = res_turn_calendar::select(array("res_turn_id", "res_type_turn_id", "start_date", "end_date", DB::raw("dayofweek(start_date) as dayOfWeek")))
+        $this->periodic = res_turn_calendar::select(array(
+                                                        "res_turn_id", 
+                                                        "res_turn_calendar.res_type_turn_id",
+                                                        "start_date",
+                                                        "end_date",
+                                                        DB::raw("dayofweek(start_date) as dayOfWeek")
+                                                    ))
+                                            ->join("res_turn", "res_turn.id", "=","res_turn_calendar.res_turn_id")
+                                            ->where("res_turn.ms_microsite_id", $ms_microsite_id)
                                             ->whereIn(DB::raw("dayofweek(start_date)"), $days)
-                                            ->where("res_type_turn_id", $type_turn_id)
+                                            ->where("res_turn_calendar.res_type_turn_id", $type_turn_id)
                                             ->where("end_date", "9999-12-31")
                                             ->get();
 
         $unique_days_query = res_turn_calendar::select(array("res_turn_id", "start_date", "end_date", DB::raw("dayofweek(start_date) as dayOfWeek")))
+                                            ->join("res_turn", "res_turn.id", "=","res_turn_calendar.res_turn_id")
+                                            ->where("res_turn.ms_microsite_id", $ms_microsite_id)
                                             ->whereIn(DB::raw("dayofweek(start_date)"), $days)
-                                            ->where("res_type_turn_id", $type_turn_id)
+                                            ->where("res_turn_calendar.res_type_turn_id", $type_turn_id)
                                             ->whereColumn("start_date", "end_date")
                                             ->where("end_date", ">=", $this->now);
 
@@ -63,8 +67,10 @@ class CreateTurnHelper
 
         $this->unique_days = $unique_days_query->get();
 
-        $this->conflict_calendar = res_turn_calendar::whereIn(DB::raw("dayofweek(start_date)"), $days)
-                                            ->where("res_type_turn_id", "<>", $type_turn_id)
+        $this->conflict_calendar = res_turn_calendar::select("res_turn_calendar.*", "res_turn.name")->whereIn(DB::raw("dayofweek(start_date)"), $days)
+                                            ->join("res_turn", "res_turn.id", "=","res_turn_calendar.res_turn_id")
+                                            ->where("res_turn.ms_microsite_id", $ms_microsite_id)
+                                            ->where("res_turn_calendar.res_type_turn_id", "<>", $type_turn_id)
                                             ->where("end_date", ">=", $this->now)
                                             ->get();
 
@@ -93,14 +99,14 @@ class CreateTurnHelper
      * @param int $type_turn_id tipo de turno a evaluar, para agregar excepciones
      * @return App\Services\Helpers\CreateTurnHelper
      */
-    public static function make(array $days,  int $type_turn_id)
+    public static function make(array $days,  int $type_turn_id, int $ms_microsite_id)
     {
-        return new static($days, $type_turn_id);
+        return new static($days, $type_turn_id, $ms_microsite_id);
     }
 
     /**
      * Retorna fecha mas cercano al dia(s) ingresados
-     * @param  array  $days [1,2,3,4,5,6]
+     * @param  array | int  $days [1,2,3,4,5,6]
      * @return Array      Dates
      */
     public static function nextDayWeek($days)
@@ -122,9 +128,9 @@ class CreateTurnHelper
         } else {
 
             if ($now->dayOfWeek  == ($days - 1)) {
-                $dates = $now->copy();
+                $dates = $now;
             } else {
-                $dates =  $now->copy()->next($days - 1);
+                $dates =  $now->next($days - 1);
             }
 
         }
@@ -140,7 +146,7 @@ class CreateTurnHelper
      */
     public function generate($start_time, $end_time)
     {
-         $this->turn_conflct = array();
+         $this->turn_conflct = collect();
          foreach ($this->conflict_calendar as $calendar) {
                  $validate = DateTimesHelper::
                                                         compareTimes(    
@@ -151,12 +157,11 @@ class CreateTurnHelper
                                                              $this->now
                                                          );
                  if ($validate->fail){
-                     $calendar->turn;
-                     $this->turn_conflct[] = $calendar;
+                     $this->turn_conflct->push($calendar);
                  }
          }
 
-         if (count($this->turn_conflct)) {
+         if ($this->turn_conflct->count()) {
              $this->fails = true;
          }
     }
@@ -190,7 +195,7 @@ class CreateTurnHelper
     }
 
     /**
-     * Pregunta si existe dias unicos ene el calendario calendario un dia de semana
+     * Pregunta si existe dias unicos en el calendario calendario en un dia de semana
      * @param  Int    $day día de semana
      * @return Boolean
      */
@@ -202,11 +207,11 @@ class CreateTurnHelper
     /**
      * Retorna los dias unicos encontrados en un dia de semana
      * @param  Int    $day día de semana
-     * @return App\res_turn_calendar
+     * @return  Illuminate\Database\Eloquent\Collection App\res_turn_calendar
      */
     public function getUniqueDays(int $day)
     {
-        return $this->unique_days->where("dayOfWeek", $day)->orderBy("start_date", "asc");
+        return $this->unique_days->where("dayOfWeek", $day)->sortBy("start_date");
     }
 
     /**
