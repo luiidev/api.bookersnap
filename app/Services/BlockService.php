@@ -76,6 +76,7 @@ class BlockService {
                     $data[$i]["res_table_id"] = $item->res_table_id;
                     $data[$i]["res_block_id"] = $block->id;
                     $data[$i]["res_reservation_id"] = null;
+                    $data[$i]["res_reservation_status_id"] = null;
                     $data[$i]["num_people"] = 0;
                     $data[$i]["start_date"] = $block->start_date;
                     $data[$i]["start_time"] = $block->start_time;
@@ -104,6 +105,7 @@ class BlockService {
                     $data[$i]["res_table_id"] = $tableReservation->res_table_id;
                     $data[$i]["res_block_id"] = null;
                     $data[$i]["res_reservation_id"] = $tableReservation->res_reservation_id;
+                    $data[$i]["res_reservation_status_id"] = $reservation->res_reservation_status_id;
                     $data[$i]["num_people"] = $tableReservation->num_people;
                     $data[$i]["start_date"] = $reservation->date_reservation;
                     $data[$i]["start_time"] = $reservation->hours_reservation;
