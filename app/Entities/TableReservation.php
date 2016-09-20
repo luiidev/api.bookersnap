@@ -10,5 +10,4 @@ class TableReservation extends Model {
     public $timestamps = false;
     protected $table = 'res_table_reservation';
 
-
 }
