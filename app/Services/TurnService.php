@@ -124,14 +124,14 @@ class TurnService {
                             // Reemplazar el  turno del calendario periodico por nuevo turno creado
                             $old_turn = $calendar->getPeriodic($day);
                             $pieces = $calendar->getUniqueDays($day);           
-                            CreateTurnCalendarHelper::calendarPeriodicCase($turn, $old_turn, $pieces, $date);
+                            CreateTurnCalendarHelper::calendarPeriodicCase($turn, $old_turn, $pieces, $date, $user_id);
                         } else if ( $uniques ){
                             // Crear un nuevo calendario periodico con el nuevo turno, creando cortes en los dias unicos del tipo de turno a crear
                             $pieces = $calendar->getUniqueDays($day);
-                            CreateTurnCalendarHelper::calendarPiecesOnlyCase($turn, $pieces, $date);
+                            CreateTurnCalendarHelper::calendarPiecesOnlyCase($turn, $pieces, $date, $user_id);
                         } else {
                             // Crear un nuevo calendario periodico con el nuevo turno
-                            CreateTurnCalendarHelper::calendarFreeCase($turn, $date);
+                            CreateTurnCalendarHelper::calendarFreeCase($turn, $date, $user_id);
                         }
                     }
                 }
@@ -229,14 +229,14 @@ class TurnService {
                         // Reemplazar el  turno del calendario periodico por nuevo turno creado
                         $old_turn = $aux_calendar->getPeriodic($day);
                         $pieces = $aux_calendar->getUniqueDays($day);
-                        CreateTurnCalendarHelper::calendarPeriodicCase($turn, $old_turn, $pieces, $date);
+                        CreateTurnCalendarHelper::calendarPeriodicCase($turn, $old_turn, $pieces, $date, $user_id);
                     } else if ( $uniques ){
                         // Crear un nuevo calendario periodico con el nuevo turno, creando cortes en los dias unicos del tipo de turno a crear
                         $pieces = $aux_calendar->getUniqueDays($day);
-                        CreateTurnCalendarHelper::calendarPiecesOnlyCase($turn, $pieces, $date);
+                        CreateTurnCalendarHelper::calendarPiecesOnlyCase($turn, $pieces, $date, $user_id);
                     } else {
                         // Crear un nuevo calendario periodico con el nuevo turno
-                        CreateTurnCalendarHelper::calendarFreeCase($turn, $date);
+                        CreateTurnCalendarHelper::calendarFreeCase($turn, $date, $user_id);
                     }
                 } else {
                     // Eliminar calendario
@@ -244,7 +244,7 @@ class TurnService {
                         // Eliminar el  turno del calendario periodico por nuevo turno creado
                         $old_turn = $aux_calendar->getPeriodic($day);
                         $pieces = $aux_calendar->getUniqueDays($day);
-                        CreateTurnCalendarHelper::calendarPeriodicCaseDelete($turn, $old_turn, $pieces, $date);
+                        CreateTurnCalendarHelper::calendarPeriodicCaseDelete($turn, $old_turn, $pieces, $date, $user_id);
                     }
                 }
 

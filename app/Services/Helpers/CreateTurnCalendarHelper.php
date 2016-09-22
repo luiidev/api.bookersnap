@@ -18,14 +18,14 @@ use Illuminate\Database\Eloquent\Collection;
             # code...
         }
 
-        public static function calendarFreeCase(res_turn $res_turn,  Carbon $date)
+        public static function calendarFreeCase(res_turn $res_turn,  Carbon $date, $user_id)
         {
             $date = $date->toDateString();
 
             res_turn_calendar::create([
                             "res_type_turn_id"   =>  $res_turn->res_type_turn_id,
                             "res_turn_id"            =>  $res_turn->id,
-                            "user_add"               =>  1,
+                            "user_add"               =>  $user_id,
                             "date_add"               =>  Carbon::now(),
                             "date_upd"               =>  Carbon::now(),
                             "start_date"              =>  $date,
@@ -35,7 +35,7 @@ use Illuminate\Database\Eloquent\Collection;
                         ]);
         }
 
-        public static function calendarPeriodicCase(res_turn $res_turn, res_turn_calendar $old_turn, Collection $pieces, Carbon $date)
+        public static function calendarPeriodicCase(res_turn $res_turn, res_turn_calendar $old_turn, Collection $pieces, Carbon $date, $user_id)
         {
             $now = Carbon::now();
 
@@ -53,27 +53,27 @@ use Illuminate\Database\Eloquent\Collection;
                 // Hay un periodico con fechas desperdiagadas
 
                 if (  $start_date_first_periodic->lt( $date )) {
-                    self::calendarPeriodicCaseCut($first_periodic, $date);
-                    self::calendarPeriodicCaseInPieces($res_turn, $old_turn,$pieces, $date, $first_periodic);
+                    self::calendarPeriodicCaseCut($first_periodic, $date, $user_id);
+                    self::calendarPeriodicCaseInPieces($res_turn, $old_turn,$pieces, $date, $first_periodic, $user_id);
                 } else {
-                    self::calendarPeriodicCaseOnlyReplace($res_turn, $old_turn);
+                    self::calendarPeriodicCaseOnlyReplace($res_turn, $old_turn, $user_id);
                 }
 
             } else if ($periodic->count() ==1 ){
                 // Solo hay un una unica fecha periodica
 
                 if (  $start_date_first_periodic->lt( $date )) {
-                    self::calendarPeriodicCaseCut($first_periodic, $date);
-                    self::calendarPeriodicCaseOnly($res_turn, $old_turn,$pieces, $date);    
+                    self::calendarPeriodicCaseCut($first_periodic, $date, $user_id);
+                    self::calendarPeriodicCaseOnly($res_turn, $old_turn,$pieces, $date, $user_id);    
                 } else {
-                    self::calendarPeriodicCaseOnlyReplace($res_turn, $old_turn);    
+                    self::calendarPeriodicCaseOnlyReplace($res_turn, $old_turn, $user_id);    
                 }
 
             }
 
         }
 
-        public static function calendarPiecesOnlyCase(res_turn $res_turn, Collection $pieces, Carbon $date)
+        public static function calendarPiecesOnlyCase(res_turn $res_turn, Collection $pieces, Carbon $date, $user_id)
         {
 
             $now = Carbon::now();
@@ -94,23 +94,23 @@ use Illuminate\Database\Eloquent\Collection;
                     if ( $i == $last_key) {
                         $end_date = Carbon::parse("9999-12-31");
 
-                        $calendarArray = self::piecesCalendarArray($calendarArray, $res_turn, $start_date, $end_date);
+                        $calendarArray = self::piecesCalendarArray($calendarArray, $res_turn, $start_date, $end_date, $user_id);
                     }
                 } else {
 
                     if ( $i == $last_key) {
                         $end_date = Carbon::parse( $pieces[ $i ]->start_date )->addDays(-7);
                         
-                        $calendarArray = self::piecesCalendarArray($calendarArray, $res_turn, $start_date, $end_date);
+                        $calendarArray = self::piecesCalendarArray($calendarArray, $res_turn, $start_date, $end_date, $user_id);
 
                         $start_date = $end_date->addDays(14);
                         $end_date = Carbon::parse("9999-12-31");
 
-                        $calendarArray = self::piecesCalendarArray($calendarArray, $res_turn, $start_date, $end_date);
+                        $calendarArray = self::piecesCalendarArray($calendarArray, $res_turn, $start_date, $end_date, $user_id);
                     } else {
                         $end_date = Carbon::parse( $pieces[ $i ]->start_date )->addDays(-7);
                         
-                        $calendarArray = self::piecesCalendarArray($calendarArray, $res_turn, $start_date, $end_date);
+                        $calendarArray = self::piecesCalendarArray($calendarArray, $res_turn, $start_date, $end_date, $user_id);
 
                         $start_date = $end_date->addDays(14);
                     }
@@ -130,7 +130,7 @@ use Illuminate\Database\Eloquent\Collection;
             return $last_key;
         }
 
-        private static function piecesCalendarArray(array $calendarArray, res_turn $res_turn, Carbon $start_date,  Carbon $date_end)
+        private static function piecesCalendarArray(array $calendarArray, res_turn $res_turn, Carbon $start_date,  Carbon $date_end, $user_id)
         {
             $now = Carbon::now();
 
@@ -143,7 +143,7 @@ use Illuminate\Database\Eloquent\Collection;
                 "end_time"                => $res_turn->hours_end,
                 "date_add"               => $now->toDateString(),
                 "date_upd"               => $now->toDateString(),
-                "user_add"               => 1
+                "user_add"               => $user_id
             );
 
             array_push($calendarArray, $calendar_piece);
@@ -151,18 +151,19 @@ use Illuminate\Database\Eloquent\Collection;
             return $calendarArray;
         }
 
-        private static function calendarPeriodicCaseCut(res_turn_calendar $turn_periodic, Carbon $date)
+        private static function calendarPeriodicCaseCut(res_turn_calendar $turn_periodic, Carbon $date, $user_id)
         {
             $date_update =$date->copy()->addDays(-7);
 
             res_turn_calendar::where('start_date', $turn_periodic->start_date)
                         ->where('res_turn_id', $turn_periodic->res_turn_id)
                         ->update([
-                                'end_date' => $date_update
+                                'end_date'  => $date_update,
+                                'user_upd'  => $user_id
                         ]);
         }
 
-        private static function calendarPeriodicCaseInPieces(res_turn $res_turn, res_turn_calendar $old_turn, Collection $pieces, Carbon $date, res_turn_calendar $turn_periodic)
+        private static function calendarPeriodicCaseInPieces(res_turn $res_turn, res_turn_calendar $old_turn, Collection $pieces, Carbon $date, res_turn_calendar $turn_periodic, $user_id)
         {
             $now = Carbon::now();
 
@@ -175,13 +176,13 @@ use Illuminate\Database\Eloquent\Collection;
             $res_turn_calendar->end_time                = $turn_periodic->end_time;
             $res_turn_calendar->date_add               = $now->toDateString();
             $res_turn_calendar->date_upd               = $now->toDateString();
-            $res_turn_calendar->user_add               = 1;
+            $res_turn_calendar->user_add               = $user_id;
             $res_turn_calendar->save();
 
             self::calendarPeriodicCaseOnlyReplace($res_turn, $old_turn);
         }
 
-        private static function calendarPeriodicCaseOnly(res_turn $res_turn, res_turn_calendar $old_turn, Collection $pieces,Carbon $date)
+        private static function calendarPeriodicCaseOnly(res_turn $res_turn, res_turn_calendar $old_turn, Collection $pieces,Carbon $date, $user_id)
         {
             $now = Carbon::now();
 
@@ -194,12 +195,12 @@ use Illuminate\Database\Eloquent\Collection;
             $res_turn_calendar->end_time                = $res_turn->hours_end;
             $res_turn_calendar->date_add               = $now->toDateString();
             $res_turn_calendar->date_upd               = $now->toDateString();
-            $res_turn_calendar->user_add               = 1;
+            $res_turn_calendar->user_add               = $user_id;
             $res_turn_calendar->save();
 
         }
 
-        private static function calendarPeriodicCaseOnlyReplace(res_turn $res_turn, res_turn_calendar $old_turn)
+        private static function calendarPeriodicCaseOnlyReplace(res_turn $res_turn, res_turn_calendar $old_turn, $user_id)
         {
             $now = Carbon::now();
             res_turn_calendar::where("res_turn_id", $old_turn->res_turn_id)
@@ -208,7 +209,7 @@ use Illuminate\Database\Eloquent\Collection;
                                         ->update([
                                                 "res_type_turn_id"   =>  $res_turn->res_type_turn_id,
                                                 "res_turn_id"            =>  $res_turn->id,
-                                                "user_upd"               =>  2,
+                                                "user_upd"               =>  $user_id,
                                                 "date_upd"               =>  $now->toDateString(),
                                                 "start_time"              =>  $res_turn->hours_ini,
                                                 "end_time"               =>  $res_turn->hours_end,
@@ -230,7 +231,7 @@ use Illuminate\Database\Eloquent\Collection;
                         ]);
         }
 
-        public static function calendarPeriodicCaseDelete(res_turn $res_turn, res_turn_calendar $old_turn, Collection $pieces, Carbon $date)
+        public static function calendarPeriodicCaseDelete(res_turn $res_turn, res_turn_calendar $old_turn, Collection $pieces, Carbon $date, $user_id)
         {
             $now = Carbon::now();
 
@@ -250,7 +251,7 @@ use Illuminate\Database\Eloquent\Collection;
                 // Hay un periodico con fechas desperdiagadas
 
                 if (  $start_date_first_periodic->lt( $date )) {
-                    self::calendarPeriodicCaseCut($first_periodic, $date);
+                    self::calendarPeriodicCaseCut($first_periodic, $date, $user_id);
                     self::calendarPeriodicCaseDeleteComplete($res_turn, $old_turn);
                 } else {
                     self::calendarPeriodicCaseDeleteComplete($res_turn, $old_turn);
@@ -260,7 +261,7 @@ use Illuminate\Database\Eloquent\Collection;
                 // Solo hay un una unica fecha periodica
 
                 if (  $start_date_first_periodic->lt( $date )) {
-                    self::calendarPeriodicCaseCut($first_periodic, $date);
+                    self::calendarPeriodicCaseCut($first_periodic, $date, $user_id);
                     self::calendarPeriodicCaseDeleteComplete($res_turn, $old_turn);
                 } else {
                     self::calendarPeriodicCaseDeleteComplete($res_turn, $old_turn);
