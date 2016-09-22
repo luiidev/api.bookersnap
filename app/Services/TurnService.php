@@ -210,7 +210,6 @@ class TurnService {
 
             // Si paso la validacion, traer el calendario del tipo de turno
             $aux_calendar = CreateTurnHelper::make($days_of_week,  $type_turn_id, (int)$microsite_id);
-            $aux_calendar->generate(request("hours_ini"), request("hours_end"));
 
             DB::beginTransaction();
 
@@ -227,25 +226,21 @@ class TurnService {
                 if ( in_array($day, $days) ) {
 
                     if ( $periodic ){
-                        echo "1 ";
                         // Reemplazar el  turno del calendario periodico por nuevo turno creado
                         $old_turn = $aux_calendar->getPeriodic($day);
                         $pieces = $aux_calendar->getUniqueDays($day);
                         CreateTurnCalendarHelper::calendarPeriodicCase($turn, $old_turn, $pieces, $date);
                     } else if ( $uniques ){
-                        echo "2 ";
                         // Crear un nuevo calendario periodico con el nuevo turno, creando cortes en los dias unicos del tipo de turno a crear
                         $pieces = $aux_calendar->getUniqueDays($day);
                         CreateTurnCalendarHelper::calendarPiecesOnlyCase($turn, $pieces, $date);
                     } else {
-                        echo "3 ";
                         // Crear un nuevo calendario periodico con el nuevo turno
                         CreateTurnCalendarHelper::calendarFreeCase($turn, $date);
                     }
                 } else {
                     // Eliminar calendario
                     if ( $periodic ){
-                        echo "4";
                         // Eliminar el  turno del calendario periodico por nuevo turno creado
                         $old_turn = $aux_calendar->getPeriodic($day);
                         $pieces = $aux_calendar->getUniqueDays($day);
@@ -261,34 +256,13 @@ class TurnService {
         } catch(\Exception $e) {
             DB::rollBack();
             // abort(423, "Ocurrio un error al intentar crear el turno junto al calendario");
-            abort(423, $e->getMessage());
+            abort(423, $e->getMessage()."    LINE:".$e->getLine());
         } catch (\FatalThrowableError $e) {
             DB::rollBack();
             // abort(423, "Ocurrio un error al intentar crear el turno junto al calendario");
-            abort(423, $e->getMessage());
+            abort(401, $e->getMessage());
         }
 
-        // try {
-        //     $turn = res_turn::where('id', $turn_id)->where('ms_microsite_id', $microsite_id)->first();
-        //     $turn->name = $data["name"];
-        //     $turn->res_type_turn_id = $data["res_type_turn_id"];
-        //     $turn->hours_ini = $data["hours_ini"];
-        //     $turn->hours_end = $data["hours_end"];
-        //     $turn->user_upd = $user_id;
-        //     $turn->date_upd = \Carbon\Carbon::now();
-
-        //     DB::BeginTransaction();
-        //     $turn->save();
-        //     foreach ($data['turn_zone'] as $value) {
-        //         $this->update__saveTurnZone($value, $turn);
-        //     }
-        //     DB::Commit();
-        //     return true;
-        // } catch (\Exception $e) {
-        //     DB::rollBack();
-        //     abort(500, $e->getMessage());
-        // }
-        // return false;
     }
 
     private function update_turn(TurnRequest $request, int $microsite_id, int $user_id)
