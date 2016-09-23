@@ -11,9 +11,10 @@ Use Exception;
 class ServerService {	
 
     public function listado($microsite) {
-
+        
         $servers = Server::where("ms_microsite_id", "=", $microsite)->get();
         $i=0;
+        $data = array();
         foreach ($servers as $server) {
 
             $data[$i]["id"] = $server->id;
@@ -39,6 +40,7 @@ class ServerService {
 
         DB::beginTransaction();
         try {
+            $tables = array();
 
             $model = new Server();
             $model->name = $variables["name"];
@@ -50,9 +52,8 @@ class ServerService {
             if (!$model->save()) {
                 throw new Exception('messages.server_error_save');
             }
-
+            $i=0;
             foreach ($variables["tables"] as $table) {
-
                 $modelTable = Table::find($table["id"]);
                 if($modelTable == NULL){
                     throw new Exception('messages.table_update_not_exist');
@@ -63,21 +64,33 @@ class ServerService {
                     if(!$modelTable->update()){
                       throw new Exception('messages.table_error_update');  
                     }
-                }
-                
 
+                    $tables[$i]["id"] = $modelTable->id;
+                    $tables[$i]["name"] = $modelTable->name;
+
+                }
+                $i++;
             }
             DB::commit();
 
+            $data["id"] = $model->id;
+            $data["name"] = $model->name;
+            $data["color"] = $model->color;
+            $data["tables"] = $tables;
+
             $response["mensaje"] = "messages.server_create_success";
             $response["estado"] = true;
+            $response["data"] = $data;
 
         } catch (\Exception $e) {
 
             $response["mensaje"] = $e->getMessage();
             $response["estado"] = false;
+            $response["data"] = array();
             DB::rollBack();
         }
+
+
 
         return (object) $response;
 
@@ -98,9 +111,7 @@ class ServerService {
             }
 
             $tables = DB::table('res_table')->where('res_server_id', '=', $server_id)->update(array('res_server_id' => NULL));
-            if(!$tables){
-                throw new Exception('messages.server_update_error');   
-            }
+            
 
             foreach ($variables["tables"] as $table) {
 
