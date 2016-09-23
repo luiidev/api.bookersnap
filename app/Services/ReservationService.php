@@ -3,6 +3,10 @@
 namespace App\Services;
 use App\res_reservation;
 use App\res_guest;
+use App\res_table;
+use App\res_table_reservation;
+use App\Entities\Block;
+use App\Entities\BlockTable;
 Use DB;
 Use Exception;
 
@@ -15,34 +19,33 @@ class ReservationService {
     }
 
     public function getList(int $microsite_id, string $date = null) {
-        //return [$microsite_id,$date];
         $rows = res_reservation::where('ms_microsite_id', $microsite_id)
-                ->where('date_reservation', $date)
-                ->get();
+                ->where('date_reservation', $date)->with('guest')->get();
 
-        $response = array();
-        $i = 0;
+        $response =[];
+        $i=0;
         foreach ($rows as $row) {
-            $response["id"] = $row->id;
-            $response["date_reservation"] = $row->date_reservation;
-            $response["hours_reservation"] = $row->hours_reservation;
-            $response["hours_duration"] = $row->hours_duration;
-            $response["num_people"] = $row->num_people;
-            $response["status_release"] = $row->status_released;
-            $response["total"] = $row->total;
-            $response["consume"] = $row->consume;
-            $response["num_table"] = $row->num_table;
-            $response["colaborator"] = $row->colaborator;
-            $response["note"] = $row->note;
-            $response["type_reservation"] = $row->type_reservation;
-            $response["email"] = $row->email;
-            $response["phone"] = $row->phone;
-            $response["res_guest_id"] = $row->res_guest_id;
-            $response["res_reservation_status_id"] = $row->res_reservation_status_id;
+            $response[$i]["id"] = $row->id;
+            $response[$i]["date_reservation"] = $row->date_reservation;
+            $response[$i]["hours_reservation"] = $row->hours_reservation;
+            $response[$i]["hours_duration"] = $row->hours_duration;
+            $response[$i]["num_people"] = $row->num_people;
+            $response[$i]["status_release"] = $row->status_released;
+            $response[$i]["total"] = $row->total;
+            $response[$i]["consume"] = $row->consume;
+            $response[$i]["num_table"] = $row->num_table;
+            $response[$i]["colaborator"] = $row->colaborator;
+            $response[$i]["note"] = $row->note;
+            $response[$i]["type_reservation"] = $row->type_reservation;
+            $response[$i]["email"] = $row->email;
+            $response[$i]["phone"] = $row->phone;
+            $response[$i]["res_guest_id"] = $row->res_guest_id;
+            $response[$i]["res_reservation_status_id"] = $row->res_reservation_status_id;
+            $response[$i]["guest"] = $row->guest; 
             $i++;
         }
-
         return $response;
+
     }
 
     public function create(array $data, int $microsite_id, int $user_id) {

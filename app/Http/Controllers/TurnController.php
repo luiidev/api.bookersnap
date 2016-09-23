@@ -34,16 +34,24 @@ class TurnController extends Controller {
     public function create(TurnRequest $request) {
         $service = $this->_TurnService;
         return $this->TryCatch(function () use ($request, $service) {
-                    $result = $service->create($request->all(), $request->route('microsite_id'), $request->_bs_user_id);
-                    return response()->json($result);
+                    $result = $service->create($request, $request->route('microsite_id'), $request->_bs_user_id);
+                    if ($result["response"] == "ok") {
+                        return $this->CreateResponse(true, 201, "", null);
+                    } else {
+                        return $this->CreateResponse(true, 401, "Conflictos con otras fechas", $result["data"]);
+                    }
                 });
     }
 
     public function update(TurnRequest $request) {
         $service = $this->_TurnService;
         return $this->TryCatch(function () use ($request, $service) {
-                    $result = $service->update($request->all(), $request->route('microsite_id'), $request->route('turn_id'), $request->_bs_user_id);
-                    return response()->json($result);
+                   $result = $service->update($request, $request->route('microsite_id'), $request->_bs_user_id);
+                   if ($result["response"] == "ok") {
+                       return $this->CreateResponse(true, 201, "", null);
+                   } else {
+                       return $this->CreateResponse(true, 401, "Conflictos con otras fechas", $result["data"]);
+                   }
                 });
     }
 

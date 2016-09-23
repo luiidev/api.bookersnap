@@ -25,9 +25,16 @@ class res_reservation extends Model {
     public function status() {
         return $this->belongsTo('App\res_reservation_status', 'res_reservation_status_id');
     }
+
+    public function guest() {
+        return $this->belongsTo('App\res_guest', 'res_guest_id');
+    }
     
     public function tables() {
+        //return $this->hasOne('App\res_table_reservation');--BIEN
+        //return $this->belongsTo('App\res_table_reservation', 'id');
         return $this->belongsToMany('App\res_table', 'res_table_reservation', 'res_reservation_id', 'res_table_id');
+        //return $this->hasMany('App\res_table_reservation', 'res_table_id');
     }
     
     
