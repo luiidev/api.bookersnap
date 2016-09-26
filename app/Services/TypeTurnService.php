@@ -13,12 +13,12 @@ namespace App\Services;
  *
  * @author USER
  */
-use App\res_type_turn_zone;
+use App\res_type_turn;
 
 class TypeTurnService {
 
     public function getList() {
-        $rows = res_type_turn_zone::where('status', 1)->get();
+        $rows = res_type_turn::where('status', 1)->get();
         return $rows->toArray();
     }
     
