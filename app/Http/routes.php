@@ -19,19 +19,23 @@ Route::get('/docs', function () {
     return "documentacion del API";
 });
 
-Route::group(['prefix' => 'v1/{lang}',], function () {
+Route::group(['prefix' => 'v1/{lang}', 'middleware' => ['cors']], function () {
     Route::get('guests-tags-categories', 'GuestTagCategoryController@index');
+    //-----------------------------------------------------
+    // TYPETURNS
+    //-----------------------------------------------------
+    Route::get('type-turns', 'TypeTurnController@index');
+    
     routeMesas();
 });
 
 function routeMesas()
 {
 
-
     //-----------------------------------------------------
     // MICROSITE
     //-----------------------------------------------------
-    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['cors', 'setLocale', 'ACL:microsite']], function () {
+    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['setLocale', 'ACL:microsite']], function () {
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS
@@ -139,8 +143,5 @@ function routeMesas()
 //        
 //        Route::get('days/{day_id}', 'ZoneTypeturnDayController@available');
     });
-    //-----------------------------------------------------
-    // TYPETURNS
-    //-----------------------------------------------------
-    Route::get('type-turns', 'TypeTurnController@index');
+    
 }
