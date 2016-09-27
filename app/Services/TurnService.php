@@ -176,7 +176,7 @@ class TurnService {
             return $turn;
         } catch (\Exception $e) {
             DB::rollBack();
-            abort(500, $e->getMessage());
+            abort(500,  "Ocurrio un error al intentar crear el turno junto al calendario");
         }
     }
 
@@ -255,12 +255,10 @@ class TurnService {
             return ["response" => "ok"];
         } catch(\Exception $e) {
             DB::rollBack();
-            // abort(423, "Ocurrio un error al intentar crear el turno junto al calendario");
-            abort(423, $e->getMessage()."    LINE:".$e->getLine());
+            abort(423, "Ocurrio un error al intentar editar el turno junto al calendario");
         } catch (\FatalThrowableError $e) {
             DB::rollBack();
-            // abort(423, "Ocurrio un error al intentar crear el turno junto al calendario");
-            abort(401, $e->getMessage());
+            abort(423, "Ocurrio un error al intentar editar el turno junto al calendario");
         }
 
     }
