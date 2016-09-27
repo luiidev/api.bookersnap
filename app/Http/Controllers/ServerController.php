@@ -24,7 +24,7 @@ class ServerController  extends Controller {
 
         return $this->TryCatch(function () use ($microsite, $request) {
             $data = $this->_serverService->insert($microsite, $request->all());
-            return $this->CreateJsonResponse($data->estado, 201, trans($data->mensaje));
+            return $this->CreateJsonResponse($data->estado, 201, trans($data->mensaje), $data->data);
         });
 
     }
@@ -39,10 +39,13 @@ class ServerController  extends Controller {
     }
 
 	public function listado($lang, $microsite){
+
+        
         return $this->TryCatch(function () use ($microsite) {
             $data = $this->_serverService->listado($microsite);
             return $this->CreateJsonResponse(true, 201, "messages.server_list",$data);
         });
+        
 	}
 
 }
