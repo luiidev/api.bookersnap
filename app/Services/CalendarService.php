@@ -7,6 +7,7 @@ use App\Services\Helpers\DateTimesHelper;
 use App\res_turn;
 use App\res_turn_calendar;
 use App\res_type_turn;
+use App\res_zone;
 use Carbon\Carbon;
 use DB;
 
@@ -291,5 +292,42 @@ class CalendarService
         $res_turn_calendar->date_add               = Carbon::now();
         $res_turn_calendar->user_add               = 1;
         $res_turn_calendar->save();
+    }
+
+    /**
+     *  Retonar la zonas disponible para una fecha, consultando los turnos disponibles en en la fecha indicada 
+     * @param  Int    $microsite
+     * @param  String    $date
+     * @return  Illuminate\Database\Eloquent\Collection App\res_zone
+     */
+    public function getBlock(Int $microsite, String $date)
+    {
+        $now = Carbon::now();
+        $turns = res_turn_calendar::select("res_turn_id")
+                                ->where(function($query) use ($date) {
+                                    $query-> whereRaw("start_date = ? and end_date = ?", array($date, $date));
+                                })
+                                ->orWhere(function($query) use ($date) {
+                                    $query-> whereRaw("start_date <= ?  and end_date >= ? and dayofweek(start_date) = dayofweek(?)", array($date, $date, $date));
+                                })
+                                ->distinct()->get()->pluck("res_turn_id");
+
+        $zones = res_zone::join("res_turn_zone as tz", "tz.res_turn_id", "=", "res_zone.id")
+                        ->whereIn('tz.res_turn_id', $turns)
+                        ->where('ms_microsite_id', $microsite)
+                        ->distinct()
+                        ->with('tables')
+                        ->get(array(
+                                            "id",
+                                            "name",
+                                            "sketch",
+                                            "status",
+                                            "type_zone",
+                                            "join_table",
+                                            "status_smoker",
+                                            "people_standing"
+                                        ));
+
+        return $zones;
     }
 }

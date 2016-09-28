@@ -81,6 +81,7 @@ function routeMesas()
         // MICROSITE::CALENDAR
         //-----------------------------------------------------
         Route::get('calendar/{date}', 'CalendarController@index');
+        Route::get('calendar/{date}/zones', 'CalendarController@getZones');
         Route::get('calendar/{date}/shifts', 'CalendarController@listShift');
 
         Route::post('calendar', 'CalendarController@storeCalendar');

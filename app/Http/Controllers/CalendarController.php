@@ -91,4 +91,27 @@ class CalendarController extends Controller
 
         });
     }
+
+    /**
+     * Retonar la zonas disponible para una fecha
+     * @param  string    $lang
+     * @param  int    $microsite
+     * @param  String    $date      fecha de consulta
+     * @return Illuminate\Http\Response      App\res_zone
+     */
+    public function getZones($lang, $microsite, $date)
+    {
+        $service = $this->_CalendarService;
+
+        return $this->TryCatch(function () use ($microsite, $date, $service) {
+
+            if (Validator::make(["date" => $date], ["date" => "date"])->fails()){
+                abort(406, "La fecha de consulta no es valida");
+            }
+
+            return $blocks = $service->getBlock($microsite, $date);
+
+            return $this->CreateResponse(true, 200, "", [ "blocks" => $blocks ]);
+        });
+    }
 }
