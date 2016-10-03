@@ -109,9 +109,9 @@ class CalendarController extends Controller
                 abort(406, "La fecha de consulta no es valida");
             }
 
-            return $blocks = $service->getBlock($microsite, $date);
+            $zones = $service->getBlock($microsite, $date);
 
-            return $this->CreateResponse(true, 200, "", [ "blocks" => $blocks ]);
+            return $this->CreateResponse(true, 200, "", [ "zones" => $zones ]);
         });
     }
 }

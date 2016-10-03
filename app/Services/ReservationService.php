@@ -1,12 +1,13 @@
 <?php
 
 namespace App\Services;
-use App\res_reservation;
-use App\res_guest;
-use App\res_table;
-use App\res_table_reservation;
 use App\Entities\Block;
 use App\Entities\BlockTable;
+use App\res_guest;
+use App\res_reservation;
+use App\res_reservation_status;
+use App\res_table;
+use App\res_table_reservation;
 Use DB;
 Use Exception;
 
@@ -176,5 +177,11 @@ class ReservationService {
         }
     }
    
-
+   /**
+    * Retorna todos los tipos de estado que puede tener una reservacion
+    * @return Collection App\res_reservation_status
+    */
+    public function listStatus() {
+        return res_reservation_status::where("status", 1)->get(array("id", "name", "color"));
+    }
 }

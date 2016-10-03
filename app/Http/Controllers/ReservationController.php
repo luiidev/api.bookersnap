@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
-use App\Http\Requests\ReservationRequest;
 use App\Http\Controllers\Controller as Controller;
+use App\Http\Requests\ReservationRequest;
 use App\Services\ReservationService;
-use Illuminate\Support\Facades\Input;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Input;
 
 class ReservationController extends Controller
 {
@@ -57,6 +56,19 @@ class ReservationController extends Controller
         	$result = $service->delete($request->route('microsite_id'), $request->route('reservation_id'));
             return response()->json($result);
         });
+    }
+
+    /**
+     * Retorna todos los tipos de estado que puede tener una reservacion
+     * @return Collection App\res_reservation_status
+     */
+    public function listStatus() {
+        $service = $this->_ReservationService;
+        return $this->TryCatch(function () use ($service){
+            $statuses = $service->listStatus();
+            return $this->CreateResponse(true, 200, "", $statuses);
+        });
+        
     }
 
 }
