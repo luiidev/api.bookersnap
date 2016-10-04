@@ -19,8 +19,11 @@ class TypeTurnController extends Controller {
      * @return \Illuminate\Http\Response
      */
     public function index() {
-        $result = $this->_typeTurnService->getList();
-        return response()->json($result);
+        $service = $this->_typeTurnService;
+        return $this->TryCatch(function () use ($service) {
+                    $result = $this->_typeTurnService->getList();
+                    return $this->CreateResponse(true, 201, "", $result);
+                });
     }
 
     /**

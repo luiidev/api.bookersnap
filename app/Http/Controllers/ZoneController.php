@@ -19,7 +19,7 @@ class ZoneController extends Controller {
         $service = $this->_ZoneService;
         return $this->TryCatch(function () use ($request, $service) {
                     $data = $service->getList($request->route('microsite_id'), $request->input('with'));
-                    return $this->CreateResponse(true, 201, "", $data);
+                    return $this->CreateResponse(true, 200, "", $data);
                 });
     }
 
@@ -27,7 +27,7 @@ class ZoneController extends Controller {
         $service = $this->_ZoneService;
         return $this->TryCatch(function () use ($request, $service) {
                     $result = $service->get($request->route('microsite_id'), $request->route('zone_id'), $request->input('with'));
-                    return $this->CreateResponse(true, 201, "", $result);
+                    return $this->CreateResponse(true, 200, "", $result);
                 });
     }
 
@@ -35,7 +35,7 @@ class ZoneController extends Controller {
         $service = $this->_ZoneService;
         return $this->TryCatch(function () use ($request, $service) {
                     $result = $service->create($request->all(), $request->route('microsite_id'), $request->input('_bs_user_id'));
-                    return response()->json($result);
+                    return $this->CreateResponse(true, 201, "", $result);
                 });
     }
 
@@ -43,7 +43,7 @@ class ZoneController extends Controller {
         $service = $this->_ZoneService;
         return $this->TryCatch(function () use ($request, $service) {
                     $result = $service->update($request->all(), $request->route('zone_id'), $request->input('_bs_user_id'));
-                    return response()->json($result);
+                    return $this->CreateResponse(true, 200, "", $result);
                 });
     }
 
@@ -51,7 +51,7 @@ class ZoneController extends Controller {
         $service = $this->_ZoneService;
         return $this->TryCatch(function () use ($request, $service) {
                     $result = $service->delete($request->route('microsite_id'), $request->route('zone_id'));
-                    return response()->json($result);
+                    return $this->CreateResponse(true, 200, "", $result);
                 });
     }
 
@@ -59,7 +59,7 @@ class ZoneController extends Controller {
         $service = $this->_ZoneService;
         return $this->TryCatch(function () use ($request, $service) {
                     $result = $service->getListTable($request->route('microsite_id'), $request->route('zone_id'));
-                    return $this->CreateResponse(true, 201, "", $result);
+                    return $this->CreateResponse(true, 200, "", $result);
                 });
     }
 
