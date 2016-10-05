@@ -28,8 +28,8 @@ class Controller extends BaseController
         return response()->json($response, $response['statuscode']);
     }
 
-    protected function CreateResponse($success, $statusCode, $msg = null, $data = null, $redirect = false, $url = null, $errorUserMsg = null, $errorInternalMsg = null, $arrayErrors = null) {
-        return [
+    protected function CreateResponse($success, $statusCode = 200, $msg = null, $data = null, $redirect = false, $url = null, $errorUserMsg = null, $errorInternalMsg = null, $arrayErrors = null) {
+        $response = [
             "success" => $success,
             "statuscode" => $statusCode,
             "msg" => $msg,
@@ -42,6 +42,7 @@ class Controller extends BaseController
                 "errors" => $arrayErrors
             ]
         ];
+        return $response;
     }
 
      protected function CreateJsonResponse($success, $statusCode, $msg = null, $data = null, $redirect = false, $url = null, $errorUserMsg = null, $errorInternalMsg = null, $arrayErrors = null) {
