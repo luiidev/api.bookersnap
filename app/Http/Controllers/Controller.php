@@ -42,8 +42,7 @@ class Controller extends BaseController
                 "errors" => $arrayErrors
             ]
         ];
-        
-        return response()->json($response, $statusCode);
+        return $response;
     }
 
      protected function CreateJsonResponse($success, $statusCode, $msg = null, $data = null, $redirect = false, $url = null, $errorUserMsg = null, $errorInternalMsg = null, $arrayErrors = null) {
