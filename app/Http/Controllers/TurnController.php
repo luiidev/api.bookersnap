@@ -50,7 +50,7 @@ class TurnController extends Controller {
                    if ($result["response"] == "ok") {
                        return $this->CreateResponse(true, 201, "", null);
                    } else {
-                       return $this->CreateResponse(true, 401, "Conflictos con otras fechas", $result["data"]);
+                       return $this->CreateResponse(true, 401, "", $result["data"], null, null, "Conflictos con otras fechas");
                    }
                 });
     }
