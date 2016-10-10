@@ -4,12 +4,9 @@ namespace App\Http\Requests;
 
 use App\Http\Requests\Request;
 use Carbon\Carbon;
-use App\Services\Traits\ResponseFormatTrait;
 
 class TableReservationRequest extends Request
 {
-    use ResponseFormatTrait;
-
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -48,6 +45,6 @@ class TableReservationRequest extends Request
 
     public function response(array $errors)
     {
-        return  $this->CreateJsonResponse(false, 422, "Parametros no admitidos", $errors);
+        return  $this->CreateJsonResponse(false, 422, "", $errors, null, null, "Parametros no admitidos");
     }
 }

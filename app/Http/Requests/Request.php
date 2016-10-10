@@ -3,8 +3,11 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Services\Traits\ResponseFormatTrait;
 
 abstract class Request extends FormRequest {
+
+    use ResponseFormatTrait;
 
     public function all() {
         /*

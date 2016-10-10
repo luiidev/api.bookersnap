@@ -60,11 +60,19 @@ class TableReservationService
 
     public function create_reservation()
     {
-        $email = $phone = null;
-        if (isset($this->guest->emails->first()->number)) $phone = $this->guest->emails->first()->number;
-        if (isset($this->guest->phones->first()->number)) $phone = $this->guest->phones->first()->number;
+        $email = $phone = $guest_id = null;
+        if (isset($this->guest)) {
+            $guest_id = $this->guest->id;
+            if ($this->guest->emails->count()) {
+                $phone = $this->guest->emails->first()->email;
+            }
+            if ($this->guest->phones->count()) {
+                $phone = $this->guest->phones->first()->number;
+            }
+        }
+
         $reservation = new res_reservation();
-        $reservation->res_guest_id = isset($this->guest)?$this->guest->id:null;
+        $reservation->res_guest_id = $guest_id;
         $reservation->status_released = request("status_id");
         $reservation->num_people = request("covers");
         $reservation->date_reservation = request("date");
