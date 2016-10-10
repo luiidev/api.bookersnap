@@ -64,7 +64,7 @@ class TableReservationService
         if (isset($this->guest)) {
             $guest_id = $this->guest->id;
             if ($this->guest->emails->count()) {
-                $phone = $this->guest->emails->first()->email;
+                $email = $this->guest->emails->first()->email;
             }
             if ($this->guest->phones->count()) {
                 $phone = $this->guest->phones->first()->number;
