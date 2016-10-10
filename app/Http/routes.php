@@ -25,7 +25,9 @@ Route::group(['prefix' => 'v1/{lang}', 'middleware' => ['cors']], function () {
     // TYPETURNS
     //-----------------------------------------------------
     Route::get('type-turns', 'TypeTurnController@index');
-
+    //-----------------------------------------------------
+    // ESTADOS DE RESERVACIONES
+    //-----------------------------------------------------
     Route::get("reservation/status", "ReservationController@listStatus");
     
     routeMesas();
