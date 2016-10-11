@@ -9,6 +9,7 @@ class res_configuration extends Model
     protected $table   = "res_configuration";
     protected $id      = "ms_microsite_id";
     public $timestamps = false;
+    protected $hidden  = ['ms_microsite_id'];
 
     // public function forms()
     // {
