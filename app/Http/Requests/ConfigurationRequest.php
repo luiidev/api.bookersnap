@@ -24,7 +24,25 @@ class ConfigurationRequest extends Request
     public function rules()
     {
         return [
-            "name" => "required|string|max:255",
+            "time_tolerance"       => "required|integer",
+            "time_restriction"     => "required|integer",
+            "max_people"           => "required|integer",
+            "max_table"            => "required|integer",
+            "res_code_status"      => "required|integer",
+            "res_privilege_status" => "string",
+            "messenger_status"     => "integer",
+            "date_add"             => "required|date",
+            "date_upd"             => "date",
+            "user_add"             => "required|integer",
+            "user_upd"             => "integer",
+            "reserve_portal"       => "required|integer",
+            "res_percentage_id"    => "required|integer|exits:res_percentage,id",
+            "name_people_1"        => "string",
+            "name_people_2"        => "string",
+            "name_people_3"        => "string",
+            "status_people_1"      => "integer",
+            "status_people_2"      => "integer",
+            "status_people_3"      => "integer",
         ];
     }
 
