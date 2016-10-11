@@ -108,7 +108,7 @@ function routeMesas()
         // MICROSITE:: HUESPEDES TAGS
         //-----------------------------------------------------
         Route::get('guest-tags/', 'GuestController@listGuestTag');
-        Route::put('guest-tags/', 'GuestController@createGuestTag');
+        Route::post('guest-tags/', 'GuestController@createGuestTag');
         Route::delete('guest-tags/{guest_tag_id}', 'GuestController@deleteGuestTag');
 
         //-----------------------------------------------------
@@ -153,15 +153,15 @@ function routeMesas()
         //
         //        Route::get('days/{day_id}', 'ZoneTypeturnDayController@available');
 
-          //-----------------------------------------------------
-          // MICROSITE:: RESERVATION
-          //-----------------------------------------------------
-          Route::resource('table/reservation', 'TableReservationController', ["only" => ["store"]]);
+        //-----------------------------------------------------
+        // MICROSITE:: RESERVATION
+        //-----------------------------------------------------
+        Route::resource('table/reservation', 'TableReservationController', ["only" => ["store"]]);
 
-          //-----------------------------------------------------
-          // MICROSITE:: RESERVATION TAGS
-          //-----------------------------------------------------
-          Route::resource("reservation/tag", "ReservationTagController", ["only" => ["index", "store", "destroy"]]);
+        //-----------------------------------------------------
+        // MICROSITE:: RESERVATION TAGS
+        //-----------------------------------------------------
+        Route::resource("reservation/tag", "ReservationTagController", ["only" => ["index", "store", "destroy"]]);
     });
 
 }
