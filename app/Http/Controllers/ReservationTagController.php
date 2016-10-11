@@ -22,7 +22,7 @@ class ReservationTagController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index($lang, $microsite_id)
+    public function index()
     {
         $tags = $this->service->get_tags();
         return $this->CreateJsonResponse(true, 200, "", $tags);
@@ -44,11 +44,11 @@ class ReservationTagController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(ReservationTagRequest $request, $lang, $microsite_id)
+    public function store(ReservationTagRequest $request)
     {
-        $this->TryCatchDB(function() {
-            $this->service->create_tag();
-            return $this->CreateJsonResponse(true, 201, "Se agrego nuevo tag");
+        return $this->TryCatchDB(function() {
+            $tag = $this->service->create_tag();
+            return $this->CreateJsonResponse(true, 201, "Se agrego nuevo tag", $tag);
         });
     }
 

@@ -4,37 +4,32 @@ namespace App\Services;
 
 use App\res_tag_r;
 
-class ReservationTagService
+class ReservationTagService extends Service
 {
-    private $lang;
-    private $microsite_id;
-    private $request;
-
     public function __construct($request)
     {
-        $this->request = $request;
-        $this->lang = $request->route("lang");
-        $this->microsite_id = $request->route("microsite_id");
-
-        $this->request["ms_microsite_id"] = $this->microsite_id;
-    }
-
-    public static function make($request) {
-        return new static($request);
+        parent::__construct($request);
     }
 
     public function get_tags()
     {
-        return res_tag_r::where("ms_microsite_id", $this->microsite_id)->get(array("id", "name", "status"));
+        $display = array("id", "name", "status");
+        return res_tag_r::where("ms_microsite_id", $this->microsite_id)
+                                            ->get($display);
     }
 
     public function create_tag()
     {
-        res_tag_r::create($this->request->all());
+        $tag = new res_tag_r();
+        $tag->name = $this->req->name;
+        $tag->name = $this->microsite_id;
+        $tag->status = 1;
+        $tag->save();
+        return $tag;
     }
 
     public function destroy_tag()
     {
-        res_tag_r::destroy($this->request->route("tag"));
+        res_tag_r::destroy($this->tag);
     }
 }
