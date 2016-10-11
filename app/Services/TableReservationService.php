@@ -13,6 +13,7 @@ class TableReservationService
     private $lang;
     private $microsite_id;
     private $guest;
+    private $reservation;
 
     public function __construct(string $lang, int $microsite_id)
     {
@@ -86,5 +87,12 @@ class TableReservationService
         $reservation->ms_microsite_id = $this->microsite_id;
 
         $reservation->save();
+
+        $this->reservation = $reservation;
+    }
+
+    public function add_reservation_tags()
+    {
+        $this->reservation->tags()->attach(request("tags"));
     }
 }

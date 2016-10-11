@@ -67,8 +67,11 @@ class TableReservationController extends Controller
 
             $this->service->create_reservation();
 
-            return $this->CreateJsonResponse(true, 201, "La reservacion fue registrada");
+            if ($request->has("tags")) {
+                $this->service->add_reservation_tags();
+            }
 
+            return $this->CreateJsonResponse(true, 201, "La reservacion fue registrada");
         });
     }
 
