@@ -9,6 +9,7 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesResources;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use DB;
 
 class Controller extends BaseController
 {
@@ -25,6 +26,24 @@ class Controller extends BaseController
         } catch (\Exception $e) {
             $response = $this->CreateResponse(false, 500, null, null, false, null, "Ocurrió un error interno", $e->getMessage() . "\n" . "{$e->getFile()}: {$e->getLine()}");
         }
+        return response()->json($response, $response['statuscode']);
+    }
+
+    protected function TryCatchDB($closure) {
+        $response = null;
+        try {
+            DB::beginTransaction();
+                $response = $closure();
+            DB::commit();
+            return $response;
+        } catch (HttpException $e) {
+            $response = $this->CreateResponse(false, $e->getStatusCode(), null, null, false, null, $e->getMessage(), $e->getMessage() . "\n" . "{$e->getFile()}: {$e->getLine()}");
+        } catch (ModelNotFoundException $e) {
+            $response = $this->CreateResponse(false, 404, null, null, false, null, 'No se encontró el recurso solicitado.', $e->getMessage() . "\n" . "{$e->getFile()}: {$e->getLine()}");
+        } catch (\Exception $e) {
+            $response = $this->CreateResponse(false, 500, null, null, false, null, "Ocurrió un error interno", $e->getMessage() . "\n" . "{$e->getFile()}: {$e->getLine()}");
+        }
+        DB::rollBack();
         return response()->json($response, $response['statuscode']);
     }
 

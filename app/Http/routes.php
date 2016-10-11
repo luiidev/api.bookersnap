@@ -152,6 +152,11 @@ function routeMesas()
         //        Route::delete('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
         //
         //        Route::get('days/{day_id}', 'ZoneTypeturnDayController@available');
+
+        //-----------------------------------------------------
+        // MICROSITE:: RESERVATION
+        //-----------------------------------------------------
+        Route::resource('table/reservation', 'TableReservationController', ["only" => ["store"]]);
     });
 
 }
