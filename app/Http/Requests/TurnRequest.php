@@ -6,8 +6,8 @@ use App\Http\Requests\Request;
 
 class TurnRequest extends Request {
 
-    public function wantsJson() {
-        return true;
+    public function response(array $errors) {
+        return $this->CreateJsonResponse(false, 422, "", $errors, null, null, "Parametro no permitidos");
     }
 
     /**

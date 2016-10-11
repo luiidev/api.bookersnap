@@ -257,10 +257,12 @@ class TurnService {
             return ["response" => "ok"];
         } catch(\Exception $e) {
             DB::rollBack();
-            abort(423, "Ocurrio un error al intentar editar el turno junto al calendario");
+            abort(422, $e->getMessage());
+            // abort(422, "Ocurrio un error al intentar editar el turno junto al calendario");
         } catch (\FatalThrowableError $e) {
             DB::rollBack();
-            abort(423, "Ocurrio un error al intentar editar el turno junto al calendario");
+            abort(422, $e->getMessage());
+            // abort(422, "Ocurrio un error al intentar editar el turno junto al calendario");
         }
 
     }

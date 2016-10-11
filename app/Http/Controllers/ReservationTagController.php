@@ -92,7 +92,7 @@ class ReservationTagController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request, $lang, $micrositio, $id)
     {
         $this->service->destroy_tag();
         return $this->CreateJsonResponse(true, 200, "Se elimino tag seleccionado");

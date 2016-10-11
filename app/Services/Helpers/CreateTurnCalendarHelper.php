@@ -179,7 +179,7 @@ use Illuminate\Database\Eloquent\Collection;
             $res_turn_calendar->user_add               = $user_id;
             $res_turn_calendar->save();
 
-            self::calendarPeriodicCaseOnlyReplace($res_turn, $old_turn);
+            self::calendarPeriodicCaseOnlyReplace($res_turn, $old_turn, $user_id);
         }
 
         private static function calendarPeriodicCaseOnly(res_turn $res_turn, res_turn_calendar $old_turn, Collection $pieces,Carbon $date, $user_id)

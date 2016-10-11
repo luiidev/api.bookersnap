@@ -22,7 +22,7 @@ class ReservationTagService extends Service
     {
         $tag = new res_tag_r();
         $tag->name = $this->req->name;
-        $tag->name = $this->microsite_id;
+        $tag->ms_microsite_id = $this->microsite_id;
         $tag->status = 1;
         $tag->save();
         return $tag;

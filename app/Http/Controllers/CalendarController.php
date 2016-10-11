@@ -111,7 +111,7 @@ class CalendarController extends Controller
 
             $zones = $service->getBlock($microsite, $date);
 
-            return $this->CreateResponse(true, 200, "", [ "zones" => $zones ]);
+            return $this->CreateResponse(true, 200, "", $zones);
         });
     }
 }
