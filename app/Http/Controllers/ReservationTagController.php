@@ -4,12 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests;
 use App\Http\Requests\ReservationTagRequest;
-use App\res_tag_r;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Services\ReservationTagService as Service;
 
 class ReservationTagController extends Controller
 {
+    private $service;
+
+    function __construct(Request $request)
+    {
+        $this->service = Service::make($request);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -17,7 +24,7 @@ class ReservationTagController extends Controller
      */
     public function index($lang, $microsite_id)
     {
-        $tags = res_tag_r::where("ms_microsite_id", $microsite_id)->get(array("id", "name", "status"));
+        $tags = $this->service->get_tags();
         return $this->CreateJsonResponse(true, 200, "", $tags);
     }
 
@@ -39,10 +46,10 @@ class ReservationTagController extends Controller
      */
     public function store(ReservationTagRequest $request, $lang, $microsite_id)
     {
-        $request["ms_microsite_id"] = $microsite_id;
-        res_tag_r::create($request->all());
-
-        return $this->CreateJsonResponse(true, 201, "Se agrego nuevo tag");
+        $this->TryCatchDB(function() {
+            $this->service->create_tag();
+            return $this->CreateJsonResponse(true, 201, "Se agrego nuevo tag");
+        });
     }
 
     /**
@@ -85,10 +92,9 @@ class ReservationTagController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($lang, $microsite_id, $id)
+    public function destroy($id)
     {
-        res_tag_r::destroy($id);
-
+        $this->service->destroy_tag();
         return $this->CreateJsonResponse(true, 200, "Se elimino tag seleccionado");
     }
 }

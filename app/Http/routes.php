@@ -158,7 +158,7 @@ function routeMesas()
           //-----------------------------------------------------
           // MICROSITE:: RESERVATION TAGS
           //-----------------------------------------------------
-          Route::resource("reservation/tags", "ReservationTagController", ["only" => ["index", "store", "destroy"]]);
+          Route::resource("reservation/tag", "ReservationTagController", ["only" => ["index", "store", "destroy"]]);
     });
     
 }
