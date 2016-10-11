@@ -39,7 +39,9 @@ class TableReservationRequest extends Request
                 "guest.email" => "email",
                 "guest.phone" => "digits_between:7,15",
             "tables" =>  "array",
-                "tables.*" => "required|integer|exists:res_table,id"
+                "tables.*" => "required|integer|exists:res_table,id",
+            "tags" => "array",
+                "tags.*" => "exists:res_tag_r,id"
         ];
     }
 

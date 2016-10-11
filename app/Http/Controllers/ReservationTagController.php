@@ -17,7 +17,8 @@ class ReservationTagController extends Controller
      */
     public function index($lang, $microsite_id)
     {
-        return res_tag_r::where("ms_microsite_id", $microsite_id)->get(array("id", "name", "status"));
+        $tags = res_tag_r::where("ms_microsite_id", $microsite_id)->get(array("id", "name", "status"));
+        return $this->CreateJsonResponse(true, 200, "", $tags);
     }
 
     /**
