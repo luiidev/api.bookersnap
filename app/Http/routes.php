@@ -108,7 +108,7 @@ function routeMesas()
         // MICROSITE:: HUESPEDES TAGS
         //-----------------------------------------------------
         Route::get('guest-tags/', 'GuestController@listGuestTag');
-        Route::post('guest-tags/', 'GuestController@createGuestTag');
+        Route::put('guest-tags/', 'GuestController@createGuestTag');
         Route::delete('guest-tags/{guest_tag_id}', 'GuestController@deleteGuestTag');
 
         //-----------------------------------------------------

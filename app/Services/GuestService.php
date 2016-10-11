@@ -130,29 +130,53 @@ class GuestService
     }
 
     //****************************************************************************************************************************************************
-    //SERVICIO DE TAGS DE GUEST
+    //SERVICIO DE CUSTOM TAGS DE GUEST
     //****************************************************************************************************************************************************
-    public function getListTagCustom()
+    /**
+     * Lista todos los tag custom guest
+     * @param  int    $microsite_id [description]
+     * @return array               Lista de todos los tags custom guest
+     */
+    public function getListTagCustom(int $microsite_id)
     {
-        $list = res_guest_tag_custom::all();
+        $list = res_guest_tag_custom::where('ms_microsite_id', $microsite_id)->get();
         return $list;
     }
 
-    public function createTagCustom(array $params)
+    /**
+     * Crea un nuevo tag guest custom
+     * @param  array  $params       [description]
+     * @param  int    $microsite_id [description]
+     * @return object               Se devuelve el objeto creado
+     */
+    public function createTagCustom(array $params, int $microsite_id)
     {
         if (!empty($params['name'])) {
-            $tagCustom         = new res_guest_tag_custom();
-            $tagCustom->name   = $params['name'];
-            $tagCustom->status = 1;
-            $tagCustom->save();
-            return $tagCustom;
+            $name      = ucfirst($params['name']);
+            $tagCustom = res_guest_tag_custom::where('name', $name)->first();
+            if ($tagCustom == null) {
+                $tagCustom                  = new res_guest_tag_custom();
+                $tagCustom->name            = $name;
+                $tagCustom->status          = 1;
+                $tagCustom->ms_microsite_id = $microsite_id;
+                $tagCustom->save();
+                return $tagCustom;
+            }
         }
     }
 
-    public function deleteTagCustom(int $params)
+    /**
+     * Elimina Custom tag
+     * @param  int    $guest_tag_id       [description]
+     * @param  int    $microsite_id [description]
+     * @return boolean               [description]
+     */
+    public function deleteTagCustom(int $guest_tag_id, int $microsite_id)
     {
 
-        $tagCustom = res_guest_tag_custom::where('id', $params)->first();
+        $tagCustom = res_guest_tag_custom::where('id', $guest_tag_id)
+            ->where('ms_microsite_id', $microsite_id)
+            ->first();
         if ($tagCustom != null) {
             $tagCustom->delete();
             return true;

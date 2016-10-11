@@ -67,47 +67,49 @@ class GuestController extends Controller
         });
     }
 
+    //Controladores de TAG CUSTOM GUEST
+
     /**
-     * Lista o Crea Etiqueta Personalizada
-     * @param  microsite_id BIGINT
-     * @return [type]           [description]
+     * Listas todas las Etiqueta Personalizadas
+     * @param  Request $request [description]
+     * @return array    Lista de Tag Personalizados de Guest
      */
     public function listGuestTag(Request $request)
     {
-        // $microsite_id = $request->route('microsite_id');
-        $params = $request->input();
-        return $this->TryCatch(function () {
-            $result = $this->_GuestService->getListTagCustom();
+        $microsite_id = $request->route('microsite_id');
+        return $this->TryCatch(function () use ($microsite_id) {
+            $result = $this->_GuestService->getListTagCustom($microsite_id);
             return $this->CreateResponse(true, 200, "", $result);
         });
     }
 
     /**
-     * Lista o Crea Etiqueta Personalizada
-     * @param  microsite_id BIGINT
-     * @return [type]           [description]
+     * Crear Etiquetas Personalizadas
+     * @param  Request $request nombre del tag a crear
+     * @return Objeto   Detalle de Etiqueda Personalizada (id,name,status)
      */
     public function createGuestTag(Request $request)
     {
-        $params = $request->input();
-        return $this->TryCatch(function () use ($params) {
-            $result = $this->_GuestService->createTagCustom($params);
+        $microsite_id = $request->route('microsite_id');
+        $params       = $request->input();
+        return $this->TryCatch(function () use ($params, $microsite_id) {
+            $result = $this->_GuestService->createTagCustom($params, $microsite_id);
             return $this->CreateResponse(true, 200, "", $result);
         });
     }
 
     /**
-     * Eliminar la Etiqueta Personalizada del Huesped
-     * @param  Request $request [description]
-     * @return [type]           [description]
+     * Eliminar Etiqueta Personalizada
+     * @param  string $language     Lenguaje de la ruta
+     * @param  int $guest_tag_id Id de la lista a eliminar
+     * @return Boolean               Devuelve true si se elimino correctamente caso contrario false
      */
-    public function deleteGuestTag($language, $guest_tag_id)
+    public function deleteGuestTag(Request $request)
     {
-        // dd($guest_tag_id);
-        // $microsite_id = $request->route('microsite_id');
-        $params = $guest_tag_id;
-        return $this->TryCatch(function () use ($params) {
-            $result = $this->_GuestService->deleteTagCustom($params);
+        $microsite_id = $request->route('microsite_id');
+        $guest_tag_id = $request->route('guest_tag_id');
+        return $this->TryCatch(function () use ($guest_tag_id, $microsite_id) {
+            $result = $this->_GuestService->deleteTagCustom($guest_tag_id, $microsite_id);
             return $this->CreateResponse(true, 200, "", $result);
         });
     }
