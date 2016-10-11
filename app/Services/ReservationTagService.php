@@ -12,14 +12,15 @@ class ReservationTagService
 
     public function __construct($request)
     {
-        $this->request = $request;
-        $this->lang = $request->route("lang");
+        $this->request      = $request;
+        $this->lang         = $request->route("lang");
         $this->microsite_id = $request->route("microsite_id");
 
         $this->request["ms_microsite_id"] = $this->microsite_id;
     }
 
-    public static function make($request) {
+    public static function make($request)
+    {
         return new static($request);
     }
 
@@ -30,7 +31,13 @@ class ReservationTagService
 
     public function create_tag()
     {
-        res_tag_r::create($this->request->all());
+        $tag                  = new res_tag_r();
+        $tag->name            = $this->request->name;
+        $tag->ms_microsite_id = $this->microsite_id;
+        $tag->status          = 1;
+        $tag->save();
+        // dd($tag);
+        return $tag;
     }
 
     public function destroy_tag()

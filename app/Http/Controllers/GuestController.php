@@ -110,7 +110,7 @@ class GuestController extends Controller
         $guest_tag_id = $request->route('guest_tag_id');
         return $this->TryCatch(function () use ($guest_tag_id, $microsite_id) {
             $result = $this->_GuestService->deleteTagCustom($guest_tag_id, $microsite_id);
-            return $this->CreateResponse(true, 200, "", $result);
+            return $this->CreateResponse(true, 200, "Se elimino tag seleccionado", $result);
         });
     }
 

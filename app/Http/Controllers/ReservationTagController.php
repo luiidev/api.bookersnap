@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests;
 use App\Http\Requests\ReservationTagRequest;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use App\Services\ReservationTagService as Service;
+use Illuminate\Http\Request;
 
 class ReservationTagController extends Controller
 {
     private $service;
 
-    function __construct(Request $request)
+    public function __construct(Request $request)
     {
         $this->service = Service::make($request);
     }
@@ -46,9 +44,11 @@ class ReservationTagController extends Controller
      */
     public function store(ReservationTagRequest $request, $lang, $microsite_id)
     {
-        $this->TryCatchDB(function() {
-            $this->service->create_tag();
-            return $this->CreateJsonResponse(true, 201, "Se agrego nuevo tag");
+        // dd("TEST");
+        return $this->TryCatchDB(function () {
+            $response = $this->service->create_tag();
+            // dd($response);
+            return $this->CreateJsonResponse(true, 200, "Se agrego nuevo tag", $response);
         });
     }
 
@@ -94,7 +94,8 @@ class ReservationTagController extends Controller
      */
     public function destroy($id)
     {
-        $this->service->destroy_tag();
-        return $this->CreateJsonResponse(true, 200, "Se elimino tag seleccionado");
+        return "=)";
+        $response = $this->service->destroy_tag();
+        return $this->CreateJsonResponse(true, 200, "Se elimino tag seleccionado", $response);
     }
 }
