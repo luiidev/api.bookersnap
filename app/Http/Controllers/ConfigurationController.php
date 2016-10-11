@@ -2,10 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Request\ConfigurationRequest;
+use App\Service\ConfigurationService as Service;
 use Illuminate\Http\Request;
 
 class ConfigurationController extends Controller
 {
+    private $service;
+
+    public function __construct(Request $request)
+    {
+        $this->service = Service::make($request);
+    }
     /**
      * Display a listing of the resource.
      *
@@ -32,7 +40,7 @@ class ConfigurationController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ConfigurationRequest $request)
     {
         return ("Crear nueva configuracion de sitio");
     }
