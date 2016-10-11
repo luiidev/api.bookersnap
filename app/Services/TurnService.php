@@ -52,6 +52,7 @@ class TurnService {
             $rows = (in_array("zones", $data)) ? $rows->with('zones') : $rows;
             $rows = (in_array("zones.tables", $data)) ? $rows->with('zones.tables') : $rows;
             $rows = (in_array("zones.turns", $data)) ? $rows->with('zones.turns') : $rows;
+            $rows = (in_array("calendar", $data)) ? $rows->with('calendar') : $rows;
         }
 
         return $rows->get();
@@ -72,6 +73,7 @@ class TurnService {
                 if (in_array("zones", $data))                            $query->with('zones');
                 if (in_array("zones.tables", $data))                  $query->with('zones.tables');
                 if (in_array("zones.turns", $data))                   $query->with('zones.turns');
+                $query = (in_array("calendar", $data)) ? $query->with('calendar') : $query;
             }
             $turn = $query->first();
             if ($turn == null) {

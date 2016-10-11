@@ -74,6 +74,11 @@ class res_turn extends Model {
                                 ->where("end_date",  "9999-12-31")
                                 ->groupBy("day");
     }
+    
+    public function calendar()
+    {
+        return $this->hasMany('App\res_turn_calendar', 'res_turn_id')->where("end_date", ">=",  date('Y-m-d'));
+    }
 
     public function getWeekDaysAttribute()
     {
