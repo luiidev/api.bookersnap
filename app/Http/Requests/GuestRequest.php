@@ -15,7 +15,8 @@ namespace App\Http\Requests;
  */
 use App\Http\Requests\Request;
 
-class GuestRequest extends Request {
+class GuestRequest extends Request
+{
 
     public function wantsJson()
     {
@@ -26,7 +27,8 @@ class GuestRequest extends Request {
      *
      * @return bool
      */
-    public function authorize() {
+    public function authorize()
+    {
         return true;
     }
 
@@ -35,24 +37,26 @@ class GuestRequest extends Request {
      *
      * @return array
      */
-    public function rules() {
+    public function rules()
+    {
         return [
-            "first_name"=> "required|string",
-            "last_name"=> "string",
-            "birhtdate"=> 'date_format:Y-m-d',
-            "gender"=> 'string|in:M,F,O',
-            "emails.*.id"=> "integer",
-            "emails.*.email"=> "string|email",
-            "phones.*.id"=> 'integer', 
-            "phones.*.number"=> 'string', 
-            "tags.*.id"=> 'integer', 
+            "first_name"      => "required|string",
+            "last_name"       => "string",
+            "birhtdate"       => 'date_format:Y-m-d',
+            "gender"          => 'string|in:M,F,O',
+            "emails.*.id"     => "integer",
+            "emails.*.email"  => "string|email",
+            "phones.*.id"     => 'integer',
+            "phones.*.number" => 'string',
+            "tags.*.id"       => 'integer',
+
         ];
     }
-    
+
     public function messages()
     {
         return [
-            
+
         ];
     }
 

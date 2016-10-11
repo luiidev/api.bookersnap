@@ -1,14 +1,14 @@
 <?php
 
 /*
-  |--------------------------------------------------------------------------
-  | Application Routes
-  |--------------------------------------------------------------------------
-  |
-  | Here is where you can register all of the routes for an application.
-  | It's a breeze. Simply tell Laravel the URIs it should respond to
-  | and give it the controller to call when that URI is requested.
-  |
+|--------------------------------------------------------------------------
+| Application Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register all of the routes for an application.
+| It's a breeze. Simply tell Laravel the URIs it should respond to
+| and give it the controller to call when that URI is requested.
+|
  */
 
 Route::get('/', function () {
@@ -29,7 +29,7 @@ Route::group(['prefix' => 'v1/{lang}', 'middleware' => ['cors']], function () {
     // ESTADOS DE RESERVACIONES
     //-----------------------------------------------------
     Route::get("reservation/status", "ReservationController@listStatus");
-    
+
     routeMesas();
 });
 
@@ -94,7 +94,6 @@ function routeMesas()
 
         Route::get('calendar/{turn_id}/{start_time}/{end_time}', 'CalendarController@existConflictTurn');
 
-
         //-----------------------------------------------------
         // MICROSITE:: HUESPEDES
         //-----------------------------------------------------
@@ -104,6 +103,13 @@ function routeMesas()
         Route::post('guests', 'GuestController@create');
         Route::put('guests/{guest_id}', 'GuestController@update');
         Route::get('guests/{guest_id}/reservations', 'GuestController@reservation');
+
+        //-----------------------------------------------------
+        // MICROSITE:: HUESPEDES TAGS
+        //-----------------------------------------------------
+        Route::get('guest-tags/', 'GuestController@listGuestTag');
+        Route::post('guest-tags/', 'GuestController@createGuestTag');
+        Route::delete('guest-tags/{guest_tag_id}', 'GuestController@deleteGuestTag');
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS::TURNS
@@ -120,35 +126,32 @@ function routeMesas()
         Route::get('zones/{zone_id}/type-turns/{id}/days', 'ZoneTypeturnController@index');
         Route::get('zones/{zone_id}/type-turns/{id}/days/available', 'ZoneTypeturnController@available');
 
-
 //        Route::get('reservations', 'ZoneTypeturnDayController@available');
         //-----------------------------------------------------
         // MICROSITE::BLOCK
         //-----------------------------------------------------
-//        Route::get('blocks', 'ConfigZoneTypeturnDayController@available');
-//        Route::get('blocks/{block_id}', 'ConfigZoneTypeturnDayController@available');
-//        Route::post('blocks', 'ConfigZoneTypeturnDayController@available');
-//        Route::put('blocks/{block_id}', 'ConfigZoneTypeturnDayController@available');
-//        Route::delete('blocks/{block_id}', 'ConfigZoneTypeturnDayController@available');
-//        
-//        
-//        Route::get('schedules', 'ConfigZoneTypeturnDayController@available');     
-//        Route::get('servers', 'ConfigZoneTypeturnDayController@available');
-//        
-//        
-          Route::get('reservations', 'ReservationController@index');
-          Route::post('reservations', 'ReservationController@create');
-          Route::put('reservations/{reservation_id}', 'ReservationController@update');
-          Route::delete('reservations/{reservation_id}', 'ReservationController@delete');
+        //        Route::get('blocks', 'ConfigZoneTypeturnDayController@available');
+        //        Route::get('blocks/{block_id}', 'ConfigZoneTypeturnDayController@available');
+        //        Route::post('blocks', 'ConfigZoneTypeturnDayController@available');
+        //        Route::put('blocks/{block_id}', 'ConfigZoneTypeturnDayController@available');
+        //        Route::delete('blocks/{block_id}', 'ConfigZoneTypeturnDayController@available');
+        //
+        //
+        //        Route::get('schedules', 'ConfigZoneTypeturnDayController@available');
+        //        Route::get('servers', 'ConfigZoneTypeturnDayController@available');
+        //
+        //
+        Route::get('reservations', 'ReservationController@index');
+        Route::post('reservations', 'ReservationController@create');
+        Route::put('reservations/{reservation_id}', 'ReservationController@update');
+        Route::delete('reservations/{reservation_id}', 'ReservationController@delete');
 
 //        Route::get('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
-//        Route::post('reservations', 'ConfigZoneTypeturnDayController@available');
-//        Route::put('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
-//        Route::delete('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
-//        
-//        Route::get('days/{day_id}', 'ZoneTypeturnDayController@available');
-
-
+        //        Route::post('reservations', 'ConfigZoneTypeturnDayController@available');
+        //        Route::put('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
+        //        Route::delete('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
+        //
+        //        Route::get('days/{day_id}', 'ZoneTypeturnDayController@available');
 
           //-----------------------------------------------------
           // MICROSITE:: RESERVATION
@@ -160,5 +163,5 @@ function routeMesas()
           //-----------------------------------------------------
           Route::resource("reservation/tag", "ReservationTagController", ["only" => ["index", "store", "destroy"]]);
     });
-    
+
 }
