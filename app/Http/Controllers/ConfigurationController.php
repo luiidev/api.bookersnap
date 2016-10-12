@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Request\ConfigurationRequest;
-use App\Service\ConfigurationService as Service;
+use App\Services\ConfigurationService as Service;
 use Illuminate\Http\Request;
 
 class ConfigurationController extends Controller
