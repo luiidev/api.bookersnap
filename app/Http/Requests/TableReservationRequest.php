@@ -24,7 +24,7 @@ class TableReservationRequest extends Request
      */
     public function rules()
     {
-        $now = Carbon::now()->toDateString();
+        $now = Carbon::now()->addDay(-1)->toDateString();
 
         return [
             "guest_id"  =>  "exists:res_guest,id",
