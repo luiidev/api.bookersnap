@@ -2,17 +2,21 @@
 
 namespace App\Services;
 
+use App\Entities\res_configuration;
+
 class ConfigurationService
 {
     private $lang;
     private $microsite_id;
     private $request;
+    private $reservation;
 
     public function __construct($request)
     {
         $this->request                    = $request;
         $this->lang                       = $request->route("lang");
         $this->microsite_id               = $request->route("microsite_id");
+        $this->reservation                = $request->route('reservation');
         $this->request["ms_microsite_id"] = $this->microsite_id;
     }
 
@@ -23,16 +27,54 @@ class ConfigurationService
 
     public function getConfiguration()
     {
-
+        return res_configuration::where("ms_microsite_id", $this->microsite_id)->first();
     }
 
-    public function createConfiguration()
+    public function createDefaultConfiguration()
     {
+        try {
+            $config                       = new res_configuration();
+            $config->ms_microsite_id      = $this->microsite_id;
+            $config->time_tolerance       = 1;
+            $config->time_restriction     = 1;
+            $config->max_people           = 1;
+            $config->max_table            = 1;
+            $config->res_code_status      = 1;
+            $config->res_privilege_status = "test";
+            $config->messenger_status     = 1;
+            $config->date_add             = "2016-10-12 13:00:00";
+            $config->date_upd             = "2016-10-13 22:00:00";
+            $config->user_add             = 1;
+            $config->user_upd             = 1;
+            $config->reserve_portal       = 1;
+            $config->res_percentage_id    = 1;
+            $config->name_people_1        = "test";
+            $config->name_people_2        = "test";
+            $config->name_people_3        = "test";
+            $config->status_people_1      = 1;
+            $config->status_people_2      = 1;
+            $config->status_people_3      = 1;
+            $config->save();
+            return $config;
+
+        } catch (\Exception $e) {
+            abort(500, $e->getMessage());
+        }
 
     }
 
     public function updateConfiguration()
     {
-
+        $config = res_configuration::where('ms_microsite_id', $this->reservation)->first();
+        if ($config != null) {
+            $testRequest = $this->request->all();
+            unset($testRequest["_bs_user_id"]);
+            $config->where('ms_microsite_id', $this->reservation)->update($testRequest);
+            $configUpdate = res_configuration::where('ms_microsite_id', $this->reservation)->first();
+            return $configUpdate;
+        } else {
+            abort(500, "No exite configuracion para ese microsite");
+        }
     }
+
 }
