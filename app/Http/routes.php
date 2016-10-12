@@ -153,15 +153,21 @@ function routeMesas()
         //
         //        Route::get('days/{day_id}', 'ZoneTypeturnDayController@available');
 
-          //-----------------------------------------------------
-          // MICROSITE:: RESERVATION
-          //-----------------------------------------------------
-          Route::resource('table/reservation', 'TableReservationController', ["only" => ["store"]]);
+        //-----------------------------------------------------
+        // MICROSITE:: RESERVATION
+        //-----------------------------------------------------
+        Route::resource('table/reservation', 'TableReservationController', ["only" => ["store"]]);
 
-          //-----------------------------------------------------
-          // MICROSITE:: RESERVATION TAGS
-          //-----------------------------------------------------
-          Route::resource("reservation/tag", "ReservationTagController", ["only" => ["index", "store", "destroy"]]);
+        //-----------------------------------------------------
+        // MICROSITE:: RESERVATION TAGS
+        //-----------------------------------------------------
+        Route::resource("reservation/tag", "ReservationTagController", ["only" => ["index", "store"]]);
+        Route::delete('reservation/tag/{tag}', 'ReservationTagController@destroy');
+
+        //-----------------------------------------------------
+        // MICROSITE:: CONFIGURATION
+        //-----------------------------------------------------
+        Route::resource("configuration/", "ConfigurationController", ["only" => ["index", "store", "update"]]);
     });
 
 }

@@ -9,12 +9,14 @@ class Service
     
     public function __construct($request)
     {
-        $this->properties = ($request->route())?$request->route()->parameters():[];
-        $this->properties["req"] = $request;
-        $this->properties["req"]["ms_microsite_id"] = $this->microsite_id;
+        if ($request){
+            $this->properties = ($request->route())?$request->route()->parameters():[];
+            $this->properties["req"] = $request;
+            $this->properties["req"]["ms_microsite_id"] = $this->microsite_id;
+        }
     }
 
-    public static function make($request) {
+    public static function make($request = null) {
         return new static($request);
     }
 

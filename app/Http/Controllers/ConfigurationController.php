@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ReservationTagRequest;
-use App\Services\ReservationTagService as Service;
+use App\Http\Request\ConfigurationRequest;
+use App\Service\ConfigurationService as Service;
 use Illuminate\Http\Request;
 
-class ReservationTagController extends Controller
+class ConfigurationController extends Controller
 {
     private $service;
 
-    function __construct(Request $request) {
+    public function __construct(Request $request)
+    {
         $this->service = Service::make($request);
     }
-
     /**
      * Display a listing of the resource.
      *
@@ -21,8 +21,7 @@ class ReservationTagController extends Controller
      */
     public function index()
     {
-        $tags = $this->service->get_tags();
-        return $this->CreateJsonResponse(true, 200, "", $tags);
+        return ("Configuracion de Sitio");
     }
 
     /**
@@ -41,12 +40,9 @@ class ReservationTagController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(ReservationTagRequest $request)
-    {   
-        return $this->TryCatchDB(function(){
-            $tag = $this->service->create_tag();
-            return $this->CreateJsonResponse(true, 201, "Se agrego nuevo tag", $tag);
-        });
+    public function store(ConfigurationRequest $request)
+    {
+        return ("Crear nueva configuracion de sitio");
     }
 
     /**
@@ -80,7 +76,7 @@ class ReservationTagController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        return ("Actualizar configuraiond de sitio");
     }
 
     /**
@@ -89,9 +85,8 @@ class ReservationTagController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Request $request, $id)
+    public function destroy($id)
     {
-        $response = $this->service->destroy_tag();
-        return $this->CreateJsonResponse(true, 200, "Se elimino tag seleccionado", $response);
+        //
     }
 }

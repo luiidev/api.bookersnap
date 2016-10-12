@@ -88,6 +88,13 @@ class TableReservationService
 
         $reservation->save();
 
+        // tables attach
+        $tables =array();
+        foreach (request("tables") as $key => $value) {
+            $tables[$value] =  array("num_people" => request("covers"));
+        }
+        $reservation->tables()->attach($tables);
+
         $this->reservation = $reservation;
     }
 

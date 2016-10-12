@@ -6,11 +6,6 @@ use App\res_tag_r;
 
 class ReservationTagService extends Service
 {
-    public function __construct($request)
-    {
-        parent::__construct($request);
-    }
-
     public function get_tags()
     {
         $display = array("id", "name", "status");
