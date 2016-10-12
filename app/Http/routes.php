@@ -162,12 +162,12 @@ function routeMesas()
         // MICROSITE:: RESERVATION TAGS
         //-----------------------------------------------------
         Route::resource("reservation/tag", "ReservationTagController", ["only" => ["index", "store"]]);
-        Route::delete('reservation/tag/{tag}', 'ReservationTagController@destroy');
+        // Route::delete('reservation/tag/{tag}', 'ReservationTagController@destroy');
 
         //-----------------------------------------------------
         // MICROSITE:: CONFIGURATION
         //-----------------------------------------------------
-        Route::resource("configuration/", "ConfigurationController", ["only" => ["index", "store", "update"]]);
+        Route::resource("configuration/reservation", "ConfigurationController", ["only" => ["index", "store", "update"]]);
     });
 
 }
