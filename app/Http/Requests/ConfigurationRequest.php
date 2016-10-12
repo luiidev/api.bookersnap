@@ -31,12 +31,12 @@ class ConfigurationRequest extends Request
             "res_code_status"      => "required|integer",
             "res_privilege_status" => "string",
             "messenger_status"     => "integer",
-            "date_add"             => "required|date",
-            "date_upd"             => "date",
+            "date_add"             => "required|date_format:Y-m-d H:i:s",
+            "date_upd"             => "date_format: Y-m-d H:i:s",
             "user_add"             => "required|integer",
             "user_upd"             => "integer",
             "reserve_portal"       => "required|integer",
-            "res_percentage_id"    => "required|integer|exits:res_percentage,id",
+            "res_percentage_id"    => "required|integer|exists:res_percentage,res_percentage",
             "name_people_1"        => "string",
             "name_people_2"        => "string",
             "name_people_3"        => "string",
@@ -50,4 +50,5 @@ class ConfigurationRequest extends Request
     {
         return $this->CreateJsonResponse(false, 422, "", $errors, null, null, "Parametros recibidos no son validos");
     }
+
 }

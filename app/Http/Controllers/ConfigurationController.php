@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Request\ConfigurationRequest;
+use App\Http\Requests\ConfigurationRequest;
 use App\Services\ConfigurationService as Service;
 use Illuminate\Http\Request;
 
@@ -21,7 +21,15 @@ class ConfigurationController extends Controller
      */
     public function index()
     {
-        return ("Configuracion de Sitio");
+        $configs = $this->service->getConfiguration();
+        if ($configs != null) {
+            return $this->CreateJsonResponse(true, 200, "", $configs);
+        } else {
+            return $this->TryCatchDB(function () {
+                $response = $this->service->createDefaultConfiguration();
+                return $this->CreateJsonResponse(true, 200, "Se agrego configuración inicial", $response);
+            });
+        }
     }
 
     /**
@@ -42,7 +50,7 @@ class ConfigurationController extends Controller
      */
     public function store(ConfigurationRequest $request)
     {
-        return ("Crear nueva configuracion de sitio");
+
     }
 
     /**
@@ -74,9 +82,12 @@ class ConfigurationController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(ConfigurationRequest $request)
     {
-        return ("Actualizar configuraiond de sitio");
+        return $this->TryCatchDB(function () {
+            $response = $this->service->updateConfiguration();
+            return $this->CreateJsonResponse(true, 200, "Se actualizo la configuración", $response);
+        });
     }
 
     /**

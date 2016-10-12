@@ -167,7 +167,7 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE:: CONFIGURATION
         //-----------------------------------------------------
-        Route::resource("configuration/reservation", "ConfigurationController", ["only" => ["index", "store", "update"]]);
+        Route::resource("configuration/reservation", "ConfigurationController", ["only" => ["index", "update"]]);
     });
 
 }
