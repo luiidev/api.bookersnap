@@ -9,6 +9,7 @@ class res_tag_r extends Model
 {
     protected $table = "res_tag_r";
     protected $fillable = ["name", "ms_microsite_id"];
+    protected $hidden = ['pivot'];
     public $timestamps = false;
 
     public function reservations()
