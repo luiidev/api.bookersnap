@@ -156,7 +156,7 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE:: RESERVATION
         //-----------------------------------------------------
-        Route::resource('table/reservation', 'TableReservationController', ["only" => ["store"]]);
+        Route::resource('table/reservation', 'TableReservationController', ["only" => ["store", "edit"]]);
 
         //-----------------------------------------------------
         // MICROSITE:: RESERVATION TAGS

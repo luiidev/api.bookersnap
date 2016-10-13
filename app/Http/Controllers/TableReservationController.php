@@ -11,14 +11,6 @@ class TableReservationController extends Controller
 {
     private $service;
 
-    function __construct(Request $request)
-    {
-        $this->service = Service::make(
-                                                        $request->route("lang"),
-                                                        $request->route("microsite_id")
-                                                     );
-    }
-
     /**
      * Display a listing of the resource.
      *
@@ -47,12 +39,13 @@ class TableReservationController extends Controller
      */
     public function store(TableReservationRequest $request)
     {
+        $this->service = Service::make($request);
         return $this->TryCatchDB(function() use ($request) {
 
             if ($request->has("guest_id")) {
                 $this->service->find_guest();
             } else {
-                if ($request->has("guest.first_name") || $request->has("guest.last_name")) {
+                if ($request->has("guest.first_name")) {
                     $this->service->create_guest();
 
                     if ($request->has("guest.email")) {
@@ -83,7 +76,7 @@ class TableReservationController extends Controller
      */
     public function show($id)
     {
-        //
+
     }
 
     /**
@@ -92,9 +85,11 @@ class TableReservationController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit($lang, $microsite_id, $id)
     {
-        //
+        $this->service = Service::make();
+        $reservation = $this->service->show($microsite_id, $id);
+        return $this->CreateJsonResponse(true, 200, "", $reservation);
     }
 
     /**
