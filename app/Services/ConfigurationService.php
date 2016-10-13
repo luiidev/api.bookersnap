@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Entities\res_configuration;
+use Carbon\Carbon;
 
 class ConfigurationService
 {
@@ -27,12 +28,16 @@ class ConfigurationService
 
     public function getConfiguration()
     {
+        // $date = Carbon::now('America/Lima');
         return res_configuration::where("ms_microsite_id", $this->microsite_id)->first();
     }
 
     public function createDefaultConfiguration()
     {
         try {
+
+            $date = Carbon::now('America/Lima');
+
             $config                       = new res_configuration();
             $config->ms_microsite_id      = $this->microsite_id;
             $config->time_tolerance       = 1;
@@ -42,8 +47,8 @@ class ConfigurationService
             $config->res_code_status      = 1;
             $config->res_privilege_status = "test";
             $config->messenger_status     = 1;
-            $config->date_add             = "2016-10-12 13:00:00";
-            $config->date_upd             = "2016-10-13 22:00:00";
+            $config->date_add             = $date;
+            $config->date_upd             = $date;
             $config->user_add             = 1;
             $config->user_upd             = 1;
             $config->reserve_portal       = 1;
@@ -67,13 +72,15 @@ class ConfigurationService
     {
         $config = res_configuration::where('ms_microsite_id', $this->reservation)->first();
         if ($config != null) {
+            $date        = Carbon::now('America/Lima');
             $testRequest = $this->request->all();
             unset($testRequest["_bs_user_id"]);
+            $testRequest["date_upd"] = $date;
             $config->where('ms_microsite_id', $this->reservation)->update($testRequest);
             $configUpdate = res_configuration::where('ms_microsite_id', $this->reservation)->first();
             return $configUpdate;
         } else {
-            abort(500, "No exite configuracion para ese microsite");
+            abort(500, "No existe configuracion para ese microsite");
         }
     }
 
