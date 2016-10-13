@@ -165,9 +165,13 @@ function routeMesas()
         // Route::delete('reservation/tag/{tag}', 'ReservationTagController@destroy');
 
         //-----------------------------------------------------
-        // MICROSITE:: CONFIGURATION
+        // MICROSITE:: CONFIGURATION (table res_configuration)
         //-----------------------------------------------------
         Route::resource("configuration/reservation", "ConfigurationController", ["only" => ["index", "update"]]);
+        //-----------------------------------------------------
+        // MICROSITE:: PERCENTAGE (table res_percentage)
+        //-----------------------------------------------------
+        Route::resource("configuration/percentage", "PercentageController", ["only" => ["index"]]);
     });
 
 }
