@@ -418,7 +418,7 @@ class TurnService
         return true;
     }
 
-    private function delete($microsite_id, $idTurn)
+    public function deleteTurn($microsite_id, $idTurn)
     {
         try {
             DB::BeginTransaction();
