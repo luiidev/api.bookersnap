@@ -10,19 +10,15 @@ class ConfigurationCodeController extends Controller
 {
     private $service;
 
-    public function __constructor(Request $request)
-    {
-        $this->service = Service::make($request);
-    }
-
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $codes = $this->service->getCode();
+        $this->service = Service::make($request);
+        $codes         = $this->service->getCode();
         return $this->CreateJsonResponse(true, 200, "", $codes);
     }
 
@@ -44,10 +40,11 @@ class ConfigurationCodeController extends Controller
      */
     public function store(ConfigurationCodeRequest $request)
     {
+        $this->service = Service::make($request);
         return $this->TryCatchDB(function () {
             $response = $this->service->createCode();
             return $this->CreateJsonResponse(true, 200, "Se agrego el código", $response);
-        })
+        });
     }
 
     /**
@@ -81,6 +78,7 @@ class ConfigurationCodeController extends Controller
      */
     public function update(ConfigurationCodeRequest $request)
     {
+        $this->service = Service::make($request);
         return $this->TryCatchDB(function () {
             $response = $this->service->updateCode();
             return $this->CreateJsonResponse(true, 200, "Se actualizo el código", $response);
@@ -93,10 +91,11 @@ class ConfigurationCodeController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request)
     {
+        $this->service = Service::make($request);
         return $this->TryCatchDB(function () {
-            response = $this->service->deleteCode();
+            $response = $this->service->deleteCode();
             return $this->CreateJsonResponse(true, 200, "Se elimino el código", $response);
         });
     }
