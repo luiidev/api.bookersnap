@@ -50,7 +50,8 @@ class TurnController extends Controller
 
     public function delete(Request $request)
     {
-        return $this->TryCatch(function () use ($request) {
+
+        return $this->TryCatch(function () use ($request, $this) {
             $result = $this->_TurnService->delete($request->route('microsite_id'), $request->route('turn_id'));
             return $this->CreateResponse(true, 201, "", $result);
         });
