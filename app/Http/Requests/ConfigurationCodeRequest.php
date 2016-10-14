@@ -13,7 +13,7 @@ class ConfigurationCodeRequest extends Request
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +24,13 @@ class ConfigurationCodeRequest extends Request
     public function rules()
     {
         return [
-            //
+            "code"            => "required|string|unique:res_code,code",
+            "ms_microsite_id" => "required|integer|exists:ms_microsite,id",
         ];
+    }
+
+    public function response(array $errors)
+    {
+        return $this->CreateJsonResponse(false, 422, "", $errors, null, null, "Parametros recibidos no son validos");
     }
 }

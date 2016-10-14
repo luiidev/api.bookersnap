@@ -2,22 +2,21 @@
 
 namespace App\Services;
 
-use App\Entities\res_configuration;
-use Carbon\Carbon;
+use App\Entities\res_code;
 
-class ConfigurationService
+class ConfigurationCodeService
 {
     private $lang;
     private $microsite_id;
     private $request;
-    private $reservation;
+    private $code_id;
 
     public function __construct($request)
     {
         $this->request                    = $request;
         $this->lang                       = $request->route("lang");
         $this->microsite_id               = $request->route("microsite_id");
-        $this->reservation                = $request->route('reservations');
+        $this->code_id                    = $request->route('codes');
         $this->request["ms_microsite_id"] = $this->microsite_id;
     }
 
@@ -26,62 +25,41 @@ class ConfigurationService
         return new static($request);
     }
 
-    public function getConfiguration()
+    public function getCode()
     {
-        // $date = Carbon::now('America/Lima');
-        return res_configuration::where("ms_microsite_id", $this->microsite_id)->first();
+        return $codes = res_code::where('ms_microsite_id', $this->microsite_id)->get();
     }
 
-    public function createDefaultConfiguration()
+    public function createCode()
     {
         try {
-
-            $date = Carbon::now('America/Lima');
-
-            $config                       = new res_configuration();
-            $config->ms_microsite_id      = $this->microsite_id;
-            $config->time_tolerance       = 1;
-            $config->time_restriction     = 1;
-            $config->max_people           = 1;
-            $config->max_table            = 1;
-            $config->res_code_status      = 1;
-            $config->res_privilege_status = "test";
-            $config->messenger_status     = 1;
-            $config->date_add             = $date;
-            $config->date_upd             = $date;
-            $config->user_add             = 1;
-            $config->user_upd             = 1;
-            $config->reserve_portal       = 1;
-            $config->res_percentage_id    = 1;
-            $config->name_people_1        = "test";
-            $config->name_people_2        = "test";
-            $config->name_people_3        = "test";
-            $config->status_people_1      = 1;
-            $config->status_people_2      = 1;
-            $config->status_people_3      = 1;
-            $config->save();
-            return $config;
-
+            $code                  = new res_code();
+            $code->code            = $this->request["code"];
+            $code->ms_microsite_id = $this->microsite_id;
+            $code->save();
+            return $code;
         } catch (\Exception $e) {
             abort(500, $e->getMessage());
         }
 
     }
 
-    public function updateConfiguration()
+    public function updateCode()
     {
-        $config = res_configuration::where('ms_microsite_id', $this->reservation)->first();
-        if ($config != null) {
-            $date        = Carbon::now('America/Lima');
-            $testRequest = $this->request->all();
-            unset($testRequest["_bs_user_id"]);
-            $testRequest["date_upd"] = $date;
-            $config->where('ms_microsite_id', $this->reservation)->update($testRequest);
-            $configUpdate = res_configuration::where('ms_microsite_id', $this->reservation)->first();
-            return $configUpdate;
-        } else {
-            abort(500, "No existe configuracion para ese microsite");
-        }
+        $codeRequest = $this->request->all();
+        unset($codeRequest["_bs_user_id"]);
+        $code->where('code', $this->code_id)->update($codeRequest);
+        $code->update();
+
+        $codeUpdate = res_code::find($this->code_id);
+
+        return $codeUpdate;
+    }
+    public function deleteCode()
+    {
+        $code = res_code::find($this->code_id);
+        $code->delete();
+        return $code;
     }
 
 }

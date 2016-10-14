@@ -2,12 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ConfigurationCodeRequest;
+use App\Services\ConfigurationCodeService as Service;
 use Illuminate\Http\Request;
-
-use App\Http\Requests;
 
 class ConfigurationCodeController extends Controller
 {
+    private $service;
+
+    public function __constructor(Request $request)
+    {
+        $this->service = Service::make($request);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -15,7 +22,8 @@ class ConfigurationCodeController extends Controller
      */
     public function index()
     {
-        //
+        $codes = $this->service->getCode();
+        return $this->CreateJsonResponse(true, 200, "", $codes);
     }
 
     /**
@@ -34,9 +42,12 @@ class ConfigurationCodeController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ConfigurationCodeRequest $request)
     {
-        //
+        return $this->TryCatchDB(function () {
+            $response = $this->service->createCode();
+            return $this->CreateJsonResponse(true, 200, "Se agrego el código", $response);
+        })
     }
 
     /**
@@ -68,9 +79,12 @@ class ConfigurationCodeController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(ConfigurationCodeRequest $request)
     {
-        //
+        return $this->TryCatchDB(function () {
+            $response = $this->service->updateCode();
+            return $this->CreateJsonResponse(true, 200, "Se actualizo el código", $response);
+        });
     }
 
     /**
@@ -81,6 +95,9 @@ class ConfigurationCodeController extends Controller
      */
     public function destroy($id)
     {
-        //
+        return $this->TryCatchDB(function () {
+            response = $this->service->deleteCode();
+            return $this->CreateJsonResponse(true, 200, "Se elimino el código", $response);
+        });
     }
 }
