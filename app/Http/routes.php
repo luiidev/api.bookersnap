@@ -172,6 +172,10 @@ function routeMesas()
         // MICROSITE:: PERCENTAGE (table res_percentage)
         //-----------------------------------------------------
         Route::resource("configuration/percentages", "PercentageController", ["only" => ["index"]]);
+        //-----------------------------------------------------
+        // MICROSITE:: CODES (table res_code)
+        //-----------------------------------------------------
+        Route::resource("configuration/codes", "ConfigurationCodeController", ["only" => ["index", "store", "update", "destroy"]]);
     });
 
 }
