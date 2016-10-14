@@ -32,4 +32,12 @@ class res_guest extends Model
         return $this->belongsToMany('App\res_guest_tag', 'res_guest_tag_g', 'res_guest_id', 'res_tag_g_id');
     }
 
+    public function getLastNameAttribute()
+    {
+        if ($this->attributes["last_name"] == null) {
+            return "";
+        } else {
+            return $this->attributes["last_name"];
+        }
+    }
 }
