@@ -17,7 +17,7 @@ class ConfigurationService
         $this->request                    = $request;
         $this->lang                       = $request->route("lang");
         $this->microsite_id               = $request->route("microsite_id");
-        $this->reservation                = $request->route('reservation');
+        $this->reservation                = $request->route('reservations');
         $this->request["ms_microsite_id"] = $this->microsite_id;
     }
 
