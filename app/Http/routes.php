@@ -76,6 +76,7 @@ function routeMesas()
         Route::get('turns/search/', 'TurnController@search');
         //Route::get('turns/{turn_id}/availability', 'TurnController@tableAvailability');
         Route::get('turns/{turn_id}', 'TurnController@show');
+        Route::delete('turns/{turn_id}', 'TurnController@delete');
         Route::post('turns/', 'TurnController@create');
         Route::put('turns/{turn_id}', 'TurnController@update');
         Route::get('turns/{turn_id}/unlink-zones/{zone_id}', 'TurnController@unlinkZone');
@@ -166,9 +167,13 @@ function routeMesas()
         // Route::delete('reservation/tag/{tag}', 'ReservationTagController@destroy');
 
         //-----------------------------------------------------
-        // MICROSITE:: CONFIGURATION
+        // MICROSITE:: CONFIGURATION (table res_configuration)
         //-----------------------------------------------------
         Route::resource("configuration/reservation", "ConfigurationController", ["only" => ["index", "update"]]);
+        //-----------------------------------------------------
+        // MICROSITE:: PERCENTAGE (table res_percentage)
+        //-----------------------------------------------------
+        Route::resource("configuration/percentage", "PercentageController", ["only" => ["index"]]);
     });
 
 }
