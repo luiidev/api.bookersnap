@@ -72,11 +72,11 @@ class ConfigurationService
     {
         $config = res_configuration::where('ms_microsite_id', $this->reservation)->first();
         if ($config != null) {
-            $date        = Carbon::now('America/Lima');
-            $testRequest = $this->request->all();
-            unset($testRequest["_bs_user_id"]);
-            $testRequest["date_upd"] = $date;
-            $config->where('ms_microsite_id', $this->reservation)->update($testRequest);
+            $date           = Carbon::now('America/Lima');
+            $confingRequest = $this->request->all();
+            unset($confingRequest["_bs_user_id"]);
+            $confingRequest["date_upd"] = $date;
+            $config->where('ms_microsite_id', $this->reservation)->update($confingRequest);
             $configUpdate = res_configuration::where('ms_microsite_id', $this->reservation)->first();
             return $configUpdate;
         } else {
