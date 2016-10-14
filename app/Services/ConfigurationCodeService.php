@@ -9,7 +9,7 @@ class ConfigurationCodeService extends Service
 
     public function getCode()
     {
-        return res_code::where('ms_microsite_id', $this->microsite_id)->get();
+        return res_code::where('ms_microsite_id', (int) $this->microsite_id)->get();
     }
 
     public function createCode()
