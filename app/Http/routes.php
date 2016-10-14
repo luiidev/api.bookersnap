@@ -76,6 +76,7 @@ function routeMesas()
         Route::get('turns/search/', 'TurnController@search');
         //Route::get('turns/{turn_id}/availability', 'TurnController@tableAvailability');
         Route::get('turns/{turn_id}', 'TurnController@show');
+        Route::delete('turns/{turn_id}', 'TurnController@delete');
         Route::post('turns/', 'TurnController@create');
         Route::put('turns/{turn_id}', 'TurnController@update');
         Route::get('turns/{turn_id}/unlink-zones/{zone_id}', 'TurnController@unlinkZone');
