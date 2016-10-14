@@ -17,7 +17,7 @@ class ConfigurationCodeService extends Service
         // return $this->properties;
         try {
             $code                  = new res_code();
-            $code->code            = $this->codes;
+            $code->code            = $this->req->code;
             $code->ms_microsite_id = $this->microsite_id;
             $code->save();
             return $code;
@@ -29,20 +29,23 @@ class ConfigurationCodeService extends Service
 
     public function updateCode()
     {
-        $codeRequest = $this->request->all();
-        unset($codeRequest["_bs_user_id"]);
-        $code->where('code', $this->codes)->update($codeRequest);
-        $code->update();
-
-        $codeUpdate = res_code::find($this->codes);
-
-        return $codeUpdate;
+        $exists = res_code::where('ms_microsite_id', (int) $this->microsite_id)->where('code', $this->codes)->get();
+        if ($exists != null) {
+            res_code::where('ms_microsite_id', (int) $this->microsite_id)->where('code', $this->codes)->update(["code" => $this->req->code]);
+            $codeUpdate = res_code::where('ms_microsite_id', (int) $this->microsite_id)->where('code', $this->req->code)->get();
+            return $codeUpdate;
+        } else {
+            abort(404, "No existe el código");
+        }
     }
     public function deleteCode()
     {
-        $code = res_code::find($this->codes);
-        $code->delete();
-        return $code;
+        $code = res_code::where('ms_microsite_id', (int) $this->microsite_id)->where('code', $this->codes)->delete();
+        if ($code == true) {
+            return true;
+        } else {
+            abort(404, "No existe código");
+        }
     }
 
 }
