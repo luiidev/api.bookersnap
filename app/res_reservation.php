@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class res_reservation extends Model {
 
+    const CREATED_AT = "date_add";
+    const UPDATED_AT = "date_upd";
+
     protected $table = "res_reservation";
-    public $timestamps = false;
     protected $fillable = ['date_reservation', 'hours_reservation', 'hours_duration', 'num_people', 'note', 'email', 'phone', 'res_guest_id'];
-    //protected $hidden = ['ms_microsite_id', 'ev_event_id', 'bs_user_id'];
     
     public function status() {
         return $this->belongsTo('App\res_reservation_status', 'res_reservation_status_id');
@@ -21,10 +22,7 @@ class res_reservation extends Model {
     }
     
     public function tables() {
-        //return $this->hasOne('App\res_table_reservation');--BIEN
-        //return $this->belongsTo('App\res_table_reservation', 'id');
         return $this->belongsToMany('App\res_table', 'res_table_reservation', 'res_reservation_id', 'res_table_id');
-        //return $this->hasMany('App\res_table_reservation', 'res_table_id');
     }
     
     public function tags()
