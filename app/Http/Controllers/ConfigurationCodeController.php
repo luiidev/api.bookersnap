@@ -3,13 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ConfigurationCodeRequest;
-use App\Services\ConfigurationCodeService as Service;
+use App\Services\ConfigurationCodeService;
 use Illuminate\Http\Request;
 
 class ConfigurationCodeController extends Controller
 {
-    private $service;
+    protected $service;
 
+    public function __construct(ConfigurationCodeService $ConfigurationCodeService)
+    {
+        $this->service = $ConfigurationCodeService;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -17,8 +21,8 @@ class ConfigurationCodeController extends Controller
      */
     public function index(Request $request)
     {
-        $this->service = Service::make($request);
-        $codes         = $this->service->getCode();
+        // return $request;
+        $codes = $this->service->getCode($request->route("microsite_id"));
         return $this->CreateJsonResponse(true, 200, "", $codes);
     }
 
@@ -40,9 +44,9 @@ class ConfigurationCodeController extends Controller
      */
     public function store(ConfigurationCodeRequest $request)
     {
-        $this->service = Service::make($request);
-        return $this->TryCatchDB(function () {
-            $response = $this->service->createCode();
+        $service = $this->service;
+        return $this->TryCatchDB(function () use ($service, $request) {
+            $response = $service->createCode($request->route("microsite_id"), $request->all());
             return $this->CreateJsonResponse(true, 200, "Se agrego el código", $response);
         });
     }
@@ -78,11 +82,11 @@ class ConfigurationCodeController extends Controller
      */
     public function update(ConfigurationCodeRequest $request)
     {
-        $this->service = Service::make($request);
-        return $this->TryCatchDB(function () {
-            $response = $this->service->updateCode();
-            return $this->CreateJsonResponse(true, 200, "Se actualizo el código", $response);
-        });
+        // $service = $this->service;
+        // return $this->TryCatchDB(function () use ($service, $request) {
+        //     $response = $this->service->updateCode($request->route("microsite_id"), $request->route("codes"), $request->all());
+        //     return $this->CreateJsonResponse(true, 200, "Se actualizo el código", $response);
+        // });
     }
 
     /**
@@ -93,9 +97,9 @@ class ConfigurationCodeController extends Controller
      */
     public function destroy(Request $request)
     {
-        $this->service = Service::make($request);
-        return $this->TryCatchDB(function () {
-            $response = $this->service->deleteCode();
+        $service = $this->service;
+        return $this->TryCatchDB(function () use ($service, $request) {
+            $response = $service->deleteCode($request->route('microsite_id'), $request->route('codes'));
             return $this->CreateJsonResponse(true, 200, "Se elimino el código", $response);
         });
     }

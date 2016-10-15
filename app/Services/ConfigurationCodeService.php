@@ -4,21 +4,21 @@ namespace App\Services;
 
 use App\Entities\res_code;
 
-class ConfigurationCodeService extends Service
+class ConfigurationCodeService
 {
 
-    public function getCode()
+    public function getCode(int $microsite_id)
     {
-        return res_code::where('ms_microsite_id', (int) $this->microsite_id)->get();
+        return res_code::where('ms_microsite_id', $microsite_id)->get();
     }
 
-    public function createCode()
+    public function createCode(int $microsite_id, array $input)
     {
-        // return $this->properties;
+
         try {
             $code                  = new res_code();
-            $code->code            = $this->req->code;
-            $code->ms_microsite_id = $this->microsite_id;
+            $code->code            = $input["code"];
+            $code->ms_microsite_id = $microsite_id;
             $code->save();
             return $code;
         } catch (\Exception $e) {
@@ -27,20 +27,21 @@ class ConfigurationCodeService extends Service
 
     }
 
-    public function updateCode()
+    public function updateCode(int $microsite_id, string $code, array $input)
     {
-        $exists = res_code::where('ms_microsite_id', (int) $this->microsite_id)->where('code', $this->codes)->get();
+        $exists = res_code::where('ms_microsite_id', $microsite_id)->where('code', $code)->get();
         if ($exists != null) {
-            res_code::where('ms_microsite_id', (int) $this->microsite_id)->where('code', $this->codes)->update(["code" => $this->req->code]);
-            $codeUpdate = res_code::where('ms_microsite_id', (int) $this->microsite_id)->where('code', $this->req->code)->get();
+            res_code::where('ms_microsite_id', $microsite_id)->where('code', $code)->update(["code" => $input["code"]]);
+            $codeUpdate = res_code::where('ms_microsite_id', $microsite_id)->where('code', $input["code"])->get();
             return $codeUpdate;
         } else {
             abort(404, "No existe el código");
         }
     }
-    public function deleteCode()
+
+    public function deleteCode(int $microsite_id, string $codes)
     {
-        $code = res_code::where('ms_microsite_id', (int) $this->microsite_id)->where('code', $this->codes)->delete();
+        $code = res_code::where('ms_microsite_id', $microsite_id)->where('code', $codes)->delete();
         if ($code == true) {
             return true;
         } else {

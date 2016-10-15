@@ -24,8 +24,8 @@ class ConfigurationCodeRequest extends Request
     public function rules()
     {
         return [
-            "code"            => "required|string|unique:res_code,code",
-            "ms_microsite_id" => "required|integer|exists:ms_microsite,id",
+            "code" => "required|string|unique:res_code,code",
+            // "ms_microsite_id" => "required|integer|exists:ms_microsite,id",
         ];
     }
 
