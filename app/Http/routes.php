@@ -172,11 +172,16 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE:: CONFIGURATION (table res_configuration)
         //-----------------------------------------------------
-        Route::resource("configuration/reservation", "ConfigurationController", ["only" => ["index", "update"]]);
+        Route::resource("configuration/reservations", "ConfigurationController", ["only" => ["index", "update"]]);
+        Route::put("configuration/reservation/codes/status", "ConfigurationController@updateCodeStatus");
         //-----------------------------------------------------
         // MICROSITE:: PERCENTAGE (table res_percentage)
         //-----------------------------------------------------
-        Route::resource("configuration/percentage", "PercentageController", ["only" => ["index"]]);
+        Route::resource("configuration/percentages", "PercentageController", ["only" => ["index"]]);
+        //         //-----------------------------------------------------
+        //         // MICROSITE:: CODES (table res_code)
+        //         //-----------------------------------------------------
+        Route::resource("configuration/codes", "ConfigurationCodeController", ["only" => ["index", "store", "update", "destroy"]]);
     });
 
 }

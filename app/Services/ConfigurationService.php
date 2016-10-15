@@ -7,39 +7,39 @@ use Carbon\Carbon;
 
 class ConfigurationService
 {
-    private $lang;
-    private $microsite_id;
-    private $request;
-    private $reservation;
+    // private $lang;
+    // private $microsite_id;
+    // private $request;
+    // private $reservation;
 
-    public function __construct($request)
-    {
-        $this->request                    = $request;
-        $this->lang                       = $request->route("lang");
-        $this->microsite_id               = $request->route("microsite_id");
-        $this->reservation                = $request->route('reservation');
-        $this->request["ms_microsite_id"] = $this->microsite_id;
-    }
+    // public function __construct($request)
+    // {
+    //     $this->request                    = $request;
+    //     $this->lang                       = $request->route("lang");
+    //     $this->microsite_id               = $request->route("microsite_id");
+    //     $this->reservation                = $request->route('reservations');
+    //     $this->request["ms_microsite_id"] = $this->microsite_id;
+    // }
 
-    public static function make($request)
-    {
-        return new static($request);
-    }
+    // public static function make($request)
+    // {
+    //     return new static($request);
+    // }
 
-    public function getConfiguration()
+    public function getConfiguration(int $microsite_id)
     {
         // $date = Carbon::now('America/Lima');
-        return res_configuration::where("ms_microsite_id", $this->microsite_id)->first();
+        return res_configuration::where("ms_microsite_id", $microsite_id)->first();
     }
 
-    public function createDefaultConfiguration()
+    public function createDefaultConfiguration(int $microsite_id)
     {
         try {
 
             $date = Carbon::now('America/Lima');
 
             $config                       = new res_configuration();
-            $config->ms_microsite_id      = $this->microsite_id;
+            $config->ms_microsite_id      = $microsite_id;
             $config->time_tolerance       = 1;
             $config->time_restriction     = 1;
             $config->max_people           = 1;
@@ -68,16 +68,32 @@ class ConfigurationService
 
     }
 
-    public function updateConfiguration()
+    public function updateConfiguration(int $microsite_id, array $input)
     {
-        $config = res_configuration::where('ms_microsite_id', $this->reservation)->first();
+        $config = res_configuration::where('ms_microsite_id', $microsite_id)->first();
         if ($config != null) {
-            $date        = Carbon::now('America/Lima');
-            $testRequest = $this->request->all();
-            unset($testRequest["_bs_user_id"]);
-            $testRequest["date_upd"] = $date;
-            $config->where('ms_microsite_id', $this->reservation)->update($testRequest);
-            $configUpdate = res_configuration::where('ms_microsite_id', $this->reservation)->first();
+            $date           = Carbon::now('America/Lima');
+            $confingRequest = $input;
+            unset($confingRequest["_bs_user_id"]);
+            $confingRequest["date_upd"] = $date;
+            $config->where('ms_microsite_id', $microsite_id)->update($confingRequest);
+            $configUpdate = res_configuration::where('ms_microsite_id', $microsite_id)->first();
+            return $configUpdate;
+        } else {
+            abort(500, "No existe configuracion para ese microsite");
+        }
+    }
+
+    public function updateCodeStatus(int $microsite_id, int $code)
+    {
+        $config = res_configuration::where('ms_microsite_id', $microsite_id)->first();
+        if ($config != null) {
+            $date = Carbon::now('America/Lima');
+            // $confingRequest = $this->request->all();
+            // unset($confingRequest["_bs_user_id"]);
+            // $confingRequest["date_upd"] = $date;
+            $config->where('ms_microsite_id', $microsite_id)->update(["res_code_status" => $code, "date_upd" => $date]);
+            $configUpdate = res_configuration::where('ms_microsite_id', $microsite_id)->first();
             return $configUpdate;
         } else {
             abort(500, "No existe configuracion para ese microsite");

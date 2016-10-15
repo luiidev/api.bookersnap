@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Services\GuestTagCategoryService;
 use Illuminate\Http\Request;
 
-class GuestTagCategoryController extends Controller {
+class GuestTagCategoryController extends Controller
+{
 
     protected $_GuestTagCategoryService;
 
-    public function __construct(GuestTagCategoryService $GuestTagCategoryService) {
+    public function __construct(GuestTagCategoryService $GuestTagCategoryService)
+    {
         $this->_GuestTagCategoryService = $GuestTagCategoryService;
     }
 
@@ -18,11 +20,12 @@ class GuestTagCategoryController extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request) {
+    public function index(int $microsite_id)
+    {
         return $this->TryCatch(function () {
-                    $data = $this->_GuestTagCategoryService->getList();
-                    return $this->CreateResponse(true, 201, "", $data);
-                });
+            $data = $this->_GuestTagCategoryService->getList();
+            return $this->CreateResponse(true, 201, "", $data);
+        });
     }
 
     /**
@@ -30,7 +33,8 @@ class GuestTagCategoryController extends Controller {
      *
      * @return \Illuminate\Http\Response
      */
-    public function create() {
+    public function create()
+    {
         //
     }
 
@@ -40,7 +44,8 @@ class GuestTagCategoryController extends Controller {
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         //
     }
 
@@ -50,7 +55,8 @@ class GuestTagCategoryController extends Controller {
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id) {
+    public function show($id)
+    {
         //
     }
 
@@ -60,7 +66,8 @@ class GuestTagCategoryController extends Controller {
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id) {
+    public function edit($id)
+    {
         //
     }
 
@@ -71,7 +78,8 @@ class GuestTagCategoryController extends Controller {
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
         //
     }
 
@@ -81,7 +89,8 @@ class GuestTagCategoryController extends Controller {
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id) {
+    public function destroy($id)
+    {
         //
     }
 
