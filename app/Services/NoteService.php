@@ -10,10 +10,10 @@ class NoteService
     public function saveNote(array $data, $microsite_id)
     {
         $response = null;
-        if (isset($data['id']) && $this->exists($ms_microsite_id, $data['date_add'], $data['res_type_turn_id'])) {
-            $response = $this->updateNote($data, $ms_microsite_id);
+        if (isset($data['id']) && $this->exists($microsite_id, $data['date_add'], $data['res_type_turn_id'])) {
+            $response = $this->updateNote($data, $microsite_id);
         } else {
-            $response = $this->createNote($data . $ms_microsite_id);
+            $response = $this->createNote($data . $microsite_id);
         }
         return $response;
     }
