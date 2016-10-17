@@ -53,11 +53,11 @@ class NoteService
 
     public function exists($microsite_id, $date, $type_turn_id)
     {
-        $response = res_note::where('ms_microsite_id', $microsite_id)
-            ->where("date_add", $date)
-            ->where("res_type_turn_id", $type_turn_id)
-            ->get()->count() > 0) ? true : false;
-    return $response;
-}
+        $response = (res_note::where('ms_microsite_id', $microsite_id)
+                ->where("date_add", $date)
+                ->where("res_type_turn_id", $type_turn_id)
+                ->get()->count() > 0) ? true : false;
+        return $response;
+    }
 
 }
