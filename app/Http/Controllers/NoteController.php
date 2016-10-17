@@ -27,7 +27,7 @@ class NoteController extends Controller
     {
         $service = $this->_NoteService;
         return $this->TryCatchDB(function () use ($request, $service) {
-            $note = $service->createNote($request->all(), $request->route('microsite_id'));
+            $note = $service->saveNote($request->all(), $request->route('microsite_id'));
             return $this->CreateJsonResponse(true, 201, "Se agrego una nueva nota", $note);
         });
     }
