@@ -13,7 +13,7 @@ class NoteService
         if (isset($data['id']) && $this->exists($microsite_id, $data['date_add'], $data['res_type_turn_id'])) {
             $response = $this->updateNote($data, $microsite_id);
         } else {
-            $response = $this->createNote($data . $microsite_id);
+            $response = $this->createNote($data, $microsite_id);
         }
         return $response;
     }
