@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller as Controller;
 use App\Services\NoteService;
 use Illuminate\Http\Request;
 
