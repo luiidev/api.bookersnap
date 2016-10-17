@@ -71,9 +71,13 @@ class ConfigurationController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(ConfigurationRequest $request)
     {
-        //
+        $microsite_id = $request->route("microsite_id");
+        return $this->TryCatchDB(function () use ($microsite_id, $request) {
+            $response = $this->service->updateCodeStatus($microsite_id, $request->all());
+            return $this->CreateJsonResponse(true, 200, "Se actualizo el código", $response);
+        });
     }
 
     /**
@@ -85,6 +89,7 @@ class ConfigurationController extends Controller
      */
     public function update(ConfigurationRequest $request)
     {
+        // return $request->all();
         // return $request->route("microsite_id");
         $microsite_id = $request->route("microsite_id");
         return $this->TryCatchDB(function () use ($microsite_id, $request) {
@@ -102,16 +107,5 @@ class ConfigurationController extends Controller
     public function destroy($id)
     {
         //
-    }
-
-    public function updateCodeStatus(ConfigurationRequest $request)
-    {
-        // return $request->all();
-        $code         = $request->input("res_code_status");
-        $microsite_id = $request->route("microsite_id");
-        return $this->TryCatchDB(function () use ($microsite_id, $code) {
-            $response = $this->service->updateCodeStatus($microsite_id, $code);
-            return $this->CreateJsonResponse(true, 200, "Se actualizo el código", $response);
-        });
     }
 }

@@ -163,14 +163,14 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE:: RESERVATION TAGS
         //-----------------------------------------------------
-        Route::resource("reservation/tag", "ReservationTagController", ["only" => ["index", "store"]]);
-        // Route::delete('reservation/tag/{tag}', 'ReservationTagController@destroy');
+        Route::resource("reservation/tag", "ReservationTagController", ["only" => ["index", "store", "destroy"]]);
 
         //-----------------------------------------------------
         // MICROSITE:: CONFIGURATION (table res_configuration)
         //-----------------------------------------------------
+        Route::patch("configuration/reservations", "ConfigurationController@edit");
         Route::resource("configuration/reservations", "ConfigurationController", ["only" => ["index", "update"]]);
-        Route::put("configuration/reservation/codes/status", "ConfigurationController@updateCodeStatus");
+        // Route::put("configuration/reservation/codes/status", "ConfigurationController@updateCodeStatus");
         //-----------------------------------------------------
         // MICROSITE:: PERCENTAGE (table res_percentage)
         //-----------------------------------------------------

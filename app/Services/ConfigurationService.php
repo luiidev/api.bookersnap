@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Entities\res_configuration;
+use App\Services\Helpers\ConfigurationHelper;
 use Carbon\Carbon;
 
 class ConfigurationService
@@ -84,15 +85,15 @@ class ConfigurationService
         }
     }
 
-    public function updateCodeStatus(int $microsite_id, int $code)
+    public function updateCodeStatus(int $microsite_id, array $input)
     {
+        $helper = new ConfigurationHelper();
+        $data   = $helper->editConfiguration($input);
         $config = res_configuration::where('ms_microsite_id', $microsite_id)->first();
         if ($config != null) {
-            $date = Carbon::now('America/Lima');
-            // $confingRequest = $this->request->all();
-            // unset($confingRequest["_bs_user_id"]);
-            // $confingRequest["date_upd"] = $date;
-            $config->where('ms_microsite_id', $microsite_id)->update(["res_code_status" => $code, "date_upd" => $date]);
+            $date             = Carbon::now('America/Lima');
+            $data["date_upd"] = $date;
+            $config->where('ms_microsite_id', $microsite_id)->update($data);
             $configUpdate = res_configuration::where('ms_microsite_id', $microsite_id)->first();
             return $configUpdate;
         } else {
