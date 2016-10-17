@@ -32,7 +32,7 @@ class ReservationService {
             $response[$i]["hours_duration"] = $row->hours_duration;
             $response[$i]["num_guest"] = $row->num_guest;
             $response[$i]["num_people_1"] = $row->num_people_1;
-            $response[$i]["num_people_2"] = $row->nnum_people_2;
+            $response[$i]["num_people_2"] = $row->num_people_2;
             $response[$i]["num_people_3"] = $row->num_people_3;
             $response[$i]["status_release"] = $row->status_released;
             $response[$i]["total"] = $row->total;
