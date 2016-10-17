@@ -181,6 +181,7 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE:: NOTES
         //-----------------------------------------------------
+        Route::get('notes/{date}', 'NoteController@index');
         Route::post('notes', 'NoteController@create');
 
         Route::resource("configuration/percentages", "PercentageController", ["only" => ["index"]]);

@@ -21,4 +21,10 @@ class NoteService
         return $note;
     }
 
+    public function getList($microsite_id, $date)
+    {
+        $rows = res_note::where('ms_microsite_id', $microsite_id)->where("date_add", $date)->get();
+        return $rows;
+    }
+
 }

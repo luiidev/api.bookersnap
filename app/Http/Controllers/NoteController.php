@@ -15,6 +15,14 @@ class NoteController extends Controller
         $this->_NoteService = $NoteService;
     }
 
+    public function index(Request $request)
+    {
+        return $this->TryCatchDB(function () use ($request) {
+            $note = $this->_NoteService->getList($request->route('microsite_id'), $request->route('date'));
+            return $this->CreateJsonResponse(true, 201, "Listado de notas", $note);
+        });
+    }
+
     public function create(Request $request)
     {
         $service = $this->_NoteService;
