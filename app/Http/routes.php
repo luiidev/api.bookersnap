@@ -173,6 +173,12 @@ function routeMesas()
         // MICROSITE:: PERCENTAGE (table res_percentage)
         //-----------------------------------------------------
         Route::resource("configuration/percentage", "PercentageController", ["only" => ["index"]]);
+
+        //-----------------------------------------------------
+        // MICROSITE:: NOTES
+        //-----------------------------------------------------
+        Route::post('notes', 'NoteController@create');
+
     });
 
 }
