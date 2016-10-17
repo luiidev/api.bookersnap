@@ -7,7 +7,7 @@ use Carbon\Carbon;
 
 class NoteService extends Service
 {
-    public function create(array $data, $microsite_id)
+    public function createNote(array $data, $microsite_id)
     {
         $note = new res_note();
 
