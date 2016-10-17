@@ -28,7 +28,7 @@ class ConfigurationRequest extends Request
             "time_restriction"  => "required|integer",
             "max_people"        => "required|integer",
             "max_table"         => "required|integer",
-            // "res_code_status"      => "required|integer",
+            "res_code_status"   => "required|integer",
             // "res_privilege_status" => "string",
             // "messenger_status"     => "integer",
             // "date_add"             => "required|date_format:Y-m-d H:i:s",

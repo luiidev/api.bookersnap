@@ -30,7 +30,10 @@ class ReservationService {
             $response[$i]["date_reservation"] = $row->date_reservation;
             $response[$i]["hours_reservation"] = $row->hours_reservation;
             $response[$i]["hours_duration"] = $row->hours_duration;
-            $response[$i]["num_people"] = $row->num_people;
+            $response[$i]["num_guest"] = $row->num_guest;
+            $response[$i]["num_people_1"] = $row->num_people_1;
+            $response[$i]["num_people_2"] = $row->num_people_2;
+            $response[$i]["num_people_3"] = $row->num_people_3;
             $response[$i]["status_release"] = $row->status_released;
             $response[$i]["total"] = $row->total;
             $response[$i]["consume"] = $row->consume;
@@ -43,6 +46,7 @@ class ReservationService {
             $response[$i]["res_guest_id"] = $row->res_guest_id;
             $response[$i]["res_reservation_status_id"] = $row->res_reservation_status_id;
             $response[$i]["guest"] = $row->guest; 
+            $response[$i]["res_server_id"] = $row->res_server_id; 
             $i++;
         }
         return $response;

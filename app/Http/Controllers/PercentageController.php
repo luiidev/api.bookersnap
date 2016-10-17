@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\PercentageService as Service;
+use App\Services\PercentageService;
 use Illuminate\Http\Request;
 
 class PercentageController extends Controller
 {
     private $service;
 
-    public function __construct(Request $request)
+    public function __construct(PercentageService $PercentageService)
     {
-        $this->service = Service::make($request);
+        $this->service = $PercentageService;
     }
 
     /**

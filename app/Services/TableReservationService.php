@@ -6,12 +6,12 @@ use App\res_guest;
 use App\res_guest_email;
 use App\res_guest_phone;
 use App\res_reservation;
+use Carbon\Carbon;
 use DB;
 
 class TableReservationService extends Service
 {
     private $guest;
-    private $reservation;
 
     public function find_guest()
     {
@@ -22,7 +22,7 @@ class TableReservationService extends Service
     {
         $guest = new res_guest();
         $guest->first_name = $this->req->guest["first_name"];
-        $guest->last_name = $this->req->guest["last_name"];
+        if (isset($this->req->guest["last_name"])) $guest->last_name = $this->req->guest["last_name"];
         $guest->user_add = $this->req->_bs_user_id;
         $guest->ms_microsite_id = $this->microsite_id;
 
@@ -47,8 +47,29 @@ class TableReservationService extends Service
         $this->guest->phones()->save($guest_phone);
     }
 
-    public function create_reservation()
+    private function create_guest_case()
     {
+        if ($this->req->has("guest_id")) {
+            $this->find_guest();
+        } else {
+            if ($this->req->has("guest.first_name")) {
+                $this->create_guest();
+
+                if ($this->req->has("guest.email")) {
+                    $this->create_guest_email();
+                }
+
+                if ($this->req->has("guest.phone")) {
+                    $this->create_guest_phone();
+                }
+            }
+        }
+    }
+
+    private function save_reservation(res_reservation $reservation, $create_or_update)
+    {
+        $this->create_guest_case();
+
         $email = $phone = $guest_id = null;
         if (isset($this->guest)) {
             $guest_id = $this->guest->id;
@@ -60,7 +81,6 @@ class TableReservationService extends Service
             }
         }
 
-        $reservation = new res_reservation();
         $reservation->res_guest_id = $guest_id;
         $reservation->res_reservation_status_id = $this->req->status_id;
         $reservation->status_released = 0;
@@ -77,22 +97,30 @@ class TableReservationService extends Service
 
         $reservation->save();
 
-        // tables attach
         $tables =array();
         foreach ($this->req->tables as $key => $value) {
             $tables[$value] =  array("num_people" => $this->req->covers);
         }
-        $reservation->tables()->attach($tables);
 
-        $this->reservation = $reservation;
+        if ($create_or_update == "create") {
+            $reservation->tables()->attach($tables);
+            $reservation->tags()->attach($this->req->tags);
+        } else if ($create_or_update == "update") {
+            $reservation->tables()->sync($tables);
+            $reservation->tags()->sync($this->req->tags);
+        }
+
+        return $reservation;
     }
 
-    public function add_reservation_tags()
+    public function create_reservation()
     {
-        $this->reservation->tags()->attach($this->req->tags);
+        $reservation = new res_reservation();
+
+        return $this->save_reservation($reservation, "create");
     }
 
-    public function show($microsite_id, $id)
+    public function edit()
     {
         $get = array(
                 "id",
@@ -114,6 +142,69 @@ class TableReservationService extends Service
                 }, "tags" => function($query) {
                     return $query->select("id");
                 }])
-            ->where("ms_microsite_id", $microsite_id)->find($id);
+            ->where("ms_microsite_id", $this->microsite_id)->find($this->reservation);
+    }
+
+    public function update()
+    {
+        $reservation = res_reservation::find($this->reservation);
+        return $this->save_reservation($reservation, "update");
+    }
+
+    public function cancel()
+    {
+        return res_reservation::where("id", $this->reservation)->update(["res_reservation_status_id" => 12]);
+    }
+
+    public function quickEdit()
+    {
+        return res_reservation::where("id", $this->reservation)
+                    ->update([
+                        "res_reservation_status_id" => $this->req->status_id,
+                        "num_guest" => $this->req->covers,
+                        "res_server_id" => $this->req->server_id,
+                        "note" => $this->req->note,
+                    ]);
+    }
+
+    public function quickCreate()
+    {
+        $num_guest = (int)$this->req->covers["men"] +  (int)$this->req->covers["women"] +  (int)$this->req->covers["children"];
+        $reservation = new res_reservation();
+        $reservation->res_reservation_status_id = 14;
+        $reservation->status_released = 0;
+        $reservation->num_guest = $num_guest;
+        $reservation->num_people_1 = $this->req->covers["men"];
+        $reservation->num_people_2 = $this->req->covers["women"];
+        $reservation->num_people_3 = $this->req->covers["children"];
+        $reservation->date_reservation = $this->req->date;
+        $reservation->hours_reservation = $this->req->hour;
+        $reservation->hours_duration = "01:30:00";
+        $reservation->user_add = $this->req->_bs_user_id;
+        $reservation->ms_microsite_id = $this->microsite_id;
+
+        $reservation->save();
+
+        $reservation->tables()->attach($this->req->table_id, ["num_people" => $num_guest]);
+
+        return $reservation;
+    }
+
+    public function sit()
+    {
+        $reservation = res_reservation::withCount(['tables' => function ($query) {
+            $query->where('res_table_id', $this->req->table_id);
+        }])->where("id", $this->reservation)->first();
+
+        if ($reservation != null){
+            $reservation->res_reservation_status_id = 14;
+            $reservation->save();
+
+            if ($reservation->tables_count == 0) {
+                $reservation->tables()->sync([$this->req->table_id => ["num_people" => $reservation->num_guest]]);
+            }
+        }
+
+        return $reservation;
     }
 }

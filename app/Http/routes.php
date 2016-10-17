@@ -157,7 +157,11 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE:: RESERVATION
         //-----------------------------------------------------
-        Route::resource('table/reservation', 'TableReservationController', ["only" => ["store", "edit"]]);
+        Route::resource('table/reservation', 'TableReservationController', ["only" => ["store", "edit", "update"]]);
+        Route::put('table/reservation/{reservation}/cancel', 'TableReservationController@cancel');
+        Route::put('table/reservation/{reservation}/quickedit', 'TableReservationController@quickEdit');
+        Route::put('table/reservation/{reservation}/sit', 'TableReservationController@sit');
+        Route::post('table/reservation/quickcreate', 'TableReservationController@quickCreate');
 
         //-----------------------------------------------------
         // MICROSITE:: RESERVATION TAGS
@@ -168,16 +172,22 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE:: CONFIGURATION (table res_configuration)
         //-----------------------------------------------------
-        Route::resource("configuration/reservation", "ConfigurationController", ["only" => ["index", "update"]]);
+        Route::resource("configuration/reservations", "ConfigurationController", ["only" => ["index", "update"]]);
+        Route::put("configuration/reservation/codes/status", "ConfigurationController@updateCodeStatus");
         //-----------------------------------------------------
         // MICROSITE:: PERCENTAGE (table res_percentage)
         //-----------------------------------------------------
-        Route::resource("configuration/percentage", "PercentageController", ["only" => ["index"]]);
 
         //-----------------------------------------------------
         // MICROSITE:: NOTES
         //-----------------------------------------------------
         Route::post('notes', 'NoteController@create');
+
+        Route::resource("configuration/percentages", "PercentageController", ["only" => ["index"]]);
+        //         //-----------------------------------------------------
+        //         // MICROSITE:: CODES (table res_code)
+        //         //-----------------------------------------------------
+        Route::resource("configuration/codes", "ConfigurationCodeController", ["only" => ["index", "store", "update", "destroy"]]);
 
     });
 

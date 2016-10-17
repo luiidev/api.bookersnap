@@ -36,9 +36,11 @@ class TableReservationRequest extends Request
             "server_id" =>  "exists:res_server,id",
             "note" =>  "string",
             "guest" =>  "array",
+                "guest.first_name" => "string|max:255",
+                "guest.last_name" => "string|max:255",
                 "guest.email" => "email",
                 "guest.phone" => "digits_between:7,15",
-            "tables" =>  "array",
+            "tables" =>  "required|array",
                 "tables.*" => "required|integer|exists:res_table,id",
             "tags" => "array",
                 "tags.*" => "exists:res_tag_r,id"

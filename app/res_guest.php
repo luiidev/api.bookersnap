@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class res_guest extends Model
 {
 
+    const CREATED_AT = "date_add";
+    const UPDATED_AT = "date_upd";
+
     protected $table   = "res_guest";
-    public $timestamps = false;
-    //protected $fillable = ['day', 'res_turn_zone_id', 'res_zone_id', 'ms_microsite_id'];
     protected $hidden = ['ms_microsite_id'];
 
     public function emails()
@@ -32,4 +33,12 @@ class res_guest extends Model
         return $this->belongsToMany('App\res_guest_tag', 'res_guest_tag_g', 'res_guest_id', 'res_tag_g_id');
     }
 
+    public function getLastNameAttribute()
+    {
+        if ($this->attributes["last_name"] == null) {
+            return "";
+        } else {
+            return $this->attributes["last_name"];
+        }
+    }
 }
