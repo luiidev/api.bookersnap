@@ -5,7 +5,7 @@ namespace App\Services;
 use App\res_note;
 use Carbon\Carbon;
 
-class NoteService extends Service
+class NoteService
 {
     public function createNote(array $data, $microsite_id)
     {
