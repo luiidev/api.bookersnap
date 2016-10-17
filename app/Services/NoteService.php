@@ -34,7 +34,7 @@ class NoteService
 
     public function updateNote(array $data, $microsite_id)
     {
-        $note = res_note:where('ms_microsite_id', $microsite_id)
+        $note = res_note::where('ms_microsite_id', $microsite_id)
             ->where("res_type_turn_id", $data['res_type_turn_id'])
             ->where("date_add", $data['date_add'])
             ->first();
