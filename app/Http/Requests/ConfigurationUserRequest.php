@@ -24,7 +24,7 @@ class ConfigurationUserRequest extends Request
     public function rules()
     {
         return [
-            "search"  => "string",
+            // "search"  => "string",
             "user_id" => "integer|exists:bs_user,id",
         ];
     }

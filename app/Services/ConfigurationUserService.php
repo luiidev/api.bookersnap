@@ -16,11 +16,11 @@ class ConfigurationUserService
         return $users;
     }
 
-    public function getAllUser(string $serach)
+    public function getAllUser($search)
     {
-        $users = bs_user::orWhere('firstname', 'LIKE', '%' . $serach . '%')
-            ->orWhere('lastname', 'LIKE', '%' . $serach . '%')
-            ->orWhere('email', 'LIKE', '%' . $serach . '%')->select('id', 'firstname', 'lastname', 'email', 'photo')
+        $users = bs_user::orWhere('firstname', 'LIKE', '%' . $search . '%')
+            ->orWhere('lastname', 'LIKE', '%' . $search . '%')
+            ->orWhere('email', 'LIKE', '%' . $search . '%')->select('id', 'firstname', 'lastname', 'email', 'photo')
             ->get();
         return $users;
     }
@@ -32,7 +32,7 @@ class ConfigurationUserService
         $exists    = $this->buscarUser($microsite, $user_id);
         if (!$exists) {
             $microsite->privileges()->attach($user_id, ["date_add" => $date->now(), "user_add" => $user_add]);
-            $user = $microsite->privileges()->where('id', $user_id)->get();
+            $user = $microsite->privileges()->where('id', $user_id)->first();
             return $user;
         } else {
             abort(409, "Este privilegio ya esta registrado para este usuario");

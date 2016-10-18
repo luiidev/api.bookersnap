@@ -43,7 +43,7 @@ class ConfigurationUserController extends Controller
         });
     }
 
-    public function getAllUser(ConfigurationUserRequest $request)
+    public function getAllUser(Request $request)
     {
         $search = $request->search;
         return $this->TryCatchDB(function () use ($search) {
