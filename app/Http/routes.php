@@ -75,15 +75,16 @@ function routeMesas()
         Route::get('turns/', 'TurnController@index');
         Route::get('turns/search/', 'TurnController@search');
         //Route::get('turns/{turn_id}/availability', 'TurnController@tableAvailability');
+        //Notas del turno
+        Route::get('turns/notes', 'NoteController@index');
+        Route::post('turns/notes', 'NoteController@create');
+
         Route::get('turns/{turn_id}', 'TurnController@show');
         Route::delete('turns/{turn_id}', 'TurnController@delete');
         Route::post('turns/', 'TurnController@create');
         Route::put('turns/{turn_id}', 'TurnController@update');
         Route::get('turns/{turn_id}/unlink-zones/{zone_id}', 'TurnController@unlinkZone');
         Route::get('turns/{turn_id}/zones/{zone_id}/tables', 'TurnController@listTableZone');
-        //Notas del turno
-        Route::get('turns/notes', 'NoteController@index');
-        Route::post('turns/notes', 'NoteController@create');
 
         //-----------------------------------------------------
         // MICROSITE::CALENDAR
