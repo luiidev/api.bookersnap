@@ -6,6 +6,7 @@ use App\res_guest;
 use App\res_guest_email;
 use App\res_guest_phone;
 use App\res_reservation;
+use Carbon\Carbon;
 use DB;
 
 class TableReservationService extends Service
@@ -153,5 +154,57 @@ class TableReservationService extends Service
     public function cancel()
     {
         return res_reservation::where("id", $this->reservation)->update(["res_reservation_status_id" => 12]);
+    }
+
+    public function quickEdit()
+    {
+        return res_reservation::where("id", $this->reservation)
+                    ->update([
+                        "res_reservation_status_id" => $this->req->status_id,
+                        "num_guest" => $this->req->covers,
+                        "res_server_id" => $this->req->server_id,
+                        "note" => $this->req->note,
+                    ]);
+    }
+
+    public function quickCreate()
+    {
+        $num_guest = (int)$this->req->covers["men"] +  (int)$this->req->covers["women"] +  (int)$this->req->covers["children"];
+        $reservation = new res_reservation();
+        $reservation->res_reservation_status_id = 14;
+        $reservation->status_released = 0;
+        $reservation->num_guest = $num_guest;
+        $reservation->num_people_1 = $this->req->covers["men"];
+        $reservation->num_people_2 = $this->req->covers["women"];
+        $reservation->num_people_3 = $this->req->covers["children"];
+        $reservation->date_reservation = $this->req->date;
+        $reservation->hours_reservation = $this->req->hour;
+        $reservation->hours_duration = "01:30:00";
+        $reservation->user_add = $this->req->_bs_user_id;
+        $reservation->ms_microsite_id = $this->microsite_id;
+
+        $reservation->save();
+
+        $reservation->tables()->attach($this->req->table_id, ["num_people" => $num_guest]);
+
+        return $reservation;
+    }
+
+    public function sit()
+    {
+        $reservation = res_reservation::withCount(['tables' => function ($query) {
+            $query->where('res_table_id', $this->req->table_id);
+        }])->where("id", $this->reservation)->first();
+
+        if ($reservation != null){
+            $reservation->res_reservation_status_id = 14;
+            $reservation->save();
+
+            if ($reservation->tables_count == 0) {
+                $reservation->tables()->sync([$this->req->table_id => ["num_people" => $reservation->num_guest]]);
+            }
+        }
+
+        return $reservation;
     }
 }

@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests;
 use App\Http\Requests\TableReservationRequest;
 use App\Services\TableReservationService as Service;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class TableReservationController extends Controller
 {
@@ -110,5 +112,81 @@ class TableReservationController extends Controller
                 return $this->CreateJsonResponse(true, 422, null, null, null, null, "No se enontro la reservacion o ya fue cancelada.");
             }
         });
+    }
+
+    public function quickEdit(Request $request)
+    {
+        $rules = [
+            "id" => "exists:res_reservation",
+            "status_id" =>  "required|exists:res_reservation_status,id",
+            "covers" =>  "required|integer|between:1,999",
+            "server_id" =>  "exists:res_server,id",
+            "note" =>  "string",
+        ];
+
+        $request["id"] = $request->route("reservation");
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return $this->CreateJsonResponse(false, 422, "", $validator->errors(), null, null, "Parametro incorrectos");
+        }
+
+        $this->service = Service::make($request);
+        return $this->TryCatch(function() {
+            $this->service->quickEdit();
+            return $this->CreateJsonResponse(true, 200, "La eservacion fue actualizada.");
+        });
+    }
+
+    public function quickCreate(Request $request)
+    {
+        $now = Carbon::now()->addDay(-1)->toDateString();
+        $rules = [
+            "date" =>  "required|date|after:$now",
+            "hour" => "required",
+            "table_id" => "required|exists:res_table,id",
+            "covers" => "required|array",
+                "covers.men" => "required|integer",
+                "covers.women" => "required|integer",
+                "covers.children" => "required|integer",
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return $this->CreateJsonResponse(false, 422, "", $validator->errors(), null, null, "Parametro incorrectos");
+        }
+
+        $this->service = Service::make($request);
+        return $this->TryCatchDB(function() {
+            $reservation = $this->service->quickCreate();
+            return $this->CreateJsonResponse(true, 200, "La reservacion fue registrada.", $reservation);
+        });
+    }
+
+    public function sit(Request $request)
+    {
+            $now = Carbon::now()->addDay(-1)->toDateString();
+            $rules = [
+                "table_id" => "required|exists:res_table,id",
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
+
+            if ($validator->fails()) {
+                return $this->CreateJsonResponse(false, 422, "", $validator->errors(), null, null, "Parametro incorrectos");
+            }
+
+            $this->service = Service::make($request);
+            return $this->TryCatchDB(function() {
+                $reservacion = $this->service->sit();
+
+                if ($reservacion) {
+                    return $this->CreateJsonResponse(true, 200, "");
+                } else {
+                    return $this->CreateJsonResponse(true, 422, null, null, null, null, "No se enontro la reservacion.");
+                }
+            });
     }
 }

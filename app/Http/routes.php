@@ -81,6 +81,9 @@ function routeMesas()
         Route::put('turns/{turn_id}', 'TurnController@update');
         Route::get('turns/{turn_id}/unlink-zones/{zone_id}', 'TurnController@unlinkZone');
         Route::get('turns/{turn_id}/zones/{zone_id}/tables', 'TurnController@listTableZone');
+        //Notas del turno
+        Route::get('turns/notes/{date}', 'NoteController@index');
+        Route::post('turns/notes', 'NoteController@create');
 
         //-----------------------------------------------------
         // MICROSITE::CALENDAR
@@ -159,6 +162,9 @@ function routeMesas()
         //-----------------------------------------------------
         Route::resource('table/reservation', 'TableReservationController', ["only" => ["store", "edit", "update"]]);
         Route::put('table/reservation/{reservation}/cancel', 'TableReservationController@cancel');
+        Route::put('table/reservation/{reservation}/quickedit', 'TableReservationController@quickEdit');
+        Route::put('table/reservation/{reservation}/sit', 'TableReservationController@sit');
+        Route::post('table/reservation/quickcreate', 'TableReservationController@quickCreate');
 
         //-----------------------------------------------------
         // MICROSITE:: RESERVATION TAGS
@@ -173,7 +179,8 @@ function routeMesas()
         // Route::put("configuration/reservation/codes/status", "ConfigurationController@updateCodeStatus");
         //-----------------------------------------------------
         // MICROSITE:: PERCENTAGE (table res_percentage)
-        //-----------------------------------------------------
+        //----------------------------------------------------
+
         Route::resource("configuration/percentages", "PercentageController", ["only" => ["index"]]);
         //         //-----------------------------------------------------
         //         // MICROSITE:: CODES (table res_code)
@@ -184,6 +191,7 @@ function routeMesas()
         //         // MICROSITE:: USER (table bs_user)
         //         //-----------------------------------------------------
         Route::resource("configuration/users", "ConfigurationUserController", ["only" => ["index", "store", "destroy"]]);
+
     });
 
 }

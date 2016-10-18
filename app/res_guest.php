@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class res_guest extends Model
 {
 
+    const CREATED_AT = "date_add";
+    const UPDATED_AT = "date_upd";
+
     protected $table   = "res_guest";
-    public $timestamps = false;
-    //protected $fillable = ['day', 'res_turn_zone_id', 'res_zone_id', 'ms_microsite_id'];
     protected $hidden = ['ms_microsite_id'];
 
     public function emails()
