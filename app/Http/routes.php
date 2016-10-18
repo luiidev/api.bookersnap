@@ -81,6 +81,9 @@ function routeMesas()
         Route::put('turns/{turn_id}', 'TurnController@update');
         Route::get('turns/{turn_id}/unlink-zones/{zone_id}', 'TurnController@unlinkZone');
         Route::get('turns/{turn_id}/zones/{zone_id}/tables', 'TurnController@listTableZone');
+        //Notas del turno
+        Route::get('turns/notes/{date}', 'NoteController@index');
+        Route::post('turns/notes', 'NoteController@create');
 
         //-----------------------------------------------------
         // MICROSITE::CALENDAR
@@ -176,13 +179,7 @@ function routeMesas()
         Route::put("configuration/reservation/codes/status", "ConfigurationController@updateCodeStatus");
         //-----------------------------------------------------
         // MICROSITE:: PERCENTAGE (table res_percentage)
-        //-----------------------------------------------------
-
-        //-----------------------------------------------------
-        // MICROSITE:: NOTES
-        //-----------------------------------------------------
-        Route::get('notes/{date}', 'NoteController@index');
-        Route::post('notes', 'NoteController@create');
+        //----------------------------------------------------
 
         Route::resource("configuration/percentages", "PercentageController", ["only" => ["index"]]);
         //         //-----------------------------------------------------
