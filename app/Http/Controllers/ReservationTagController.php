@@ -3,15 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ReservationTagRequest;
-use App\Services\ReservationTagService as Service;
+use App\Services\ReservationTagService;
 use Illuminate\Http\Request;
 
 class ReservationTagController extends Controller
 {
     private $service;
 
-    function __construct(Request $request) {
-        $this->service = Service::make($request);
+    public function __construct(ReservationTagService $ReservationTagService)
+    {
+        $this->service = $ReservationTagService;
     }
 
     /**
@@ -19,9 +20,11 @@ class ReservationTagController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $tags = $this->service->get_tags();
+        // dd($request);
+        $microsite_id = $request->route("microsite_id");
+        $tags         = $this->service->get_tags($microsite_id);
         return $this->CreateJsonResponse(true, 200, "", $tags);
     }
 
@@ -42,9 +45,11 @@ class ReservationTagController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(ReservationTagRequest $request)
-    {   
-        return $this->TryCatchDB(function(){
-            $tag = $this->service->create_tag();
+    {
+        $name         = $request->input("name");
+        $microsite_id = $request->route("microsite_id");
+        return $this->TryCatchDB(function () use ($microsite_id, $name) {
+            $tag = $this->service->create_tag($microsite_id, $name);
             return $this->CreateJsonResponse(true, 201, "Se agrego nuevo tag", $tag);
         });
     }
@@ -91,7 +96,9 @@ class ReservationTagController extends Controller
      */
     public function destroy(Request $request, $id)
     {
-        $response = $this->service->destroy_tag();
+        $idTag = $request->route("tag");
+
+        $response = $this->service->destroy_tag($idTag);
         return $this->CreateJsonResponse(true, 200, "Se elimino tag seleccionado", $response);
     }
 }

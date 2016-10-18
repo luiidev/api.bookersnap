@@ -3,11 +3,12 @@
 namespace App\Services;
 
 use App\Entities\Block;
+use App\Entities\BlockTable;
+use App\Entities\Reservation;
 use App\Entities\Table;
 use App\Entities\TableReservation;
-use App\Entities\Reservation;
-use App\Entities\BlockTable;
 use App\Helpers\Utilitarios;
+use App\res_reservation;
 Use DB;
 Use Exception;
 
@@ -75,6 +76,7 @@ class BlockService {
                 foreach ($blockTables as $item) {
                     $data[$i]["res_table_id"] = $item->res_table_id;
                     $data[$i]["res_block_id"] = $block->id;
+                    $data[$i]["res_server_id"] = null;
                     $data[$i]["res_reservation_id"] = null;
                     $data[$i]["res_reservation_status_id"] = null;
                     $data[$i]["num_people"] = 0;
@@ -95,7 +97,7 @@ class BlockService {
             $data = array();
             $date= (isset($variables["date"]) && $variables["date"]!="")?$variables["date"]:date("Y-m-d");
 
-            $reservations = Reservation::where("ms_microsite_id","=",$microsite)->where("date_reservation", "=", $date)->get();
+            $reservations = res_reservation::with("server")->where("ms_microsite_id","=",$microsite)->where("date_reservation", "=", $date)->get();
 
             $i=0;
             foreach ($reservations as $reservation) {
@@ -104,6 +106,8 @@ class BlockService {
                 foreach ($tableReservations as $tableReservation) {
                     $data[$i]["res_table_id"] = $tableReservation->res_table_id;
                     $data[$i]["res_block_id"] = null;
+                    $data[$i]["res_server_id"] = $reservation->res_server_id;
+                    $data[$i]["res_server"] = $reservation->server;
                     $data[$i]["res_reservation_id"] = $tableReservation->res_reservation_id;
                     $data[$i]["res_reservation_status_id"] = $reservation->res_reservation_status_id;
                     $data[$i]["num_people"] = $tableReservation->num_people;
