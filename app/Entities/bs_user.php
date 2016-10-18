@@ -25,7 +25,8 @@ class bs_user extends Model
 
     public function socials()
     {
-        return $this->hasManythrough('App\Entities\bs_socialnetwork', 'App\Entities\bs_userlogin', 'bs_user_id', 'bs_socialnetwork_id', 'id');
+        //Relacion para acceder a las redes sociales de un usuario ('tabla a acceder','table intermedio','id intermedio','id de la tabla que se desea acceder','id foreingkey en la tabla intermedia')
+        return $this->hasManythrough('App\Entities\bs_socialnetwork', 'App\Entities\bs_userlogin', 'bs_user_id', 'id', 'bs_socialnetwork_id');
     }
 
 }

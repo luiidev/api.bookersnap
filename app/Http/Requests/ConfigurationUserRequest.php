@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use App\Http\Requests\Request;
 
-class ConfigurationUserController extends Request
+class ConfigurationUserRequest extends Request
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -13,7 +13,7 @@ class ConfigurationUserController extends Request
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +24,13 @@ class ConfigurationUserController extends Request
     public function rules()
     {
         return [
-            //
+            "search"  => "string",
+            "user_id" => "integer|exists:bs_user,id",
         ];
+    }
+
+    public function response(array $errors)
+    {
+        return $this->CreateJsonResponse(false, 422, "", $errors, null, null, "Parametros recibidos no son validos");
     }
 }
