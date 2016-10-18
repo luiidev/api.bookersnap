@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\res_server;
 use App\res_tag_r;
 use Illuminate\Database\Eloquent\Model;
 
@@ -28,6 +29,11 @@ class res_reservation extends Model {
     public function tags()
     {
         return $this->belongsToMany(res_tag_r::class, "res_reservation_tag_r", "res_reservation_id");
+    }
+
+    public function server()
+    {
+        return $this->belongsTo(res_server::class, "res_server_id");
     }
 
 }
