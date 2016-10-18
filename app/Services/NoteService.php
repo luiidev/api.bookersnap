@@ -32,7 +32,7 @@ class NoteService
         return $note;
     }
 
-    public function updateNote(array $data, $microsite_id)
+    public function updateNote(array $data, int $microsite_id)
     {
         $note = res_note::where('ms_microsite_id', $microsite_id)
             ->where("res_type_turn_id", $data['res_type_turn_id'])
@@ -45,9 +45,10 @@ class NoteService
         return $note;
     }
 
-    public function getList($microsite_id, $date)
+    public function getList(int $microsite_id, string $date)
     {
         $rows = res_note::where('ms_microsite_id', $microsite_id)->where("date_add", $date)->get();
+
         return $rows;
     }
 

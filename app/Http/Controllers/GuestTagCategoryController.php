@@ -20,9 +20,9 @@ class GuestTagCategoryController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(int $microsite_id)
+    public function index(Request $request)
     {
-        return $this->TryCatch(function () {
+        return $this->TryCatch(function () use ($request) {
             $data = $this->_GuestTagCategoryService->getList();
             return $this->CreateResponse(true, 201, "", $data);
         });
