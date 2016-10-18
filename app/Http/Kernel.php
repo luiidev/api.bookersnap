@@ -51,6 +51,7 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'responseHeader' => \App\Http\Middleware\ResponseHeaderMiddleware::class,
         'setLocale' => \App\Http\Middleware\SetLocaleMiddleware::class,
+        'setTimeZone' => \App\Http\Middleware\SetTimeZoneMiddleware::class,
         'ACL' => \App\Http\Middleware\AclMiddleware::class,
     ];
 }
