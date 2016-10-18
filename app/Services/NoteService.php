@@ -47,8 +47,7 @@ class NoteService
 
     public function getList(int $microsite_id, string $date)
     {
-        $rows = res_note::where('ms_microsite_id', $microsite_id);
-        $rows->where("date_add", $date)->get();
+        $rows = res_note::where('ms_microsite_id', $microsite_id)->where("date_add", $date)->get();
 
         return $rows;
     }
