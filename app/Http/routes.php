@@ -179,6 +179,11 @@ function routeMesas()
         //         // MICROSITE:: CODES (table res_code)
         //         //-----------------------------------------------------
         Route::resource("configuration/codes", "ConfigurationCodeController", ["only" => ["index", "store", "update", "destroy"]]);
+
+        //         //-----------------------------------------------------
+        //         // MICROSITE:: USER (table bs_user)
+        //         //-----------------------------------------------------
+        Route::resource("configuration/users", "ConfigurationUserController", ["only" => ["index", "store", "destroy"]]);
     });
 
 }
