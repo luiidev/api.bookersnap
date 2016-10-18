@@ -18,7 +18,7 @@ class NoteController extends Controller
     public function index(Request $request)
     {
         return $this->TryCatchDB(function () use ($request) {
-            $date = (isset($request->input('date')) ? $request->input('date') : date('Y-m-d'));
+            $date = ($request->has('date')) ? $request->input('date') : date('Y-m-d');
             $note = $this->_NoteService->getList($request->route('microsite_id'), $date);
             return $this->CreateJsonResponse(true, 201, "Listado de notas", $note);
         });
