@@ -82,7 +82,7 @@ function routeMesas()
         Route::get('turns/{turn_id}/unlink-zones/{zone_id}', 'TurnController@unlinkZone');
         Route::get('turns/{turn_id}/zones/{zone_id}/tables', 'TurnController@listTableZone');
         //Notas del turno
-        Route::get('turns/notes/{date}', 'NoteController@index');
+        Route::get('turns/notes', 'NoteController@index');
         Route::post('turns/notes', 'NoteController@create');
 
         //-----------------------------------------------------
