@@ -39,7 +39,11 @@ class GuestService
     public function get(int $microsite_id, int $id)
     {
         try {
-            $rows = res_guest::where('id', $id)->where('ms_microsite_id', $microsite_id)->with('emails')->with('phones')->with('tags')->first();
+            $rows = res_guest::where('id', $id)->where('ms_microsite_id', $microsite_id)
+                ->with('emails')
+                ->with('phones')
+                ->with('tags')
+                ->with('customsTags')->first();
             return $rows;
         } catch (\Exception $e) {
             abort(500, $e->getMessage());
@@ -63,6 +67,7 @@ class GuestService
             is_array($data['emails']) ? $this->_GuestEmailService->saveAll($data['emails'], $guest->id) : false;
             is_array($data['phones']) ? $this->_GuestPhoneService->saveAll($data['phones'], $guest->id) : false;
             $this->asociateTags($data['tags'], $guest->id);
+            $this->asociateCustomTags($data['custom_tags'], $guest->id);
             DB::Commit();
 
             return $this->get($microsite_id, $guest->id);
@@ -88,6 +93,7 @@ class GuestService
             is_array($data['emails']) ? $this->_GuestEmailService->saveAll($data['emails'], $guest->id) : false;
             is_array($data['phones']) ? $this->_GuestPhoneService->saveAll($data['phones'], $guest->id) : false;
             $this->asociateTags($data['tags'], $guest->id);
+            $this->asociateCustomTags($data['custom_tags'], $guest->id);
             DB::Commit();
 
             return true;
@@ -114,6 +120,22 @@ class GuestService
                 DB::table('res_guest_has_res_guest_tag')->insert([
                     'res_guest_id'     => $guest_id,
                     'res_guest_tag_id' => $tag->id,
+                ]);
+            }
+        }
+    }
+    public function asociateCustomTags(array $data, int $guest_id)
+    {
+        if (is_array($data)) {
+            DB::table('res_guest_tag_g')->where('res_guest_id', $guest_id)->delete();
+            foreach ($data as $value) {
+                $tag = res_guest_tag_custom::where('id', $value["id"])->first();
+                if ($tag == null) {
+                    abort(500, "Ocurrio un error");
+                }
+                DB::table('res_guest_tag_g')->insert([
+                    'res_guest_id' => $guest_id,
+                    'res_tag_g_id' => $tag->id,
                 ]);
             }
         }

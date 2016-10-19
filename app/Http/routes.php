@@ -191,8 +191,8 @@ function routeMesas()
         //         //-----------------------------------------------------
         //         // MICROSITE:: USER (table bs_user)
         //         //-----------------------------------------------------
-        Route::resource("configuration/users", "ConfigurationUserController", ["only" => ["index", "store", "destroy"]]);
-
+        Route::resource("configuration/users", "ConfigurationUserController", ["only" => ["index", "destroy", "store"]]);
+        Route::get("configuration/users/privileges/", "ConfigurationUserController@getAllUser");
     });
 
 }
