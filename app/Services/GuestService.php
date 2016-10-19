@@ -67,6 +67,7 @@ class GuestService
             is_array($data['emails']) ? $this->_GuestEmailService->saveAll($data['emails'], $guest->id) : false;
             is_array($data['phones']) ? $this->_GuestPhoneService->saveAll($data['phones'], $guest->id) : false;
             $this->asociateTags($data['tags'], $guest->id);
+            $this->asociateCustomTags($data['custom_tags'], $guest->id);
             DB::Commit();
 
             return $this->get($microsite_id, $guest->id);
