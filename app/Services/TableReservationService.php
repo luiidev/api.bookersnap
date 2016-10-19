@@ -99,7 +99,7 @@ class TableReservationService extends Service
 
         $tables =array();
         foreach ($this->req->tables as $key => $value) {
-            $tables[$value] =  array("num_people" => $this->req->covers);
+            $tables[$value] =  array("num_people" => 0);
         }
 
         if ($create_or_update == "create") {
@@ -205,7 +205,7 @@ class TableReservationService extends Service
             $reservation->save();
 
             if ($reservation->tables_count == 0) {
-                $reservation->tables()->sync([$this->req->table_id => ["num_people" => $reservation->num_guest]]);
+                $reservation->tables()->sync([$this->req->table_id => ["num_people" => 0]]);
             }
         }
 
