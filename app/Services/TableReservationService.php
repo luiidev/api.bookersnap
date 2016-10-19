@@ -180,6 +180,7 @@ class TableReservationService extends Service
         $reservation->date_reservation = $this->req->date;
         $reservation->hours_reservation = $this->req->hour;
         $reservation->hours_duration = "01:30:00";
+        $reservation->datetime_input = Carbon::now()->setTimezone($this->req->timezone)->toDateTimeString();
         $reservation->user_add = $this->req->_bs_user_id;
         $reservation->ms_microsite_id = $this->microsite_id;
 
@@ -198,6 +199,9 @@ class TableReservationService extends Service
 
         if ($reservation != null){
             $reservation->res_reservation_status_id = 14;
+            if ($reservation->datetime_input == null) {
+                $reservation->datetime_input = Carbon::now()->setTimezone($this->req->timezone)->toDateTimeString();
+            }
             $reservation->save();
 
             if ($reservation->tables_count == 0) {

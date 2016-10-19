@@ -39,7 +39,7 @@ function routeMesas()
     //-----------------------------------------------------
     // MICROSITE
     //-----------------------------------------------------
-    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['setLocale', 'ACL:microsite']], function () {
+    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['setLocale', 'setTimeZone', 'ACL:microsite']], function () {
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS
@@ -191,8 +191,8 @@ function routeMesas()
         //         //-----------------------------------------------------
         //         // MICROSITE:: USER (table bs_user)
         //         //-----------------------------------------------------
-        Route::resource("configuration/users", "ConfigurationUserController", ["only" => ["index", "store", "destroy"]]);
-
+        Route::resource("configuration/users", "ConfigurationUserController", ["only" => ["index", "destroy", "store"]]);
+        Route::get("configuration/users/privileges/", "ConfigurationUserController@getAllUser");
     });
 
 }
