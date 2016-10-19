@@ -193,6 +193,8 @@ class TableReservationService extends Service
 
     public function sit()
     {
+        $today = Carbon::now()->setTimezone($this->req->timezone)->toDateString();
+
         $reservation = res_reservation::withCount(['tables' => function ($query) {
             $query->where('res_table_id', $this->req->table_id);
         }])->where("id", $this->reservation)->first();
@@ -206,6 +208,20 @@ class TableReservationService extends Service
 
             if ($reservation->tables_count == 0) {
                 $reservation->tables()->sync([$this->req->table_id => ["num_people" => 0]]);
+            }
+        }
+
+        $other_reservation = res_reservation::withCount(['tables' => function ($query) {
+            $query->where('res_table_id', $this->req->table_id);
+        }])->where("id", "<>", $this->reservation)->where("date_reservation", $today)->get();
+
+        foreach ($other_reservation as $res) {
+            if ($res->tables_count > 0) {
+                $res->res_reservation_status_id = 10;
+                if ($res->datetime_output == null) {
+                    $res->datetime_output = Carbon::now()->setTimezone($this->req->timezone)->toDateTimeString();
+                }
+                $res->save();
             }
         }
 
