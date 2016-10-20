@@ -45,9 +45,10 @@ class ConfigurationUserController extends Controller
 
     public function getAllUser(Request $request)
     {
-        $search = $request->search;
-        return $this->TryCatchDB(function () use ($search) {
-            $response = $this->service->getAllUser($search);
+        $search       = $request->search;
+        $microsite_id = $request->route("microsite_id");
+        return $this->TryCatchDB(function () use ($microsite_id, $search) {
+            $response = $this->service->getAllUser($microsite_id, $search);
             return $this->CreateJsonResponse(true, 200, "", $response);
         });
     }
