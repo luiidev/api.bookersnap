@@ -180,9 +180,9 @@ class TableReservationController extends Controller
 
             $this->service = Service::make($request);
             return $this->TryCatchDB(function() {
-                $reservacion = $this->service->sit();
+                $reservation = $this->service->sit();
 
-                if ($reservacion) {
+                if ($reservation) {
                     return $this->CreateJsonResponse(true, 200, "");
                 } else {
                     return $this->CreateJsonResponse(true, 422, null, null, null, null, "No se enontro la reservacion.");

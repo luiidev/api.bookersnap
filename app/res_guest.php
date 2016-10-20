@@ -10,7 +10,7 @@ class res_guest extends Model
     const CREATED_AT = "date_add";
     const UPDATED_AT = "date_upd";
 
-    protected $table   = "res_guest";
+    protected $table  = "res_guest";
     protected $hidden = ['ms_microsite_id'];
 
     public function emails()
@@ -30,7 +30,7 @@ class res_guest extends Model
 
     public function customsTags()
     {
-        return $this->belongsToMany('App\res_guest_tag', 'res_guest_tag_g', 'res_guest_id', 'res_tag_g_id');
+        return $this->belongsToMany('App\res_guest_tag_custom', 'res_guest_tag_g', 'res_guest_id', 'res_tag_g_id');
     }
 
     public function getLastNameAttribute()
