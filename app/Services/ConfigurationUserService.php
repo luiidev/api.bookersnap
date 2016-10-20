@@ -16,13 +16,21 @@ class ConfigurationUserService
         return $users;
     }
 
-    public function getAllUser($search)
+    public function getAllUser(int $microsite_id, $search)
     {
-        $users = bs_user::orWhere('firstname', 'LIKE', '%' . $search . '%')
+        $microsite      = ms_microsite::where('id', $microsite_id)->first();
+        $privilegeUsers = $microsite->privileges()->select('id', 'firstname', 'lastname', 'email', 'photo')->get();
+        $allUsers       = bs_user::orWhere('firstname', 'LIKE', '%' . $search . '%')
             ->orWhere('lastname', 'LIKE', '%' . $search . '%')
             ->orWhere('email', 'LIKE', '%' . $search . '%')->select('id', 'firstname', 'lastname', 'email', 'photo')
             ->get();
-        return $users;
+
+        $diff     = $allUsers->diff($privilegeUsers);
+        $filtered = $diff->filter(function ($value, $key) {
+            return $key < 10;
+        });
+
+        return $filtered;
     }
 
     public function savePrivilegeUser(int $microsite_id, int $user_id, int $user_add)
@@ -32,7 +40,7 @@ class ConfigurationUserService
         $exists    = $this->buscarUser($microsite, $user_id);
         if (!$exists) {
             $microsite->privileges()->attach($user_id, ["date_add" => $date->now(), "user_add" => $user_add]);
-            $user = $microsite->privileges()->where('id', $user_id)->first();
+            $user = $microsite->privileges()->with('socials')->where('id', $user_id)->first();
             return $user;
         } else {
             abort(409, "Este privilegio ya esta registrado para este usuario");
