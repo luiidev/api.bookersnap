@@ -44,6 +44,7 @@ class ReservationService {
             $response[$i]["email"] = $row->email;
             $response[$i]["phone"] = $row->phone;
             $response[$i]["res_guest_id"] = $row->res_guest_id;
+            $response[$i]["res_source_type_id"] = $row->res_source_type_id;
             $response[$i]["res_reservation_status_id"] = $row->res_reservation_status_id;
             $response[$i]["guest"] = $row->guest; 
             $response[$i]["res_server_id"] = $row->res_server_id; 
