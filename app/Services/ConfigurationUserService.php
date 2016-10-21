@@ -20,10 +20,11 @@ class ConfigurationUserService
     {
         $microsite      = ms_microsite::where('id', $microsite_id)->first();
         $privilegeUsers = $microsite->privileges()->select('id', 'firstname', 'lastname', 'email', 'photo')->get();
-        $allUsers       = bs_user::orWhere('firstname', 'LIKE', '%' . $search . '%')
-            ->orWhere('lastname', 'LIKE', '%' . $search . '%')
-            ->orWhere('email', 'LIKE', '%' . $search . '%')->select('id', 'firstname', 'lastname', 'email', 'photo')
+        $allUsers       = bs_user::orWhereRaw("concat(firstname,' ',lastname) LIKE ?", array('%' . $search . '%'))
+            ->orWhere('email', 'LIKE', '%' . $search . '%')
+            ->select('id', 'firstname', 'lastname', 'email', 'photo')
             ->get();
+        // return $allUsers;
 
         $diff     = $allUsers->diff($privilegeUsers);
         $filtered = $diff->filter(function ($value, $key) {
