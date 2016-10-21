@@ -6,6 +6,7 @@ use App\Entities\BlockTable;
 use App\res_guest;
 use App\res_reservation;
 use App\res_reservation_status;
+use App\res_source_type;
 use App\res_table;
 use App\res_table_reservation;
 Use DB;
@@ -190,4 +191,13 @@ class ReservationService {
     public function listStatus() {
         return res_reservation_status::where("status", 1)->get(array("id", "name", "color"));
     }
+    
+    /**
+    * Retorna todos los tipos de origen de una reservacion
+    * @return Collection App\res_source_type
+    */
+    public function listSourceType() {
+        return res_source_type::where("status", 1)->get(array("id", "name", "description"));
+    }    
+    
 }
