@@ -65,7 +65,8 @@ class ReservationService {
             $reservation->hours_duration = date("h:i:s",strtotime($data["hours_duration"]));
             $reservation->num_people = $data["num_people"];
             $reservation->note = $data["note"];
-            $reservation->res_reservation_status_id = 1;    
+            $reservation->res_reservation_status_id = 1;
+            $reservation->res_source_type_id = 1;
             $reservation->user_add = $user_id;
             $reservation->date_add = \Carbon\Carbon::now();
             $reservation->date_upd = $reservation->date_add;
@@ -112,7 +113,7 @@ class ReservationService {
             $reservation->hours_duration = date("h:i:s",strtotime($data["hours_duration"]));
             $reservation->num_people = $data["num_people"];
             $reservation->note = $data["note"];
-            $reservation->res_reservation_status_id = 1;    
+            $reservation->res_reservation_status_id = 1;            
             $reservation->user_add = $user_id;
             $reservation->date_add = \Carbon\Carbon::now();
             $reservation->date_upd = $reservation->date_add;
