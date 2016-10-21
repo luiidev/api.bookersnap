@@ -89,8 +89,6 @@ class ConfigurationController extends Controller
      */
     public function update(ConfigurationRequest $request)
     {
-        // return $request->all();
-        // return $request->route("microsite_id");
         $microsite_id = $request->route("microsite_id");
         return $this->TryCatchDB(function () use ($microsite_id, $request) {
             $response = $this->service->updateConfiguration($microsite_id, $request->all());

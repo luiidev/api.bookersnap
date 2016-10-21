@@ -6,6 +6,7 @@ use App\Entities\BlockTable;
 use App\res_guest;
 use App\res_reservation;
 use App\res_reservation_status;
+use App\res_source_type;
 use App\res_table;
 use App\res_table_reservation;
 Use DB;
@@ -46,6 +47,7 @@ class ReservationService {
             $response[$i]["email"] = $row->email;
             $response[$i]["phone"] = $row->phone;
             $response[$i]["res_guest_id"] = $row->res_guest_id;
+            $response[$i]["res_source_type_id"] = $row->res_source_type_id;
             $response[$i]["res_reservation_status_id"] = $row->res_reservation_status_id;
             $response[$i]["guest"] = $row->guest; 
             $response[$i]["res_server_id"] = $row->res_server_id; 
@@ -67,7 +69,8 @@ class ReservationService {
             $reservation->hours_duration = date("h:i:s",strtotime($data["hours_duration"]));
             $reservation->num_people = $data["num_people"];
             $reservation->note = $data["note"];
-            $reservation->res_reservation_status_id = 1;    
+            $reservation->res_reservation_status_id = 1;
+            $reservation->res_source_type_id = 1;
             $reservation->user_add = $user_id;
             $reservation->date_add = \Carbon\Carbon::now();
             $reservation->date_upd = $reservation->date_add;
@@ -114,7 +117,7 @@ class ReservationService {
             $reservation->hours_duration = date("h:i:s",strtotime($data["hours_duration"]));
             $reservation->num_people = $data["num_people"];
             $reservation->note = $data["note"];
-            $reservation->res_reservation_status_id = 1;    
+            $reservation->res_reservation_status_id = 1;            
             $reservation->user_add = $user_id;
             $reservation->date_add = \Carbon\Carbon::now();
             $reservation->date_upd = $reservation->date_add;
@@ -190,4 +193,13 @@ class ReservationService {
     public function listStatus() {
         return res_reservation_status::where("status", 1)->get(array("id", "name", "color"));
     }
+    
+    /**
+    * Retorna todos los tipos de origen de una reservacion
+    * @return Collection App\res_source_type
+    */
+    public function listSourceType() {
+        return res_source_type::where("status", 1)->get(array("id", "name", "description"));
+    }    
+    
 }
