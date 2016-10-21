@@ -35,6 +35,8 @@ class ReservationService {
             $response[$i]["num_people_2"] = $row->num_people_2;
             $response[$i]["num_people_3"] = $row->num_people_3;
             $response[$i]["status_release"] = $row->status_released;
+            $response[$i]["datetime_input"] = $row->datetime_input;
+            $response[$i]["datetime_output"] = $row->datetime_output;
             $response[$i]["total"] = $row->total;
             $response[$i]["consume"] = $row->consume;
             $response[$i]["num_table"] = $row->num_table;
