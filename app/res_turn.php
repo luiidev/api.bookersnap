@@ -14,13 +14,14 @@ namespace App;
  * @author USER
  */
 use App\res_turn_calendar;
-use Illuminate\Database\Eloquent\Model;
 use DB;
+use Illuminate\Database\Eloquent\Model;
 
-class res_turn extends Model {
+class res_turn extends Model
+{
 
-    protected $table = "res_turn";
-    public $timestamps = false;
+    protected $table    = "res_turn";
+    public $timestamps  = false;
     protected $fillable = [
         'id',
         'on_table',
@@ -32,11 +33,11 @@ class res_turn extends Model {
         'user_add',
         'user_upd',
         'early',
-       // 'res_zone_id',
+        // 'res_zone_id',
         'ms_microsite_id',
-        'res_type_turn_id'
+        'res_type_turn_id',
     ];
-    
+
     protected $hidden = [
         'date_add',
         'date_upd',
@@ -44,40 +45,43 @@ class res_turn extends Model {
         'user_upd',
         'ms_microsite_id',
     ];
-    
 
     /*public function days() {
-       return $this->hasMany('App\res_day_turn_zone', 'res_turn_id');
+    return $this->hasMany('App\res_day_turn_zone', 'res_turn_id');
     }*/
 
-    public function zones() {
+    public function zones()
+    {
         return $this->belongsToMany('App\res_zone', 'res_turn_zone', 'res_turn_id', 'res_zone_id');
     }
-    
-    public function typeTurn() {
-       return $this->belongsTo('App\res_type_turn', 'res_type_turn_id');
-    }   
-    
-    public function turnZone() {
+
+    public function typeTurn()
+    {
+        return $this->belongsTo('App\res_type_turn', 'res_type_turn_id');
+    }
+
+    public function turnZone()
+    {
         return $this->hasMany('App\res_turn_zone', 'res_turn_id');
         //return $this->belongsToMany('App\res_turn_zone', 'res_turn_id');
     }
-    
-    public function availability() {
+
+    public function availability()
+    {
         return $this->hasMany('App\res_turn_zone', 'res_turn_id');
     }
 
     public function weekDays()
     {
         return $this->hasMany(res_turn_calendar::class)
-                                ->select( "res_turn_id", DB::raw("dayofweek(start_date) as day") )
-                                ->where("end_date",  "9999-12-31")
-                                ->groupBy("day");
+            ->select("res_turn_id", DB::raw("dayofweek(start_date) as day"))
+            ->where("end_date", "9999-12-31")
+            ->groupBy("day");
     }
-    
+
     public function calendar()
     {
-        return $this->hasMany('App\res_turn_calendar', 'res_turn_id')->where("end_date", ">=",  date('Y-m-d'));
+        return $this->hasMany('App\res_turn_calendar', 'res_turn_id')->where("end_date", ">=", date('Y-m-d'));
     }
 
     public function getWeekDaysAttribute()
@@ -85,10 +89,10 @@ class res_turn extends Model {
         $this->addHidden(["weekDays"]);
         return $this->relations["weekDays"]->pluck("day");
     }
-    
+
 //    public function delete() {
-//        $this->days()->delete();
-//        return parent::delete();
-//    }
+    //        $this->days()->delete();
+    //        return parent::delete();
+    //    }
 
 }
