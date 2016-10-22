@@ -82,6 +82,7 @@ class TableReservationService extends Service
         }
 
         $reservation->res_guest_id = $guest_id;
+        $reservation->res_source_type_id = 1;
         $reservation->res_reservation_status_id = $this->req->status_id;
         $reservation->status_released = 0;
         $reservation->num_guest = $this->req->covers;
@@ -171,6 +172,7 @@ class TableReservationService extends Service
     {
         $num_guest = (int)$this->req->covers["men"] +  (int)$this->req->covers["women"] +  (int)$this->req->covers["children"];
         $reservation = new res_reservation();
+        $reservation->res_source_type_id = 1;
         $reservation->res_reservation_status_id = 14;
         $reservation->status_released = 0;
         $reservation->num_guest = $num_guest;

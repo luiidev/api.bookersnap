@@ -29,7 +29,11 @@ Route::group(['prefix' => 'v1/{lang}', 'middleware' => ['cors']], function () {
     // ESTADOS DE RESERVACIONES
     //-----------------------------------------------------
     Route::get("reservation/status", "ReservationController@listStatus");
-
+    //-----------------------------------------------------
+    // TIPOS DE ORIGOEN DE RESERVACIONES
+    //-----------------------------------------------------
+    Route::get("reservation/source-types", "ReservationController@listSourceType");
+    
     routeMesas();
 });
 

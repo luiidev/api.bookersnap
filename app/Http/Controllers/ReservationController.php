@@ -67,5 +67,18 @@ class ReservationController extends Controller {
                     return $this->CreateResponse(true, 200, "", $statuses);
                 });
     }
+    
+    
+    /**
+     * Retorna todos los tipos de origen de una reservacion
+     * @return Collection App\res_source_type
+     */
+    public function listSourceType() {
+        $service = $this->_ReservationService;
+        return $this->TryCatch(function () use ($service) {
+                    $response = $service->listSourceType();
+                    return $this->CreateResponse(true, 200, "", $response);
+                });
+    }
 
 }
