@@ -183,16 +183,23 @@ function routeMesas()
         //----------------------------------------------------
 
         Route::resource("configuration/percentages", "PercentageController", ["only" => ["index"]]);
-        //         //-----------------------------------------------------
-        //         // MICROSITE:: CODES (table res_code)
-        //         //-----------------------------------------------------
+        //-----------------------------------------------------
+        // MICROSITE:: CODES (table res_code)
+        //-----------------------------------------------------
         Route::resource("configuration/codes", "ConfigurationCodeController", ["only" => ["index", "store", "update", "destroy"]]);
 
-        //         //-----------------------------------------------------
-        //         // MICROSITE:: USER (table bs_user)
-        //         //-----------------------------------------------------
+        //-----------------------------------------------------
+        // MICROSITE:: USER (table bs_user)
+        //-----------------------------------------------------
         Route::get("configuration/users/privileges", "ConfigurationUserController@getAllUser");
         Route::resource("configuration/users", "ConfigurationUserController", ["only" => ["index", "destroy", "store"]]);
+
+        //-----------------------------------------------------
+        // MICROSITE:: Availability
+        //-----------------------------------------------------
+        Route::group(['prefix' => 'availability/'], function () {
+            Route::get('basic/', 'AvailabilityController@basic');
+        });
     });
 
 }
