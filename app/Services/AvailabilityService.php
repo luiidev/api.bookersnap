@@ -6,26 +6,26 @@ use App\Domain\TimeForTable;
 use App\Entities\BlockTable;
 use App\res_table_reservation;
 use App\Services\CalendarService;
+use Carbon\Carbon;
 
 class AvailabilityService
 {
     private $calendarService;
     private $turnService;
-    private $blockService;
 
-    public function __construct(CalendarService $CalendarService, TurnService $TurnService, BlockService $BlockService)
+    public function __construct(CalendarService $CalendarService, TurnService $TurnService)
     {
         $this->calendarService = $CalendarService;
         $this->turnService     = $TurnService;
-        $this->blockService    = $BlockService;
     }
 
     public function getAvailabilityBasic(int $microsite_id, string $date, string $hour, int $num_guests, int $zone_id)
     {
         $timeFoTable                = new TimeForTable;
-        $availabilityTables         = [];
+        $availabilityTables         = collect([]);
         $availabilityTablesFilter   = [];
         $unavailabilityTablesFilter = [];
+        $availabilityTablesIdFinal  = [];
         $indexHour                  = $timeFoTable->timeToIndex($hour);
         // $time        = $timeFoTable->indexToTime($index);
         list($year, $month, $day) = explode("-", $date);
@@ -36,30 +36,32 @@ class AvailabilityService
         $turnsFilter = $this->calendarService->getList($microsite_id, $year, $month, $day);
 
         //Buscar las mesas disponibles en los turnos filtrados
-        foreach ($turnsFilter as $key => $turn) {
-            $availabilityTables[$key] = $this->turnService->getListTable($turn['turn']['id'], $zone_id);
+        foreach ($turnsFilter as $turn) {
+            $availabilityTables->push($this->turnService->getListTable($turn['turn']['id'], $zone_id));
         };
-
         //Devuelve las mesas filtradas por el tipo de reservacion y numero de invitados
         $availabilityTablesFilter = $this->getFilterTablesGuest($indexHour, $availabilityTables, $num_guests);
-
+        // return $availabilityTablesFilter;
         //Devulve los id de las mesas que fueron filtradas por tipo de reservacion y numero de invitados
-        $ArrayTablesId = collect($availabilityTablesFilter)->pluck('id')->toArray();
+        $availabilityTablesId = collect($availabilityTablesFilter)->pluck('id');
 
         //Devuelve id de las mesas filtradas que estan bloquedadas en una fecha y hora
-        $ListBlocks = $this->getTableBlock($ArrayTablesId, $date, $hour);
+        $ListBlocks = $this->getTableBlock($availabilityTablesId->toArray(), $date, $hour);
 
         //Devuelve id de las mesas filtradas que estan reservadas en una fecha y hora
-        $ListReservations = $this->getTableReservation($ArrayTablesId, $date, $hour);
+        $ListReservations = $this->getTableReservation($availabilityTablesId->toArray(), $date, $hour);
 
         $unavailabilityTablesFilter = collect(array_merge($ListBlocks, $ListReservations))->unique();
 
-        // //Filtrar availabilityTablesFilter quitandole las mesas bloqueadas y reservadas;
-        // foreach ($availabilityTablesFilter as $key => $table) {
+        $availabilityTablesIdFinal = $availabilityTablesId->diff($unavailabilityTablesFilter);
 
+        // if ($availabilityTablesIdFinal->count() > 0) {
+        //     return true;
+        // } else {
+        //     return false;
         // }
 
-        return ['id_tables' => $ArrayTablesId, 'tables' => $availabilityTablesFilter, 'tables_indisponibles' => $unavailabilityTablesFilter, 'blocks' => $ListBlocks, 'reservatios' => $ListReservations];
+        return ['tables_inicial' => $availabilityTablesId, 'tables final' => $availabilityTablesIdFinal->values()->all(), 'tables_indisponibles' => $unavailabilityTablesFilter, 'blocks' => $ListBlocks, 'reservatios' => $ListReservations];
     }
 
     public function getTableBlock(array $tables_id, string $date, string $hour)
@@ -82,33 +84,51 @@ class AvailabilityService
     {
         $listReservation = [];
         $reservations    = res_table_reservation::whereIn('res_table_id', $tables_id)->with(['reservation' => function ($query) use ($date, $hour) {
-            $query->where('date_reservation', '=', $date);
-            // ->where('start_time', '<=', $hour)
-            // ->where('end_time', '>=', $hour);
+            $query->where('date_reservation', '=', $date)
+                ->where('hours_reservation', '<=', $hour)
+                ->where('hours_reservation', '>=', $hour);
         }])->get();
-        $listReservation = $reservations->reject(function ($value) {
-            return $value->reservation == null;
+
+        $listReservation = $reservations->reject(function ($value) use ($hour) {
+            $mayor = true;
+            if ($value->reservation != null) {
+                $mayor = $this->compareMayorTime($value->reservation->hours_reservation, $value->reservation->hours_duration, $hour);
+            }
+            return $value->reservation == null && $mayor;
         });
 
         return $listReservation->pluck('res_table_id')->unique()->values()->all();
     }
 
-    public function getFilterTablesGuest(int $indexHour, array $availabilityTables, int $num_guests)
+    public function getFilterTablesGuest(int $indexHour, $availabilityTables, int $num_guests)
     {
-        foreach ($availabilityTables as $key => $tables) {
-            foreach ($tables as $key => $table) {
-                if ($table['availability'][$indexHour]['rule_id'] >= 1) {
-                    if ($table['min_cover'] <= $num_guests && $num_guests <= $table['max_cover']) {
-                        $availabilityTablesFilter[$key]['id']        = $table['id'];
-                        $availabilityTablesFilter[$key]['name']      = $table['name'];
-                        $availabilityTablesFilter[$key]['min_cover'] = $table['min_cover'];
-                        $availabilityTablesFilter[$key]['max_cover'] = $table['max_cover'];
-                        // $availabilityTablesFilter[$key]['availability'] = $table['availability'][$index];
-                    }
+        $availabilityTablesFilter = collect([]);
+        foreach ($availabilityTables as $tables) {
+            foreach ($tables as $table) {
+                if ($table['availability'][$indexHour]['rule_id'] >= 2) {
+                    // if ($table['min_cover'] <= $num_guests && $num_guests <= $table['max_cover']) {
+                    $availabilityTablesFilter->push(collect($table)->forget('availability'));
+                    // }
                 }
             }
         }
 
         return $availabilityTablesFilter;
+    }
+
+    public function compareMayorTime(string $startTime, string $duration, string $hour)
+    {
+        $startTime          = $startTime;
+        $duration           = $duration;
+        list($h, $m, $s)    = explode(":", $hour);
+        list($hs, $ms, $ss) = explode(":", $startTime);
+        list($hd, $md, $sd) = explode(":", $duration);
+        $hourC              = Carbon::createFromTime($h, $m, $s);
+        $startTimeC         = Carbon::createFromTime($hs, $ms, $ss);
+        $endTimeC           = Carbon::createFromTime($hs, $ms, $ss);
+        $endTimeC->addHours($hd);
+        $endTimeC->addMinutes($md);
+        $endTimeC->addSeconds($sd);
+        return $endTimeC->toTimeString() <= $hourC->toTimeString();
     }
 }
