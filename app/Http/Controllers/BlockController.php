@@ -18,6 +18,13 @@ class BlockController extends Controller
     {
         $this->_blockService = $blockService;
     }
+    
+    function index(BlockListRequest $request) {
+        return $this->TryCatch(function () use ($request) {
+            $data = $this->_blockService->listado($request->route('microsite_id'), $request->all());
+            return $this->CreateJsonResponse(true, 201, "messages.block_list", $data);
+        });
+    }
 
     public function delete(Request $request)
     {
@@ -48,13 +55,7 @@ class BlockController extends Controller
 
     }
 
-    function list(BlockListRequest $request) {
-        return $this->TryCatch(function () use ($request) {
-            $data = $this->_blockService->listado($request->route('microsite_id'), $request->all());
-            return $this->CreateJsonResponse(true, 201, "messages.block_list", $data);
-        });
-
-    }
+    
 
     public function getTables(BlockListRequest $request)
     {

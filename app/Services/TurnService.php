@@ -194,12 +194,11 @@ class TurnService
 
             $turn_zones = array();
             foreach ($request->turn_zone as $value) {
+                $this->saveTurnTables(@$value["tables"], $turn->hours_ini, $turn->hours_end, $turn->id);
                 $turn_zones[$value['res_zone_id']] = array('res_turn_rule_id' => $value['res_turn_rule_id']);
             }
 
             $turn->zones()->attach($turn_zones);
-
-            // $this->saveTurnTables(@$value["tables"], $turn->hours_ini, $turn->hours_end, $turn->id);
 
             DB::Commit();
 
@@ -312,10 +311,11 @@ class TurnService
 
         $turn_zones = array();
         foreach (request("turn_zone") as $value) {
-            $turn_zones[$value['res_zone_id']] = array('res_turn_rule_id' => $value['res_turn_rule_id']);
+            $this->update__saveTurnZone($value, $turn);
+            // $turn_zones[$value['res_zone_id']] = array('res_turn_rule_id' => $value['res_turn_rule_id']);
         }
 
-        $turn->zones()->sync($turn_zones);
+        // $turn->zones()->sync($turn_zones);
 
         return $turn;
     }
