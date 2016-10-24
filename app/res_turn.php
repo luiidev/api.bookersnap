@@ -62,6 +62,9 @@ class res_turn extends Model {
         return $this->hasMany('App\res_turn_zone', 'res_turn_id');
         //return $this->belongsToMany('App\res_turn_zone', 'res_turn_id');
     }
+    public function turnTime() {
+        return $this->hasMany('App\res_turn_time', 'res_turn_id');
+    }
     
     public function availability() {
         return $this->hasMany('App\res_turn_zone', 'res_turn_id');

@@ -13,11 +13,9 @@ use App\Services\Helpers\TurnServiceHelper;
 use Carbon\Carbon;
 use DB;
 
-class TurnService
-{
+class TurnService {
 
-    public function search(int $microsite_id, array $params)
-    {
+    public function search(int $microsite_id, array $params) {
         $rows = res_turn::with('typeTurn')->where('ms_microsite_id', $microsite_id);
         if (!empty($params)) {
             if (!empty($params['hours_ini'])) {
@@ -36,8 +34,7 @@ class TurnService
         return $rows;
     }
 
-    public function getList(int $microsite_id, string $with = null, string $type_turn = null)
-    {
+    public function getList(int $microsite_id, string $with = null, string $type_turn = null) {
 
         $rows = res_turn::where('ms_microsite_id', $microsite_id);
 
@@ -46,6 +43,7 @@ class TurnService
         if (isset($with)) {
             $data = explode('|', $with);
             $rows = (in_array("type_turn", $data)) ? $rows->with('typeTurn') : $rows;
+            $rows = (in_array("turn_time", $data)) ? $rows->with('turnTime') : $rows;
             $rows = (in_array("turn_zone", $data)) ? $rows->with('turnZone') : $rows;
             $rows = (in_array("turn_zone.zone", $data)) ? $rows->with('turnZone.zone') : $rows;
             $rows = (in_array("turn_zone.zone.turns", $data)) ? $rows->with('turnZone.zone.turns') : $rows;
@@ -59,8 +57,8 @@ class TurnService
 
         return $rows->get();
     }
-    public function get(int $microsite_id, int $turn_id, $with)
-    {
+
+    public function get(int $microsite_id, int $turn_id, $with) {
         try {
             $query = res_turn::where('id', $turn_id)->where('ms_microsite_id', $microsite_id)->with("weekDays");
 
@@ -68,6 +66,10 @@ class TurnService
                 $data = explode('|', $with);
                 if (in_array("type_turn", $data)) {
                     $query->with('typeTurn');
+                }
+
+                if (in_array("turn_time", $data)) {
+                    $query->with('turnTime');
                 }
 
                 if (in_array("turn_zone", $data)) {
@@ -117,13 +119,12 @@ class TurnService
         }
     }
 
-    public function create(TurnRequest $request, int $microsite_id, int $user_id)
-    {
+    public function create(TurnRequest $request, int $microsite_id, int $user_id) {
         try {
 
             if ($request->has("days")) {
 
-                $days         = request("days");
+                $days = request("days");
                 $type_turn_id = request("res_type_turn_id");
 
                 $calendar = CreateTurnHelper::make($days, $type_turn_id, (int) $microsite_id);
@@ -146,14 +147,14 @@ class TurnService
             if ($request->has("days")) {
                 foreach ($days as $day) {
                     $periodic = $calendar->existsPeriodic($day);
-                    $uniques  = $calendar->existsUniques($day);
+                    $uniques = $calendar->existsUniques($day);
 
                     $date = CreateTurnHelper::nextDayWeek($day);
 
                     if ($periodic) {
                         // Reemplazar el  turno del calendario periodico por nuevo turno creado
                         $old_turn = $calendar->getPeriodic($day);
-                        $pieces   = $calendar->getUniqueDays($day);
+                        $pieces = $calendar->getUniqueDays($day);
                         CreateTurnCalendarHelper::calendarPeriodicCase($turn, $old_turn, $pieces, $date, $user_id);
                     } else if ($uniques) {
                         // Crear un nuevo calendario periodico con el nuevo turno, creando cortes en los dias unicos del tipo de turno a crear
@@ -175,19 +176,18 @@ class TurnService
         }
     }
 
-    private function createTurnService(TurnRequest $request, int $microsite_id, int $user_id)
-    {
+    private function createTurnService(TurnRequest $request, int $microsite_id, int $user_id) {
         try {
-            $turn                   = new res_turn();
-            $turn->name             = $request->name;
-            $turn->ms_microsite_id  = $microsite_id;
+            $turn = new res_turn();
+            $turn->name = $request->name;
+            $turn->ms_microsite_id = $microsite_id;
             $turn->res_type_turn_id = $request->res_type_turn_id;
-            $turn->hours_ini        = $request->hours_ini;
-            $turn->hours_end        = $request->hours_end;
-            $turn->user_add         = $user_id;
-            $turn->user_upd         = $user_id;
-            $turn->date_add         = Carbon::now();
-            $turn->date_upd         = $turn->date_add;
+            $turn->hours_ini = $request->hours_ini;
+            $turn->hours_end = $request->hours_end;
+            $turn->user_add = $user_id;
+            $turn->user_upd = $user_id;
+            $turn->date_add = Carbon::now();
+            $turn->date_upd = $turn->date_add;
 
             DB::BeginTransaction();
             $turn->save();
@@ -198,6 +198,14 @@ class TurnService
                 $turn_zones[$value['res_zone_id']] = array('res_turn_rule_id' => $value['res_turn_rule_id']);
             }
 
+            $turn_times = [];
+            foreach ($request->turn_time as $value) {
+                $turnTime = new \App\res_turn_time();
+                $turnTime->num_guests = $value['num_guests'];
+                $turnTime->time = $value['time'];
+                array_push($turn_times, $turnTime);
+            }
+            $turn->turnTime()->save($turn_times);
             $turn->zones()->attach($turn_zones);
 
             DB::Commit();
@@ -209,8 +217,7 @@ class TurnService
         }
     }
 
-    public function update(TurnRequest $request, int $microsite_id, int $user_id)
-    {
+    public function update(TurnRequest $request, int $microsite_id, int $user_id) {
 
         try {
 
@@ -248,7 +255,7 @@ class TurnService
             foreach ($days_of_week as $day) {
 
                 $periodic = $aux_calendar->existsPeriodic($day);
-                $uniques  = $aux_calendar->existsUniques($day);
+                $uniques = $aux_calendar->existsUniques($day);
 
                 $date = CreateTurnHelper::nextDayWeek($day);
 
@@ -257,7 +264,7 @@ class TurnService
                     if ($periodic) {
                         // Reemplazar el  turno del calendario periodico por nuevo turno creado
                         $old_turn = $aux_calendar->getPeriodic($day);
-                        $pieces   = $aux_calendar->getUniqueDays($day);
+                        $pieces = $aux_calendar->getUniqueDays($day);
                         CreateTurnCalendarHelper::calendarPeriodicCase($turn, $old_turn, $pieces, $date, $user_id);
                     } else if ($uniques) {
                         // Crear un nuevo calendario periodico con el nuevo turno, creando cortes en los dias unicos del tipo de turno a crear
@@ -272,11 +279,10 @@ class TurnService
                     if ($periodic) {
                         // Eliminar el  turno del calendario periodico por nuevo turno creado
                         $old_turn = $aux_calendar->getPeriodic($day);
-                        $pieces   = $aux_calendar->getUniqueDays($day);
+                        $pieces = $aux_calendar->getUniqueDays($day);
                         CreateTurnCalendarHelper::calendarPeriodicCaseDelete($turn, $old_turn, $pieces, $date, $user_id);
                     }
                 }
-
             }
 
             DB::commit();
@@ -291,37 +297,42 @@ class TurnService
             abort(422, $e->getMessage());
             // abort(422, "Ocurrio un error al intentar editar el turno junto al calendario");
         }
-
     }
 
-    private function update_turn(TurnRequest $request, int $microsite_id, int $user_id)
-    {
+    private function update_turn(TurnRequest $request, int $microsite_id, int $user_id) {
         $turn = res_turn::where('id', $request->route("turn_id"))
-            ->where('ms_microsite_id', $microsite_id)
-            ->first();
+                ->where('ms_microsite_id', $microsite_id)
+                ->first();
 
-        $turn->name             = request("name");
+        $turn->name = request("name");
         $turn->res_type_turn_id = request("res_type_turn_id");
-        $turn->hours_ini        = request("hours_ini");
-        $turn->hours_end        = request("hours_end");
-        $turn->user_upd         = $user_id;
-        $turn->date_upd         = \Carbon\Carbon::now();
+        $turn->hours_ini = request("hours_ini");
+        $turn->hours_end = request("hours_end");
+        $turn->user_upd = $user_id;
+        $turn->date_upd = \Carbon\Carbon::now();
 
         $turn->save();
 
-        $turn_zones = array();
+        $turn_zones = [];
         foreach (request("turn_zone") as $value) {
             $this->update__saveTurnZone($value, $turn);
             // $turn_zones[$value['res_zone_id']] = array('res_turn_rule_id' => $value['res_turn_rule_id']);
         }
+        $turn_times = [];
+        foreach ($request->turn_time as $value) {
+            $turnTime = new \App\res_turn_time();
+            $turnTime->num_guests = $value['num_guests'];
+            $turnTime->time = $value['time'];
+            array_push($turn_times, $turnTime);
+        }
+        $turn->turnTime()->save($turn_times);
 
         // $turn->zones()->sync($turn_zones);
 
         return $turn;
     }
 
-    private function update__saveTurnZone(array $value, $turn)
-    {
+    private function update__saveTurnZone(array $value, $turn) {
         if (!(@$value['unlink'] === true)) {
             if (res_turn_zone::where('res_turn_id', $turn->id)->where('res_zone_id', $value['res_zone_id'])->count() > 0) {
                 $turn->zones()->updateExistingPivot($value['res_zone_id'], ['res_turn_rule_id' => $value['res_turn_rule_id']]);
@@ -336,8 +347,7 @@ class TurnService
         }
     }
 
-    public function unlinkZone(int $microsite_id, int $turn_id, int $zone_id)
-    {
+    public function unlinkZone(int $microsite_id, int $turn_id, int $zone_id) {
         try {
             if (res_turn::where('ms_microsite_id', $microsite_id)->where('id', $turn_id)->get()->count() > 0) {
                 DB::BeginTransaction();
@@ -353,16 +363,15 @@ class TurnService
         }
     }
 
-    public function formListTable(int $microsite, int $zone_id)
-    {
+    public function formListTable(int $microsite, int $zone_id) {
 
         $turn = res_turn::where('id', $turn_id)->first();
         if ($turn != null) {
             $EnableTimesForTable = new \App\Domain\EnableTimesForTable();
 
             $tables = res_table::where('res_zone_id', $zone_id)->where('status', 1)->with(array('turns' => function ($query) use ($turn_id, $zone_id) {
-                $query->where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id);
-            }))->get(array('id', 'name', 'min_cover', 'max_cover'))->map(function ($item) use ($turn, $EnableTimesForTable) {
+                            $query->where('res_turn_id', $turn_id)->where('res_zone_id', $zone_id);
+                        }))->get(array('id', 'name', 'min_cover', 'max_cover'))->map(function ($item) use ($turn, $EnableTimesForTable) {
                 $item->availability = $EnableTimesForTable->segment($turn, $item->turns);
                 unset($item->turns);
                 return $item;
@@ -372,8 +381,7 @@ class TurnService
         return $turn;
     }
 
-    public function getListTable(int $turn_id, int $zone_id)
-    {
+    public function getListTable(int $turn_id, int $zone_id) {
 
         $turn = res_turn::where('id', $turn_id)->first();
 
@@ -381,8 +389,8 @@ class TurnService
             $EnableTimesForTable = new \App\Domain\EnableTimesForTable();
 
             $tables = res_table::where('res_zone_id', $zone_id)->where('status', 1)->with(array('turns' => function ($query) use ($turn_id) {
-                $query->where('res_turn_id', $turn_id);
-            }))->get(array('id', 'name', 'min_cover', 'max_cover'))->map(function ($item) use ($turn, $EnableTimesForTable) {
+                            $query->where('res_turn_id', $turn_id);
+                        }))->get(array('id', 'name', 'min_cover', 'max_cover'))->map(function ($item) use ($turn, $EnableTimesForTable) {
                 $item->availability = $EnableTimesForTable->segment($turn, $item->turns);
                 unset($item->turns);
                 return $item;
@@ -392,24 +400,23 @@ class TurnService
         return $turn;
     }
 
-    private function saveTurnTables(array $tables = null, $hours_ini, $hours_end, int $turn_id)
-    {
+    private function saveTurnTables(array $tables = null, $hours_ini, $hours_end, int $turn_id) {
 
         if (is_array($tables)) {
             $TurnServiceHelper = new TurnServiceHelper();
             foreach ($tables as $table) {
-                $table_id           = $table["id"];
+                $table_id = $table["id"];
                 $table_availability = $table["availability"];
 
                 res_turn_table::where('res_turn_id', $turn_id)->where('res_table_id', $table_id)->delete();
 
                 $turnTables = $TurnServiceHelper->createTurnTable($table_availability, $hours_ini, $hours_end, $turn_id, $table_id);
                 foreach ($turnTables as $key => $turnTable) {
-                    $entity                   = new res_turn_table();
-                    $entity->res_table_id     = $turnTable['res_table_id'];
-                    $entity->res_turn_id      = $turnTable['res_turn_id'];
-                    $entity->start_time       = $turnTable['start_time'];
-                    $entity->end_time         = $turnTable['end_time'];
+                    $entity = new res_turn_table();
+                    $entity->res_table_id = $turnTable['res_table_id'];
+                    $entity->res_turn_id = $turnTable['res_turn_id'];
+                    $entity->start_time = $turnTable['start_time'];
+                    $entity->end_time = $turnTable['end_time'];
                     $entity->res_turn_rule_id = $turnTable['res_turn_rule_id'];
                     $entity->save();
                 }
@@ -418,8 +425,7 @@ class TurnService
         return true;
     }
 
-    public function deleteTurn($microsite_id, $idTurn)
-    {
+    public function deleteTurn($microsite_id, $idTurn) {
         try {
             DB::BeginTransaction();
             $turn = res_turn::where('ms_microsite_id', $microsite_id)->where('id', $idTurn);
