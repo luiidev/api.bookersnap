@@ -4,11 +4,15 @@ namespace App\Entities;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Reservation extends Model {
+class Reservation extends Model
+{
 
     protected $primaryKey = 'id';
-    public $timestamps = false;
-    protected $table = 'res_reservation';
+    public $timestamps    = false;
+    protected $table      = 'res_reservation';
 
-
+    public function tables()
+    {
+        return $this->belongsToMany('App\res_table', 'res_table_reservation', 'res_reservation_id', 'res_table_id')->withPivot('num_people');
+    }
 }

@@ -29,4 +29,14 @@ class res_table extends Model
         return $this->hasMany('App\res_turn_table', 'res_table_id');
     }
 
+    public function blocks()
+    {
+        return $this->belongsToMany('App\Entities\Block', 'res_block_table', 'res_table_id', 'res_block_id');
+    }
+
+    public function reservations()
+    {
+        return $this->belongsToMany('App\Entities\Reservation', 'res_table_reservation', 'res_table_id', 'res_reservation_id')->withPivot('num_people');
+    }
+
 }

@@ -178,6 +178,13 @@ function routeMesas()
         //-----------------------------------------------------
         Route::get("configuration/users/privileges", "ConfigurationUserController@getAllUser");
         Route::resource("configuration/users", "ConfigurationUserController", ["only" => ["index", "destroy", "store"]]);
+
+        //-----------------------------------------------------
+        // MICROSITE:: Availability
+        //-----------------------------------------------------
+        Route::group(['prefix' => 'availability/'], function () {
+            Route::get('basic/', 'AvailabilityController@basic');
+        });
     });
 
 }
