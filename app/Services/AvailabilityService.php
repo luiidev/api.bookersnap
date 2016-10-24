@@ -50,7 +50,7 @@ class AvailabilityService
 
         //Devuelve id de las mesas filtradas que estan reservadas en una fecha y hora
         $ListReservations = $this->getTableReservation($availabilityTablesId->toArray(), $date, $hour);
-
+        return $ListReservations;
         $unavailabilityTablesFilter = collect(array_merge($ListBlocks, $ListReservations))->unique();
 
         $availabilityTablesIdFinal = $availabilityTablesId->diff($unavailabilityTablesFilter);
@@ -82,19 +82,19 @@ class AvailabilityService
 
     public function getTableReservation(array $tables_id, string $date, string $hour)
     {
-        $listReservation = [];
-        $reservations    = res_table_reservation::whereIn('res_table_id', $tables_id)->with(['reservation' => function ($query) use ($date, $hour) {
+        $listReservation     = [];
+        return $reservations = res_table_reservation::whereIn('res_table_id', $tables_id)->with(['reservation' => function ($query) use ($date, $hour) {
             $query->where('date_reservation', '=', $date)
-                ->where('hours_reservation', '<=', $hour)
-                ->where('hours_reservation', '>=', $hour);
+                ->where('hours_reservation', '<=', $hour);
+            // ->where('hours_reservation', '>=', $hour);
         }])->get();
 
         $listReservation = $reservations->reject(function ($value) use ($hour) {
-            $mayor = true;
+            $mayor = false;
             if ($value->reservation != null) {
                 $mayor = $this->compareMayorTime($value->reservation->hours_reservation, $value->reservation->hours_duration, $hour);
             }
-            return $value->reservation == null && $mayor;
+            return $value->reservation == null || $mayor;
         });
 
         return $listReservation->pluck('res_table_id')->unique()->values()->all();
