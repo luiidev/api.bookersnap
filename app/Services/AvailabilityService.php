@@ -83,7 +83,7 @@ class AvailabilityService
     public function getTableReservation(array $tables_id, string $date, string $hour)
     {
         $listReservation     = [];
-        return $reservations = res_table_reservation::whereIn('res_table_id', $tables_id)->with(['reservation' => function ($query) use ($date, $hour) {
+        $reservations = res_table_reservation::whereIn('res_table_id', $tables_id)->with(['reservation' => function ($query) use ($date, $hour) {
             $query->where('date_reservation', '=', $date)
                 ->where('hours_reservation', '<=', $hour);
             // ->where('hours_reservation', '>=', $hour);
