@@ -320,7 +320,7 @@ class TurnService {
         }
         
         $turn_times = [];
-        DB::table('res_turn_time')->delete()->where('res_turn_id', $turn->id);
+        DB::table('res_turn_time')->where('res_turn_id', $turn->id)->delete();
         foreach ($request->turn_time as $value) {
 //            $turnTime = new \App\res_turn_time();
 //            $turnTime->num_guests = $value['num_guests'];
