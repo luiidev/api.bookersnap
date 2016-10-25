@@ -7,6 +7,7 @@ use App\res_guest;
 use App\res_guest_email;
 use App\res_guest_phone;
 use App\res_reservation;
+use App\res_turn_time;
 use Carbon\Carbon;
 use DB;
 
@@ -177,6 +178,7 @@ class TableReservationService extends Service
         $num_guest = (int)$this->req->covers["men"] +  (int)$this->req->covers["women"] +  (int)$this->req->covers["children"];
 
         $turn = TurnsHelper::TypeTurnWithHourForHour($this->req->date, $this->req->hour, $this->microsite_id);
+        $duration = res_turn_time::where("res_turn_id", $turn->turn_id)->where("num_guests", $num_guest)->first();
 
         $reservation = new res_reservation();
         $reservation->res_source_type_id = 1;
@@ -188,7 +190,7 @@ class TableReservationService extends Service
         $reservation->num_people_3 = $this->req->covers["children"];
         $reservation->date_reservation = $this->req->date;
         $reservation->hours_reservation = $turn->hour;
-        $reservation->hours_duration = $this->req->duration;
+        $reservation->hours_duration = $duration? $duration->time : "01:30:00";
         $reservation->datetime_input = Carbon::now()->setTimezone($this->req->timezone)->toDateTimeString();
         $reservation->user_add = $this->req->_bs_user_id;
         $reservation->ms_microsite_id = $this->microsite_id;
