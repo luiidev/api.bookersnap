@@ -318,14 +318,17 @@ class TurnService {
             $this->update__saveTurnZone($value, $turn);
             // $turn_zones[$value['res_zone_id']] = array('res_turn_rule_id' => $value['res_turn_rule_id']);
         }
+        
         $turn_times = [];
+        DB::table('res_turn_time')->delete()->where('res_turn_id', $turn->id);
         foreach ($request->turn_time as $value) {
-            $turnTime = new \App\res_turn_time();
-            $turnTime->num_guests = $value['num_guests'];
-            $turnTime->time = $value['time'];
-            array_push($turn_times, $turnTime);
+//            $turnTime = new \App\res_turn_time();
+//            $turnTime->num_guests = $value['num_guests'];
+//            $turnTime->time = $value['time'];
+            array_push($turn_times, array('num_guests' => $value['num_guests'], 'time' => $value['time']));
         }
-        $turn->turnTime()->save($turn_times);
+        DB::table('res_turn_time')->insert($turn_times);
+//        $turn->turnTime()->save($turn_times);
 
         // $turn->zones()->sync($turn_zones);
 
