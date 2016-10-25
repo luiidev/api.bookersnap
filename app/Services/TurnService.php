@@ -198,15 +198,15 @@ class TurnService {
                 $turn_zones[$value['res_zone_id']] = array('res_turn_rule_id' => $value['res_turn_rule_id']);
             }
             $turn->zones()->attach($turn_zones);
-            
+
             $turn_times = [];
             DB::table('res_turn_time')->where('res_turn_id', $turn->id)->delete();
             foreach ($request->turn_time as $value) {
-                array_push($turn_times, array('res_turn_id', $turn->id, 'num_guests' => $value['num_guests'], 'time' => $value['time']));
+                array_push($turn_times, array('res_turn_id' => $turn->id, 'num_guests' => $value['num_guests'], 'time' => $value['time']));
             }
             DB::table('res_turn_time')->insert($turn_times);
 
-            
+
 
             DB::Commit();
 
@@ -322,7 +322,7 @@ class TurnService {
         $turn_times = [];
         DB::table('res_turn_time')->where('res_turn_id', $turn->id)->delete();
         foreach ($request->turn_time as $value) {
-            array_push($turn_times, array('res_turn_id', $turn->id, 'num_guests' => $value['num_guests'], 'time' => $value['time']));
+            array_push($turn_times, array('res_turn_id' => $turn->id, 'num_guests' => $value['num_guests'], 'time' => $value['time']));
         }
         DB::table('res_turn_time')->insert($turn_times);
         // $turn->zones()->sync($turn_zones);
