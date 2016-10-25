@@ -19,11 +19,12 @@ class AvailabilityController extends Controller
         $microsite_id = $request->route('microsite_id');
         $date         = $request->date;
         $hour         = $request->hour;
+        $next_day     = $request->next_day;
         $num_guests   = $request->num_guests;
         $zone_id      = $request->zone_id;
 
-        return $this->TryCatch(function () use ($microsite_id, $date, $hour, $num_guests, $zone_id) {
-            $availability = $this->service->getAvailabilityBasic($microsite_id, $date, $hour, $num_guests, $zone_id);
+        return $this->TryCatch(function () use ($microsite_id, $date, $hour, $next_day, $num_guests, $zone_id) {
+            $availability = $this->service->getAvailabilityBasic($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day);
             return $this->CreateJsonResponse(true, 200, "", $availability);
         });
     }
