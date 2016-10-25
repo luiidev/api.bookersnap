@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Services\Helpers\TurnsHelper;
 use App\res_guest;
 use App\res_guest_email;
 use App\res_guest_phone;
@@ -81,6 +82,8 @@ class TableReservationService extends Service
             }
         }
 
+        $type_turn = TurnsHelper::TypeTurnForHour($this->req->date, $this->req->hour, $this->microsite_id);
+
         $reservation->res_guest_id = $guest_id;
         $reservation->res_source_type_id = 1;
         $reservation->res_reservation_status_id = $this->req->status_id;
@@ -95,6 +98,7 @@ class TableReservationService extends Service
         $reservation->email = $email;
         $reservation->user_add = $this->req->_bs_user_id;
         $reservation->ms_microsite_id = $this->microsite_id;
+        $reservation->res_type_turn_id = $type_turn;
 
         $reservation->save();
 
@@ -171,6 +175,9 @@ class TableReservationService extends Service
     public function quickCreate()
     {
         $num_guest = (int)$this->req->covers["men"] +  (int)$this->req->covers["women"] +  (int)$this->req->covers["children"];
+
+        $turn = TurnsHelper::TypeTurnWithHourForHour($this->req->date, $this->req->hour, $this->microsite_id);
+
         $reservation = new res_reservation();
         $reservation->res_source_type_id = 1;
         $reservation->res_reservation_status_id = 14;
@@ -180,11 +187,12 @@ class TableReservationService extends Service
         $reservation->num_people_2 = $this->req->covers["women"];
         $reservation->num_people_3 = $this->req->covers["children"];
         $reservation->date_reservation = $this->req->date;
-        $reservation->hours_reservation = $this->req->hour;
-        $reservation->hours_duration = "01:30:00";
+        $reservation->hours_reservation = $turn->hour;
+        $reservation->hours_duration = $this->req->duration;
         $reservation->datetime_input = Carbon::now()->setTimezone($this->req->timezone)->toDateTimeString();
         $reservation->user_add = $this->req->_bs_user_id;
         $reservation->ms_microsite_id = $this->microsite_id;
+        $reservation->res_type_turn_id = $turn->type_turn_id;
 
         $reservation->save();
 

@@ -167,7 +167,6 @@ class TableReservationController extends Controller
 
     public function sit(Request $request)
     {
-            $now = Carbon::now()->addDay(-1)->toDateString();
             $rules = [
                 "table_id" => "required|exists:res_table,id",
             ];
