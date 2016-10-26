@@ -13,143 +13,131 @@ class AvailabilityService
 {
     private $calendarService;
     private $turnService;
-    // private $indexHour;
     private $id_status_finish    = 18;
     private $durationTimeAux     = "01:30:00";
     private $minCombinationTable = 3;
+    private $maxPeople           = 15;
 
-    public function __construct(CalendarService $CalendarService, TurnService $TurnService)
+    public function __construct(CalendarService $CalendarService, TurnService $TurnService, ConfigurationService $ConfigurationService)
     {
-        $this->calendarService = $CalendarService;
-        $this->turnService     = $TurnService;
+        $this->calendarService      = $CalendarService;
+        $this->turnService          = $TurnService;
+        $this->configurationService = $ConfigurationService;
     }
 
     public function testArrayDay(int $microsite_id, string $date, string $hour, int $num_guests, int $zone_id, int $next_day)
     {
-        $timeForTable = new TimeForTable;
-        $carbon       = Carbon::now(-5);
-        // if ($hour <= $carbon) {
-        //     $hour = $carbon->toTimeString();
-        // }
-        // return $carbon->toTimeString();
+        /**
+         * Busca la configuración del micrositio para determinar variables globales de configuracion
+         * @var [id_microsite]
+         */
+        // $configuration             = $this->configurationService->getConfiguration($microsite_id);
+        // $this->durationTimeAux     = $configuration->time_tolerance;
+        // $this->minCombinationTable = $configuration->max_table;
+        // $this->maxPeople           = $configuration->max_people;
+        $indexHourInit = $this->defineIndexHour($next_day, $hour);
+        if ($this->maxPeople < $num_guests) {
+            abort(500, "La configuracion del sitio no soporta la esa cantidad de usuario");
+        }
 
+        $timeForTable = new TimeForTable;
         $arrayTestMid = collect();
-        $results      = $this->getAvailabilityBasic($microsite_id, $date, $hour, $num_guests, $zone_id, $this->defineIndexHour($next_day, $hour));
-        if (collect($results)->count() > 0) {
-            $arrayTestMid->push([$results]);
+        $results      = $this->getAvailabilityBasic($microsite_id, $date, $hour, $num_guests, $zone_id, $indexHourInit);
+        if (count($results) > 0) {
+            $arrayTestMid->push($results);
         } else {
-            $resultsAux = collect(["hour" => $hour, "tables" => null]);
-            $arrayTestMid->push($resultsAux);
+            $arrayTestMid->push(["hour" => $hour, "tables" => null]);
         }
 
         if ($next_day == 0) {
             $arrayTestUp = collect();
-            $indexUpHour = $this->defineIndexHour($next_day, $hour) + 1;
+            $indexUpHour = $indexHourInit + 1;
             while ($indexUpHour <= 119) {
-                $hourAuxUp = $timeForTable->indexToTime($indexUpHour);
-                if ($indexUpHour <= 119) {
-                    $resultsUp = $this->getAvailabilityBasic($microsite_id, $date, $hourAuxUp, $num_guests, $zone_id, $indexUpHour);
-                    if (collect($resultsUp)->count() > 0) {
-                        if ($arrayTestUp->count() < 2) {
-                            $arrayTestUp->push($resultsUp);
-                        } else {
-                            $indexUpHour = 120;
-                        }
+                $resultsUp = $this->getAvailabilityBasic($microsite_id, $date, $timeForTable->indexToTime($indexUpHour), $num_guests, $zone_id, $indexUpHour);
+                if (count($resultsUp) > 0) {
+                    if ($arrayTestUp->count() < 2) {
+                        $arrayTestUp->push($resultsUp);
+                    } else {
+                        $indexUpHour = 120;
+                        break;
                     }
                 }
                 $indexUpHour++;
             }
             if ($arrayTestUp->count() < 2) {
                 $countUp    = $arrayTestUp->count();
-                $indexUpAux = $this->defineIndexHour($next_day, $hour) + 1;
+                $indexUpAux = $indexHourInit + 1;
                 for ($i = $countUp; $i < 2; $i++) {
                     if ($indexUpAux <= 119) {
-                        $resultsAux2 = collect(["hour" => $timeForTable->indexToTime($indexUpAux), "tables" => null]);
-                        $arrayTestUp->push($resultsAux2);
+                        $arrayTestUp->push(["hour" => $timeForTable->indexToTime($indexUpAux), "tables" => null]);
                         $indexUpAux++;
                     } else {
-                        $resultsAux2 = collect(["hour" => null, "tables" => null]);
-                        $arrayTestUp->push($resultsAux2);
+                        $arrayTestUp->push(["hour" => null, "tables" => null]);
                     }
                 }
             }
             $arrayTestDown = collect();
-            if ($arrayTestDown->count() < 2) {
-                $countDown = $arrayTestDown->count();
-                for ($i = $countDown; $i < 2; $i++) {
-                    $resultsAux2 = collect(["hour" => null, "tables" => null]);
-                    $arrayTestDown->prepend($resultsAux2);
-                }
+            for ($i = 1; $i <= 2; $i++) {
+                $arrayTestDown->prepend(["hour" => null, "tables" => null]);
             }
             return array_merge($arrayTestDown->toArray(), $arrayTestMid->toArray(), $arrayTestUp->toArray());
         } else {
             $arrayTestUp = collect();
-            $indexUpHour = $this->defineIndexHour($next_day, $hour) + 1;
+            $indexUpHour = $indexHourInit + 1;
             while ($indexUpHour <= 119) {
-                $hourAuxUp = $timeForTable->indexToTime($indexUpHour);
-                if ($indexUpHour <= 119) {
-                    $resultsUp = $this->getAvailabilityBasic($microsite_id, $date, $hourAuxUp, $num_guests, $zone_id, $indexUpHour);
-                    if (collect($resultsUp)->count() > 0) {
-                        if ($arrayTestUp->count() < 2) {
-                            $arrayTestUp->push($resultsUp);
-                        } else {
-                            $indexUpHour = 120;
-                        }
+                $resultsUp = $this->getAvailabilityBasic($microsite_id, $date, $timeForTable->indexToTime($indexUpHour), $num_guests, $zone_id, $indexUpHour);
+                if (count($resultsUp) > 0) {
+                    if ($arrayTestUp->count() < 2) {
+                        $arrayTestUp->push($resultsUp);
+                    } else {
+                        $indexUpHour = 120;
+                        break;
                     }
                 }
                 $indexUpHour++;
             }
 
             $arrayTestDown = collect();
-            $indexDownHour = $this->defineIndexHour($next_day, $hour) - 1;
+            $indexDownHour = $indexHourInit - 1;
             while ($indexDownHour >= 0) {
-                $hourAuxDown = $timeForTable->indexToTime($indexDownHour);
-                if ($indexDownHour >= 0) {
-                    $resultsDown = $this->getAvailabilityBasic($microsite_id, $date, $hourAuxDown, $num_guests, $zone_id, $indexDownHour);
-                    if (collect($resultsDown)->count() > 0) {
-                        if ($arrayTestDown->count() < 2) {
-                            $arrayTestDown->prepend($resultsDown);
-                        } else {
-                            $indexDownHour = -1;
-                        }
+                $resultsDown = $this->getAvailabilityBasic($microsite_id, $date, $timeForTable->indexToTime($indexDownHour), $num_guests, $zone_id, $indexDownHour);
+                if (count($resultsDown) > 0) {
+                    if ($arrayTestDown->count() < 2) {
+                        $arrayTestDown->prepend($resultsDown);
+                    } else {
+                        $indexDownHour = -1;
+                        break;
                     }
                 }
                 $indexDownHour--;
             }
             if ($arrayTestDown->count() < 2) {
                 $countDown    = $arrayTestDown->count();
-                $indexDownAux = $this->defineIndexHour($next_day, $hour) - 1;
+                $indexDownAux = $indexHourInit - 1;
                 for ($i = $countDown; $i < 2; $i++) {
                     if ($indexDownAux >= 0) {
-                        $resultsAux2 = collect(["hour" => $timeForTable->indexToTime($indexDownAux), "tables" => null]);
-                        $arrayTestDown->prepend($resultsAux2);
+                        $arrayTestDown->prepend(["hour" => $timeForTable->indexToTime($indexDownAux), "tables" => null]);
                         $indexDownAux--;
                     } else {
-                        $resultsAux2 = collect(["hour" => null, "tables" => null]);
-                        $arrayTestDown->prepend($resultsAux2);
+                        $arrayTestDown->prepend(["hour" => null, "tables" => null]);
                     }
                 }
             }
             if ($arrayTestUp->count() < 2) {
                 $countUp    = $arrayTestUp->count();
-                $indexUpAux = $this->defineIndexHour($next_day, $hour) + 1;
+                $indexUpAux = $indexHourInit + 1;
                 for ($i = $countUp; $i < 2; $i++) {
                     if ($indexUpAux <= 119) {
-                        $resultsAux2 = collect(["hour" => $timeForTable->indexToTime($indexUpAux), "tables" => null]);
-                        $arrayTestUp->push($resultsAux2);
+                        $arrayTestUp->push(["hour" => $timeForTable->indexToTime($indexUpAux), "tables" => null]);
                         $indexUpAux++;
                     } else {
-                        $resultsAux2 = collect(["hour" => null, "tables" => null]);
-                        $arrayTestUp->push($resultsAux2);
+                        $arrayTestUp->push(["hour" => null, "tables" => null]);
                     }
                 }
             }
 
             return array_merge($arrayTestDown->toArray(), $arrayTestMid->toArray(), $arrayTestUp->toArray());
         }
-
-        // return array_merge($arrayTestDown->toArray(), $arrayTestMid->toArray(), $arrayTestUp->toArray());
-        // return $arrayTestMid;
     }
 
     public function getAvailabilityBasic(int $microsite_id, string $date, string $hour, int $num_guests, int $zone_id, int $indexHour)
@@ -160,7 +148,7 @@ class AvailabilityService
         //max cantidad de mesas por reserva
 
         $timeFoTable                = new TimeForTable;
-        $availabilityTables         = collect([]);
+        $availabilityTables         = collect();
         $availabilityTablesFilter   = [];
         $unavailabilityTablesFilter = [];
         $availabilityTablesId       = [];
@@ -204,8 +192,8 @@ class AvailabilityService
         $availabilityTablesIdFinal = $this->availabilityTablesIdFinal($availabilityTablesId->toArray(), $num_guests);
 
         if ($availabilityTablesIdFinal->count() > 0) {
-            return ["hour" => $hour, "tables" => $availabilityTablesIdFinal];
-            return ['tables_inicial' => $availabilityTablesId->values()->all(), 'tables final guest' => $availabilityTablesIdFinal->values()->all(), 'tables_indisponibles' => $unavailabilityTablesFilter, 'blocks' => $ListBlocks, 'reservatios' => $ListReservations];
+            return ["hour" => $hour, "tables" => $availabilityTablesIdFinal->first()];
+            // return ['tables_inicial' => $availabilityTablesId->values()->all(), 'tables final guest' => $availabilityTablesIdFinal->values()->all(), 'tables_indisponibles' => $unavailabilityTablesFilter, 'blocks' => $ListBlocks, 'reservatios' => $ListReservations];
         } else {
             $availabilityTablesIdFinal = $this->algoritmoAvailability($availabilityTablesId->toArray(), $num_guests);
             return ["hour" => $hour, "tables" => $availabilityTablesIdFinal];
@@ -251,12 +239,11 @@ class AvailabilityService
 
     public function getFilterTablesGuest($availabilityTables, int $indexHour)
     {
-        $availabilityTablesFilter = collect([]);
+        $availabilityTablesFilter = collect();
         foreach ($availabilityTables as $tables) {
             foreach ($tables as $table) {
                 if ($table['availability'][$indexHour]['rule_id'] >= 2) {
                     $availabilityTablesFilter->push(collect($table));
-                    // $availabilityTablesFilter->push(collect($table)->forget('availability'));
                 }
             }
         }
@@ -275,10 +262,9 @@ class AvailabilityService
     {
         $availabilityNumGuest = res_table::whereIn('id', $listId)
             ->where('min_cover', '<=', $num_guests)->orderby('max_cover', 'desc')->get();
-
         $test = $this->test($availabilityNumGuest, $num_guests);
         if ($test != null) {
-            return ["group" => $test];
+            return $test;
         } else {
             return null;
         }
@@ -286,7 +272,7 @@ class AvailabilityService
 
     public function test($collect, int $num_guests)
     {
-        $array = collect([]);
+        $array = collect();
         foreach ($collect as $table) {
             if ($table->max_cover >= $num_guests || $num_guests == 0) {
                 if ($table->min_cover <= $num_guests && $num_guests <= $table->max_cover) {
@@ -305,7 +291,6 @@ class AvailabilityService
                 $num_guests = $num_guests - $table->max_cover;
             }
         }
-
     }
 
     public function defineIndexHour($next_day, $hour)
@@ -323,37 +308,4 @@ class AvailabilityService
             return $timeFoTable->timeToIndex($hour);
         }
     }
-
-    // public function compareTime(string $startTime, string $duration, string $hour, string $durationTimeAux)
-    // {
-    //     list($h, $m, $s)    = explode(":", $hour);
-    //     list($hs, $ms, $ss) = explode(":", $startTime);
-    //     list($hd, $md, $sd) = explode(":", $duration);
-    //     list($ha, $ma, $sa) = explode(":", $durationTimeAux);
-
-    //     //Hora actual
-    //     $hourA = Carbon::createFromTime($h, $m, $s);
-    //     //Hora inicial de reservacion
-    //     $startTimeR = Carbon::createFromTime($hs, $ms, $ss);
-    //     //Hora final de reservacion
-    //     $endTimeR = Carbon::createFromTime($hs, $ms, $ss)->addHours($hd)->addMinutes($md)->addSeconds($sd);
-    //     //Hora actual aumentado en el rango de duracion promedio de reservacion 01:30:00
-    //     $startTimeAuxI = Carbon::createFromTime($h, $m, $s)->addHours($ha)->addMinutes($ma)->addSeconds($sa);
-
-    //     //comparo que la hora actual sea mayor = que la hora inicial de reservación
-    //     $mayorRangoMin = $startTimeR->toTimeString() <= $hourA->toTimeString();
-    //     //comparo que la hora actual sea menor = que la hora final de reservación
-    //     $menorRangoMax = $endTimeR->toTimeString() >= $hourA->toTimeString();
-    //     //comparo que la hora inicial aumentado en la hora sea mayor que la hora inicial de reservacion
-    //     $mayorRangoMinAux = $startTimeAuxI->toTimeString() > $startTimeR->toTimeString();
-    //     //comparo que la hora inicial aumentado en la hora inicial sea menor que la hora final de reservacion
-    //     $menorRangoMaxAux = $startTimeAuxI->toTimeString() < $endTimeR->toTimeString();
-    //     if ($mayorRangoMin == true && $menorRangoMax == true) {
-    //         return false;
-    //     } elseif ($mayorRangoMinAux == true && $menorRangoMaxAux == true) {
-    //         return false;
-    //     } else {
-    //         return true;
-    //     }
-    // }
 }
