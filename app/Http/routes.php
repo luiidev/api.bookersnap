@@ -33,7 +33,7 @@ Route::group(['prefix' => 'v1/{lang}', 'middleware' => ['cors']], function () {
     // TIPOS DE ORIGOEN DE RESERVACIONES
     //-----------------------------------------------------
     Route::get("reservation/source-types", "ReservationController@listSourceType");
-    
+
     routeMesas();
 });
 
@@ -44,7 +44,7 @@ function routeMesas()
     // MICROSITE
     //-----------------------------------------------------
     Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['setLocale', 'setTimeZone', 'ACL:microsite']], function () {
-        
+
         //-----------------------------------------------------
         // MICROSITE::ZONAS
         //-----------------------------------------------------
@@ -143,7 +143,7 @@ function routeMesas()
         Route::post('reservations', 'ReservationController@create');
         Route::put('reservations/{reservation_id}', 'ReservationController@update');
         Route::delete('reservations/{reservation_id}', 'ReservationController@delete');
-        Route::post('reservations/{reservation_id}/send-email', 'ReservationController@sendMessage');
+        Route::post('reservations/{reservation_id}/send-email', 'ReservationController@sendEmail');
 
         //-----------------------------------------------------
         // MICROSITE:: RESERVATION
@@ -164,7 +164,7 @@ function routeMesas()
         //-----------------------------------------------------
         Route::patch("configuration/reservations", "ConfigurationController@edit");
         Route::resource("configuration/reservations", "ConfigurationController", ["only" => ["index", "update"]]);
-        
+
         //-----------------------------------------------------
         // MICROSITE:: PERCENTAGE (table res_percentage)
         //----------------------------------------------------
