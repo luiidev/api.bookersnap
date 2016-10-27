@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\MailMandrillHelper;
 use App\Http\Controllers\Controller as Controller;
 use App\Http\Requests\ZoneRequest;
 use App\Services\ZoneService;
@@ -12,26 +11,15 @@ class ZoneController extends Controller
 {
 
     protected $_ZoneService;
-    protected $_MailMandrillHelper;
 
     public function __construct(ZoneService $ZoneService)
     {
-        $this->_ZoneService        = $ZoneService;
-        $this->_MailMandrillHelper = new MailMandrillHelper('gOPLZL8WNLUaeY2CsRmckQ');
+        $this->_ZoneService = $ZoneService;
     }
 
     public function index(Request $request)
     {
         $service = $this->_ZoneService;
-
-        /* $messageData['from_email'] = "user@bookersnap.com";
-        $messageData['from_name']  = "bookersnap.com";
-        $messageData['subject']    = "Zonas";
-        $messageData['text']       = "Esta chbre";
-        $messageData['to_email']   = "joper30@gmail.com";
-        $messageData['to_name']    = "josue diaz";
-
-        $this->_MailMandrillHelper->sendEmail($messageData, 'emails.reservation-cliente');*/
 
         return $this->TryCatch(function () use ($request, $service) {
             $data = $service->getList($request->route('microsite_id'), $request->input('with'));

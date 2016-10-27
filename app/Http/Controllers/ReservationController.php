@@ -107,11 +107,11 @@ class ReservationController extends Controller
             $messageData['to_name']  = $reservation->guest->first_name . " " . $reservation->guest->last_name;
 
             $messageData['subject'] = $request->input("subject");
-            $messageData['text']    = $request->input('mensaje');
+            $messageData['message'] = $request->input('message');
 
             $response = $this->_MailMandrillHelper->sendEmail($messageData, 'emails.reservation-cliente');
 
-            return $this->CreateResponse(true, 200, "", $response);
+            return $this->CreateResponse(true, 200, "Mensaje enviado", $response);
         });
     }
 
