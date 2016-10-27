@@ -85,16 +85,16 @@ class BlockService
             }
         }
 
-        $dataReservation = $this->getTablesReservation($microsite, $variables);
+        $dataReservation = $this->getTablesReservation($microsite, $date);
         $response        = array_merge($data, $dataReservation);
         return $response;
     }
 
-    public function getTablesReservation($microsite, $variables)
+    public function getTablesReservation($microsite, $date)
     {
 
         $data = array();
-        $date = (isset($variables["date"]) && $variables["date"] != "") ? $variables["date"] : date("Y-m-d");
+       
 
         $reservations = res_reservation::with("server")->where("ms_microsite_id", "=", $microsite)->where("date_reservation", "=", $date)->get();
 
