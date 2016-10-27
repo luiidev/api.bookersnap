@@ -170,12 +170,15 @@ class TableReservationService extends Service
                         "num_guest" => $this->req->covers,
                         "res_server_id" => $this->req->server_id,
                         "note" => $this->req->note,
+                        "num_people_1" => $this->req->guests["men"],
+                        "num_people_2" => $this->req->guests["women"],
+                        "num_people_3" => $this->req->guests["children"]
                     ]);
     }
 
     public function quickCreate()
     {
-        $num_guest = (int)$this->req->covers["men"] +  (int)$this->req->covers["women"] +  (int)$this->req->covers["children"];
+        $num_guest = (int)$this->req->guests["men"] +  (int)$this->req->guests["women"] +  (int)$this->req->guests["children"];
 
         $turn = TurnsHelper::TypeTurnWithHourForHour($this->req->date, $this->req->hour, $this->microsite_id);
         $duration = res_turn_time::where("res_turn_id", $turn->turn_id)->where("num_guests", $num_guest)->first();
@@ -185,9 +188,9 @@ class TableReservationService extends Service
         $reservation->res_reservation_status_id = 14;
         $reservation->status_released = 0;
         $reservation->num_guest = $num_guest;
-        $reservation->num_people_1 = $this->req->covers["men"];
-        $reservation->num_people_2 = $this->req->covers["women"];
-        $reservation->num_people_3 = $this->req->covers["children"];
+        $reservation->num_people_1 = $this->req->guests["men"];
+        $reservation->num_people_2 = $this->req->guests["women"];
+        $reservation->num_people_3 = $this->req->guests["children"];
         $reservation->date_reservation = $this->req->date;
         $reservation->hours_reservation = $turn->hour;
         $reservation->hours_duration = $duration? $duration->time : "01:30:00";
