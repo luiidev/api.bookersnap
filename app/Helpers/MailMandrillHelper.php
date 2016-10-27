@@ -16,6 +16,7 @@ class MailMandrillHelper
         try {
             $messageData = $this->prepareDataSend($params, $template);
             $result      = $this->_mandrill->messages->send($messageData['message'], $messageData['async'], $messageData['ip_pool'], $messageData['send_at']);
+            return true;
         } catch (Mandrill_Error $e) {
             echo 'A mandrill error occurred: ' . get_class($e) . ' - ' . $e->getMessage();
             throw $e;

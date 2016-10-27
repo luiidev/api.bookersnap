@@ -86,23 +86,31 @@ class ReservationController extends Controller
 
     }
 
-    public function sendMessageClient(Request $request)
+    public function sendEmail(Request $request)
     {
 
-        return $this->TryCatch(function () use ($service) {
+        return $this->TryCatch(function () use ($request, $service) {
 
             $messageData['from_email'] = "user@bookersnap.com";
             $messageData['from_name']  = "bookersnap.com";
 
+            $reservation = $service->get($request->route('microsite_id'), $request->route('reservation_id'));
+
+            if (!$reservation) {
+                abort(401, "No existe reservación");
+            } else if ($reservation->email == null) {
+                abort(401, "La reservación no tiene email");
+            }
+
+            $messageData['to_email'] = $reservation->email;
+            $messageData['to_name']  = $reservation->guest->first_name . " " . $reservation->guest->last_name;
+
             $messageData['subject'] = $request->input("subject");
             $messageData['text']    = $request->input('mensaje');
 
-            $messageData['to_email'] = $request->input('email');
-            $messageData['to_name']  = $request->input('nombre');
+            $response = $this->_MailMandrillHelper->sendEmail($messageData, 'emails.reservation-cliente');
 
-            $this->_MailMandrillHelper->sendEmail($messageData, 'emails.reservation-cliente');
-
-            return $this->CreateResponse(true, 200, "", $statuses);
+            return $this->CreateResponse(true, 200, "", $response);
         });
     }
 
