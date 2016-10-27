@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Request;
+use Carbon\Carbon;
 
 class AvailabilityRequest extends Request
 {
@@ -23,11 +24,16 @@ class AvailabilityRequest extends Request
      */
     public function rules()
     {
+        $date = Carbon::yesterday()->setTimezone($this->timezone)->toDateString();
+        // dd($this->timezone);
+        // $date = Carbon::today()->toDateString();
+        // dd($date);
         return [
-            'hour'       => 'required | date_format: H:i:s',
-            'date'       => 'required | date_format: Y-m-d',
-            'num_guests' => 'required | integer',
-            'next_day'   => 'required | integer',
+            'hour'       => 'required|date_format: H:i:s',
+            'date'       => "required|date_format: Y-m-d|after:$date",
+            'num_guests' => 'required|integer',
+            'next_day'   => 'required|integer|between:0,1',
+            'zone_id'    => 'required|integer|exists:res_zone,id',
         ];
 
     }
@@ -35,6 +41,6 @@ class AvailabilityRequest extends Request
 
     public function response(array $errors)
     {
-        return $this->CreateJsonResponse(false, 422, "", $errors, null, null, "PARAMETROS recibidos no son validos");
+        return $this->CreateJsonResponse(false, 422, "", $errors, null, null, "Parametros recibidos no son validos");
     }
 }

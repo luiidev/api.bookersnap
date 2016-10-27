@@ -8,7 +8,7 @@ use App\Http\Requests\BlockListRequest;
 use App\Http\Requests\BlockUpdateRequest;
 use App\Services\BlockService;
 use Illuminate\Http\Request;
-
+use Carbon\Carbon; 
 class BlockController extends Controller
 {
 
@@ -21,7 +21,9 @@ class BlockController extends Controller
     
     function index(BlockListRequest $request) {
         return $this->TryCatch(function () use ($request) {
-            $data = $this->_blockService->listado($request->route('microsite_id'), $request->all());
+            $dateNow = Carbon::now()->setTimezone($request->timezone);
+            $date = $request->input('date', $dateNow->format('Y-m-d'));
+            $data = $this->_blockService->listado($request->route('microsite_id'), $date);
             return $this->CreateJsonResponse(true, 201, "messages.block_list", $data);
         });
     }
@@ -61,7 +63,9 @@ class BlockController extends Controller
     {
 
         return $this->TryCatch(function () use ($request) {
-            $data = $this->_blockService->getTables($request->route('microsite_id'), $request->all());
+            $dateNow = Carbon::now()->setTimezone($request->timezone);
+            $date = $request->input('date', $dateNow->format('Y-m-d'));
+            $data = $this->_blockService->getTables($request->route('microsite_id'), $date);
             return $this->CreateJsonResponse(true, 201, "messages.block_list", $data);
         });
 
