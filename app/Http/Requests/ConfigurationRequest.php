@@ -41,13 +41,14 @@ class ConfigurationRequest extends Request
      */
     public function rulesDefault()
     {
+        // dd($this->time_tolerance);
         return [
-            "time_tolerance"       => "required|integer",
-            "time_restriction"     => "required|integer",
-            "max_people"           => "required|integer",
-            "max_people_standing"  => "required|integer",
-            "max_table"            => "required|integer",
-            "res_code_status"      => "required|integer",
+            "time_tolerance"       => "required|integer|between:0,180|multiple:5",
+            "time_restriction"     => "required|integer|between:0,180|multiple:5",
+            "max_people"           => "required|integer|between:0,100",
+            "max_people_standing"  => "required|integer|between:0,1000",
+            "max_table"            => "required|integer|between:0,20",
+            "res_code_status"      => "required|integer|between:0,1",
             "res_privilege_status" => "string",
             // "messenger_status"     => "integer",
             // "date_add"             => "required|date_format:Y-m-d H:i:s",
@@ -73,12 +74,12 @@ class ConfigurationRequest extends Request
     public function rulesEdit()
     {
         return [
-            "time_tolerance"       => "integer",
-            "time_restriction"     => "integer",
-            "max_people"           => "integer",
-            "max_people_standing"  => "integer",
-            "max_table"            => "integer",
-            "res_code_status"      => "integer",
+            "time_tolerance"       => "integer|between:0,180|multiple:5",
+            "time_restriction"     => "integer|between:0,180|multiple:5",
+            "max_people"           => "integer|between:0,100",
+            "max_people_standing"  => "integer|between:0,1000",
+            "max_table"            => "integer|between:0,20",
+            "res_code_status"      => "integer|between:0,1",
             "res_privilege_status" => "string",
             // "messenger_status"     => "integer",
             // "date_add"             => "date_format:Y-m-d H:i:s",

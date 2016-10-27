@@ -24,12 +24,9 @@ class AvailabilityRequest extends Request
      */
     public function rules()
     {
-        $date = Carbon::yesterday()->setTimezone($this->timezone)->toDateString();
-        // dd($this->timezone);
-        // $date = Carbon::today()->toDateString();
-        // dd($date);
+        $date = Carbon::now()->setTimezone($this->timezone)->subDay()->toDateString();
         return [
-            'hour'       => 'required|date_format: H:i:s',
+            'hour'       => 'required|date_format: H:i:s|multiple_hour:15',
             'date'       => "required|date_format: Y-m-d|after:$date",
             'num_guests' => 'required|integer',
             'next_day'   => 'required|integer|between:0,1',
@@ -44,3 +41,13 @@ class AvailabilityRequest extends Request
         return $this->CreateJsonResponse(false, 422, "", $errors, null, null, "Parametros recibidos no son validos");
     }
 }
+// Validator::extend('mutiple_date', function ($attribute, $value, $parameters) {
+//     list($y, $m, $d) = split("-", $value);
+//     $resto           = fmod((int) $m, 15);
+//     if ($resto == 0) {
+//         return true;
+//     } else {
+//         return false;
+//     }
+
+// });
