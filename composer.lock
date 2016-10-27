@@ -571,7 +571,6 @@
                 "storage"
             ],
             "time": "2016-10-19 20:38:46"
-<<<<<<< HEAD
         },
         {
             "name": "mandrill/mandrill",
@@ -615,8 +614,6 @@
                 "email"
             ],
             "time": "2015-09-22 13:58:03"
-=======
->>>>>>> 86115e487748d37add99e78c63b6dc3a4ac7013a
         },
         {
             "name": "monolog/monolog",
