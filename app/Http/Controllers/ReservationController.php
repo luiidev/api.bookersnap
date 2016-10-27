@@ -88,6 +88,7 @@ class ReservationController extends Controller
 
     public function sendEmail(Request $request)
     {
+        $service = $this->_ReservationService;
 
         return $this->TryCatch(function () use ($request, $service) {
 
