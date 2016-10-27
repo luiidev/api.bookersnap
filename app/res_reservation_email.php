@@ -7,6 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class res_reservation_email extends Model
 {
 
-    protected $table = "res_guest";
+    protected $table = "res_reservation_email";
 
 }
