@@ -25,7 +25,7 @@ class AvailabilityController extends Controller
 
         // testArrayDay
         return $this->TryCatch(function () use ($microsite_id, $date, $hour, $next_day, $num_guests, $zone_id) {
-            $availability = $this->service->testArrayDay($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day);
+            $availability = $this->service->searchAvailabilityDay($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day);
             return $this->CreateJsonResponse(true, 200, "", $availability);
         });
         // return $this->TryCatch(function () use ($microsite_id, $date, $hour, $next_day, $num_guests, $zone_id) {

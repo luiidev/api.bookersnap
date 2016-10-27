@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\NotificationServerHelper;
 use App\Http\Controllers\Controller as Controller;
 use App\Services\NoteService;
 use Illuminate\Http\Request;
@@ -9,10 +10,12 @@ use Illuminate\Http\Request;
 class NoteController extends Controller
 {
     protected $_NoteService;
+    private $_NotificationServeHelper;
 
-    public function __construct(NoteService $NoteService)
+    public function __construct(NoteService $NoteService, NotificationServerHelper $NotificationServerHelper)
     {
-        $this->_NoteService = $NoteService;
+        $this->_NoteService             = $NoteService;
+        $this->_NotificationServeHelper = $NotificationServerHelper;
     }
 
     public function index(Request $request)
@@ -30,7 +33,11 @@ class NoteController extends Controller
     {
         $service = $this->_NoteService;
         return $this->TryCatchDB(function () use ($request, $service) {
+
             $note = $service->saveNote($request->all(), $request->route('microsite_id'));
+            $this->_NotificationServeHelper->emit("b-mesas-floor-notes",
+                array('room' => 'microsites' . $request->route('microsite_id')));
+
             return $this->CreateJsonResponse(true, 201, "Se agrego una nueva nota", $note);
         });
     }
