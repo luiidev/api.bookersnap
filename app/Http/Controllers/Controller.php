@@ -26,6 +26,8 @@ class Controller extends BaseController
             $response = $this->CreateResponse(false, 404, null, null, false, null, 'No se encontró el recurso solicitado.', $e->getMessage() . "\n" . "{$e->getFile()}: {$e->getLine()}");
         } catch (\Exception $e) {
             $response = $this->CreateResponse(false, 500, null, null, false, null, "Ocurrió un error interno", $e->getMessage() . "\n" . "{$e->getFile()}: {$e->getLine()}");
+        } catch (Mandrill_Error $e) {
+            $response = $this->CreateResponse(false, 500, null, null, false, null, "Ocurrió un error al enviar mensaje", $e->getMessage() . "\n" . "{$e->getFile()}: {$e->getLine()}");
         }
         return response()->json($response, $response['statuscode']);
     }
