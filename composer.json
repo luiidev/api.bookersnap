@@ -8,7 +8,9 @@
         "php": ">=5.5.9",
         "laravel/framework": "5.2.*",
         "barryvdh/laravel-cors": "^0.8.1",
-        "tymon/jwt-auth": "0.5.*"
+        "tymon/jwt-auth": "0.5.*",
+        "wisembly/elephant.io": "~3.0",
+        "mandrill/mandrill": "1.0.*"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

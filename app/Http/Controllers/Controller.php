@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Foundation\Bus\DispatchesJobs;
-use Illuminate\Routing\Controller as BaseController;
-use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesResources;
+use Illuminate\Foundation\Bus\DispatchesJobs;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Routing\Controller as BaseController;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use DB;
 
 class Controller extends BaseController
 {
     use AuthorizesRequests, AuthorizesResources, DispatchesJobs, ValidatesRequests;
 
-    protected function TryCatch($closure) {
+    protected function TryCatch($closure)
+    {
         $response = null;
         try {
             return $closure();
@@ -29,11 +30,12 @@ class Controller extends BaseController
         return response()->json($response, $response['statuscode']);
     }
 
-    protected function TryCatchDB($closure) {
+    protected function TryCatchDB($closure)
+    {
         $response = null;
         try {
             DB::beginTransaction();
-                $response = $closure();
+            $response = $closure();
             DB::commit();
             return $response;
         } catch (HttpException $e) {
@@ -47,39 +49,40 @@ class Controller extends BaseController
         return response()->json($response, $response['statuscode']);
     }
 
-    protected function CreateResponse($success, $statusCode = 200, $msg = null, $data = null, $redirect = false, $url = null, $errorUserMsg = null, $errorInternalMsg = null, $arrayErrors = null) {
+    protected function CreateResponse($success, $statusCode = 200, $msg = null, $data = null, $redirect = false, $url = null, $errorUserMsg = null, $errorInternalMsg = null, $arrayErrors = null)
+    {
         $response = [
-            "success" => $success,
+            "success"    => $success,
             "statuscode" => $statusCode,
-            "msg" => $msg,
-            "data" => $data,
-            "redirect" => $redirect,
-            "url" => $url,
-            "error" => [
-                "user_msg" => $errorUserMsg,
+            "msg"        => $msg,
+            "data"       => $data,
+            "redirect"   => $redirect,
+            "url"        => $url,
+            "error"      => [
+                "user_msg"     => $errorUserMsg,
                 "internal_msg" => $errorInternalMsg,
-                "errors" => $arrayErrors
-            ]
+                "errors"       => $arrayErrors,
+            ],
         ];
         return $response;
     }
 
-     protected function CreateJsonResponse($success, $statusCode, $msg = null, $data = null, $redirect = false, $url = null, $errorUserMsg = null, $errorInternalMsg = null, $arrayErrors = null) {
+    protected function CreateJsonResponse($success, $statusCode, $msg = null, $data = null, $redirect = false, $url = null, $errorUserMsg = null, $errorInternalMsg = null, $arrayErrors = null)
+    {
         $response = [
-            "success" => $success,
+            "success"    => $success,
             "statuscode" => $statusCode,
-            "msg" => $msg,
-            "data" => $data,
-            "redirect" => $redirect,
-            "url" => $url,
-            "error" => [
-                "user_msg" => $errorUserMsg,
+            "msg"        => $msg,
+            "data"       => $data,
+            "redirect"   => $redirect,
+            "url"        => $url,
+            "error"      => [
+                "user_msg"     => $errorUserMsg,
                 "internal_msg" => $errorInternalMsg,
-                "errors" => $arrayErrors
-            ]
+                "errors"       => $arrayErrors,
+            ],
         ];
         return response()->json($response, $statusCode);
     }
-
 
 }
