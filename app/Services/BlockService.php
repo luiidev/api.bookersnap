@@ -36,11 +36,10 @@ class BlockService
 
     }
 
-    public function listado($microsite, $variables)
+    public function listado($microsite, $date)
     {
-        $fecha  = (isset($variables["fecha"]) && $variables["fecha"] != "") ? $variables["fecha"] : date("Y-m-d");
         $data   = array();
-        $blocks = Block::where("ms_microsite_id", "=", $microsite)->where("start_date", "=", $fecha)->get();
+        $blocks = Block::where("ms_microsite_id", "=", $microsite)->where("start_date", "=", $date)->get();
         $m      = 0;
         foreach ($blocks as $block) {
 
@@ -64,12 +63,10 @@ class BlockService
 
     }
 
-    public function getTables($microsite, $variables)
+    public function getTables($microsite, $date)
     {
 
         $data = array();
-        $date = (isset($variables["date"]) && $variables["date"] != "") ? $variables["date"] : date("Y-m-d");
-
         $blocks = Block::where("ms_microsite_id", "=", $microsite)->where("start_date", "=", $date)->get();
         $i      = 0;
         foreach ($blocks as $block) {
