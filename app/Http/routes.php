@@ -147,9 +147,11 @@ function routeMesas()
         //
         //
         Route::get('reservations', 'ReservationController@index');
+        Route::get('reservations/{reservation_id}', 'ReservationController@show');
         Route::post('reservations', 'ReservationController@create');
         Route::put('reservations/{reservation_id}', 'ReservationController@update');
         Route::delete('reservations/{reservation_id}', 'ReservationController@delete');
+        Route::post('reservations/{reservation_id}/send-email', 'ReservationController@sendMessage');
 
 //        Route::get('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
         //        Route::post('reservations', 'ConfigZoneTypeturnDayController@available');
