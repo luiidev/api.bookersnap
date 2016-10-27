@@ -122,6 +122,10 @@ class TableReservationController extends Controller
             "covers" =>  "required|integer|between:1,999",
             "server_id" =>  "exists:res_server,id",
             "note" =>  "string",
+            "guests" => "required|array",
+                "guests.men" => "required|integer",
+                "guests.women" => "required|integer",
+                "guests.children" => "required|integer",
         ];
 
         $request["id"] = $request->route("reservation");
@@ -141,15 +145,15 @@ class TableReservationController extends Controller
 
     public function quickCreate(Request $request)
     {
-        $now = Carbon::now()->addDay(-1)->toDateString();
+        $yesterday = Carbon::yesterday()->setTimezone($request->timezone)->toDateString();
         $rules = [
-            "date" =>  "required|date|after:$now",
+            "date" =>  "required|date|after:$yesterday",
             "hour" => "required",
             "table_id" => "required|exists:res_table,id",
-            "covers" => "required|array",
-                "covers.men" => "required|integer",
-                "covers.women" => "required|integer",
-                "covers.children" => "required|integer",
+            "guests" => "required|array",
+                "guests.men" => "required|integer",
+                "guests.women" => "required|integer",
+                "guests.children" => "required|integer",
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -167,7 +171,6 @@ class TableReservationController extends Controller
 
     public function sit(Request $request)
     {
-            $now = Carbon::now()->addDay(-1)->toDateString();
             $rules = [
                 "table_id" => "required|exists:res_table,id",
             ];
@@ -180,9 +183,9 @@ class TableReservationController extends Controller
 
             $this->service = Service::make($request);
             return $this->TryCatchDB(function() {
-                $reservacion = $this->service->sit();
+                $reservation = $this->service->sit();
 
-                if ($reservacion) {
+                if ($reservation) {
                     return $this->CreateJsonResponse(true, 200, "");
                 } else {
                     return $this->CreateJsonResponse(true, 422, null, null, null, null, "No se enontro la reservacion.");

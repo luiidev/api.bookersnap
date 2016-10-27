@@ -4,9 +4,17 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/.env</file>
-            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Services/CalendarService.php</file>
-            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Http/Controllers/CalendarController.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Services/TableReservationService.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Http/Controllers/ReservationController.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/res_reservation_status.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Http/Controllers/TurnController.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Http/Controllers/ZoneController.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Services/TurnService.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Services/ConfigurationService.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Services/SearchAvailabilityService.php</file>
             <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Http/routes.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Http/Controllers/TestController.php</file>
+            <file>file:/C:/xampp/htdocs/bookersnap-projects/www.api.mesas.bookersnap.com/app/Services/ReservationService.php</file>
         </group>
     </open-files>
 </project-private>

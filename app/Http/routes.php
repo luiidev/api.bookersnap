@@ -29,7 +29,11 @@ Route::group(['prefix' => 'v1/{lang}', 'middleware' => ['cors']], function () {
     // ESTADOS DE RESERVACIONES
     //-----------------------------------------------------
     Route::get("reservation/status", "ReservationController@listStatus");
-
+    //-----------------------------------------------------
+    // TIPOS DE ORIGOEN DE RESERVACIONES
+    //-----------------------------------------------------
+    Route::get("reservation/source-types", "ReservationController@listSourceType");
+    
     routeMesas();
 });
 
@@ -40,14 +44,14 @@ function routeMesas()
     // MICROSITE
     //-----------------------------------------------------
     Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['setLocale', 'setTimeZone', 'ACL:microsite']], function () {
-
+        
         //-----------------------------------------------------
         // MICROSITE::ZONAS
         //-----------------------------------------------------
-        Route::get('zones/', ['uses' => 'ZoneController@index']);
+        Route::get('zones', ['uses' => 'ZoneController@index']);
         Route::get('zones/{zone_id}', 'ZoneController@show');
         Route::get('zones/{zone_id}/tables', 'ZoneController@listTable');
-        Route::post('zones/', 'ZoneController@create');
+        Route::post('zones', 'ZoneController@create');
         Route::put('zones/{zone_id}', 'ZoneController@update');
         Route::delete('zones/{zone_id}', 'ZoneController@delete');
 
@@ -56,7 +60,7 @@ function routeMesas()
         //-----------------------------------------------------
         Route::delete('blocks/{block_id}', 'BlockController@delete');
         Route::post('blocks', 'BlockController@insert');
-        Route::get('blocks', 'BlockController@list');
+        Route::get('blocks', 'BlockController@index');
         Route::get('blocks/tables', 'BlockController@getTables');
         Route::get('blocks/{block_id}', 'BlockController@getBlock');
         Route::put('blocks/{block_id}', 'BlockController@update');
@@ -131,34 +135,15 @@ function routeMesas()
         Route::get('zones/{zone_id}/type-turns/{id}/days', 'ZoneTypeturnController@index');
         Route::get('zones/{zone_id}/type-turns/{id}/days/available', 'ZoneTypeturnController@available');
 
-//        Route::get('reservations', 'ZoneTypeturnDayController@available');
         //-----------------------------------------------------
-        // MICROSITE::BLOCK
+        // MICROSITE::RESERVATION
         //-----------------------------------------------------
-        //        Route::get('blocks', 'ConfigZoneTypeturnDayController@available');
-        //        Route::get('blocks/{block_id}', 'ConfigZoneTypeturnDayController@available');
-        //        Route::post('blocks', 'ConfigZoneTypeturnDayController@available');
-        //        Route::put('blocks/{block_id}', 'ConfigZoneTypeturnDayController@available');
-        //        Route::delete('blocks/{block_id}', 'ConfigZoneTypeturnDayController@available');
-        //
-        //
-        //        Route::get('schedules', 'ConfigZoneTypeturnDayController@available');
-        //        Route::get('servers', 'ConfigZoneTypeturnDayController@available');
-        //
-        //
         Route::get('reservations', 'ReservationController@index');
         Route::get('reservations/{reservation_id}', 'ReservationController@show');
         Route::post('reservations', 'ReservationController@create');
         Route::put('reservations/{reservation_id}', 'ReservationController@update');
         Route::delete('reservations/{reservation_id}', 'ReservationController@delete');
         Route::post('reservations/{reservation_id}/send-email', 'ReservationController@sendMessage');
-
-//        Route::get('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
-        //        Route::post('reservations', 'ConfigZoneTypeturnDayController@available');
-        //        Route::put('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
-        //        Route::delete('reservations/{reservation_id}', 'ConfigZoneTypeturnDayController@available');
-        //
-        //        Route::get('days/{day_id}', 'ZoneTypeturnDayController@available');
 
         //-----------------------------------------------------
         // MICROSITE:: RESERVATION
@@ -179,22 +164,29 @@ function routeMesas()
         //-----------------------------------------------------
         Route::patch("configuration/reservations", "ConfigurationController@edit");
         Route::resource("configuration/reservations", "ConfigurationController", ["only" => ["index", "update"]]);
-        // Route::put("configuration/reservation/codes/status", "ConfigurationController@updateCodeStatus");
+        
         //-----------------------------------------------------
         // MICROSITE:: PERCENTAGE (table res_percentage)
         //----------------------------------------------------
 
         Route::resource("configuration/percentages", "PercentageController", ["only" => ["index"]]);
-        //         //-----------------------------------------------------
-        //         // MICROSITE:: CODES (table res_code)
-        //         //-----------------------------------------------------
+        //-----------------------------------------------------
+        // MICROSITE:: CODES (table res_code)
+        //-----------------------------------------------------
         Route::resource("configuration/codes", "ConfigurationCodeController", ["only" => ["index", "store", "update", "destroy"]]);
 
-        //         //-----------------------------------------------------
-        //         // MICROSITE:: USER (table bs_user)
-        //         //-----------------------------------------------------
+        //-----------------------------------------------------
+        // MICROSITE:: USER (table bs_user)
+        //-----------------------------------------------------
+        Route::get("configuration/users/privileges", "ConfigurationUserController@getAllUser");
         Route::resource("configuration/users", "ConfigurationUserController", ["only" => ["index", "destroy", "store"]]);
-        Route::get("configuration/users/privileges/", "ConfigurationUserController@getAllUser");
+
+        //-----------------------------------------------------
+        // MICROSITE:: Availability
+        //-----------------------------------------------------
+        Route::group(['prefix' => 'availability/'], function () {
+            Route::get('basic/', 'AvailabilityController@basic');
+        });
     });
 
 }

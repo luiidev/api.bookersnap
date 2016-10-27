@@ -44,6 +44,7 @@ class ConfigurationService
             $config->time_tolerance       = 1;
             $config->time_restriction     = 1;
             $config->max_people           = 1;
+            $config->max_people_standing  = 1;
             $config->max_table            = 1;
             $config->res_code_status      = 1;
             $config->res_privilege_status = "test";
@@ -76,7 +77,9 @@ class ConfigurationService
             $date           = Carbon::now('America/Lima');
             $confingRequest = $input;
             unset($confingRequest["_bs_user_id"]);
-            $confingRequest["date_upd"] = $date;
+            unset($confingRequest["timezone"]);
+            $confingRequest["date_upd"] = $date->toDateTimeString();
+            // return $confingRequest;
             $config->where('ms_microsite_id', $microsite_id)->update($confingRequest);
             $configUpdate = res_configuration::where('ms_microsite_id', $microsite_id)->first();
             return $configUpdate;

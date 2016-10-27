@@ -25,27 +25,21 @@ class ReservationController extends Controller
         $service = $this->_ReservationService;
 
         return $this->TryCatch(function () use ($request, $service) {
-
-            $date = Carbon::now();
+            $date = Carbon::now()->setTimezone($request->timezone);
             $date = $date->format('Y-m-d');
-
             $data = $service->getList($request->route('microsite_id'), $date);
-            //$data=['name'=>'jesus'];
             return $this->CreateResponse(true, 201, "", $data);
         });
     }
-
     public function show(Request $request)
     {
         $service = $this->_ReservationService;
         return $this->TryCatch(function () use ($request, $service) {
 
             $data = $service->get($request->route('microsite_id'), $request->route('reservation_id'));
-            //$data=['name'=>'jesus'];
             return $this->CreateResponse(true, 201, "", $data);
         });
     }
-
     public function create(ReservationRequest $request)
     {
         $service = $this->_ReservationService;
@@ -71,6 +65,7 @@ class ReservationController extends Controller
     {
         $service = $this->_ReservationService;
         return $this->TryCatch(function () use ($request, $service) {
+
             $result = $service->delete($request->route('microsite_id'), $request->route('reservation_id'));
             return response()->json($result);
         });
@@ -84,6 +79,7 @@ class ReservationController extends Controller
     {
         $service = $this->_ReservationService;
         return $this->TryCatch(function () use ($service) {
+
             $statuses = $service->listStatus();
             return $this->CreateResponse(true, 200, "", $statuses);
         });
@@ -107,6 +103,19 @@ class ReservationController extends Controller
             $this->_MailMandrillHelper->sendEmail($messageData, 'emails.reservation-cliente');
 
             return $this->CreateResponse(true, 200, "", $statuses);
+        });
+    }
+
+    /**
+     * Retorna todos los tipos de origen de una reservacion
+     * @return Collection App\res_source_type
+     */
+    public function listSourceType()
+    {
+        $service = $this->_ReservationService;
+        return $this->TryCatch(function () use ($service) {
+            $response = $service->listSourceType();
+            return $this->CreateResponse(true, 200, "", $response);
         });
     }
 

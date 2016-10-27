@@ -24,14 +24,14 @@ class ZoneController extends Controller
     {
         $service = $this->_ZoneService;
 
-        $messageData['from_email'] = "user@bookersnap.com";
+        /* $messageData['from_email'] = "user@bookersnap.com";
         $messageData['from_name']  = "bookersnap.com";
         $messageData['subject']    = "Zonas";
         $messageData['text']       = "Esta chbre";
         $messageData['to_email']   = "joper30@gmail.com";
         $messageData['to_name']    = "josue diaz";
 
-        $this->_MailMandrillHelper->sendEmail($messageData, 'emails.reservation-cliente');
+        $this->_MailMandrillHelper->sendEmail($messageData, 'emails.reservation-cliente');*/
 
         return $this->TryCatch(function () use ($request, $service) {
             $data = $service->getList($request->route('microsite_id'), $request->input('with'));

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\res_guest;
 use App\res_reservation;
 use App\res_reservation_status;
+use App\res_source_type;
 use DB;
 use Exception;
 
@@ -43,6 +44,8 @@ class ReservationService
             $response[$i]["num_people_2"]              = $row->num_people_2;
             $response[$i]["num_people_3"]              = $row->num_people_3;
             $response[$i]["status_release"]            = $row->status_released;
+            $response[$i]["datetime_input"]            = $row->datetime_input;
+            $response[$i]["datetime_output"]           = $row->datetime_output;
             $response[$i]["total"]                     = $row->total;
             $response[$i]["consume"]                   = $row->consume;
             $response[$i]["num_table"]                 = $row->num_table;
@@ -52,6 +55,8 @@ class ReservationService
             $response[$i]["email"]                     = $row->email;
             $response[$i]["phone"]                     = $row->phone;
             $response[$i]["res_guest_id"]              = $row->res_guest_id;
+            $response[$i]["res_type_turn_id"]          = $row->res_type_turn_id;
+            $response[$i]["res_source_type_id"]        = $row->res_source_type_id;
             $response[$i]["res_reservation_status_id"] = $row->res_reservation_status_id;
             $response[$i]["guest"]                     = $row->guest;
             $response[$i]["res_server_id"]             = $row->res_server_id;
@@ -75,6 +80,7 @@ class ReservationService
             $reservation->num_people                = $data["num_people"];
             $reservation->note                      = $data["note"];
             $reservation->res_reservation_status_id = 1;
+            $reservation->res_source_type_id        = 1;
             $reservation->user_add                  = $user_id;
             $reservation->date_add                  = \Carbon\Carbon::now();
             $reservation->date_upd                  = $reservation->date_add;
@@ -200,4 +206,14 @@ class ReservationService
     {
         return res_reservation_status::where("status", 1)->get(array("id", "name", "color"));
     }
+
+    /**
+     * Retorna todos los tipos de origen de una reservacion
+     * @return Collection App\res_source_type
+     */
+    public function listSourceType()
+    {
+        return res_source_type::where("status", 1)->get(array("id", "name", "description"));
+    }
+
 }
