@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Domain\TimeForTable;
 use App\Entities\BlockTable;
+use App\Entities\ev_event;
 use App\Entities\Reservation;
 use App\res_table;
 use App\res_table_reservation;
@@ -63,60 +64,66 @@ class AvailabilityService
             abort(500, "La configuracion del sitio no soporta la esa cantidad de usuario");
         }
 
-        /**
-         * Test CheckStandingPeople
-         */
-        // return $this->checkReservationStandingPeople($date, $this->time_tolerance, $timezone, $microsite_id, $num_guests);
-
-        /**
-         * Actualiza el estado de las reservaciones de una fecha determinada menores a la fecha actual
-         */
-        $this->checkReservationTimeTolerance($date, $this->time_tolerance, $microsite_id, $timezone);
-
-        $hourI             = $hour;
-        $hours             = $this->formatActualHour($hour, $timezone, $next_day);
-        $hour              = $hours->get("hour");
-        $indexHourInitI    = $this->defineIndexHour($next_day, $hourI);
-        $indexHourInitUp   = $this->defineIndexHour($hours->get("index"), $hours->get("hour2"));
-        $indexHourInitDown = $this->defineIndexHour($next_day, $hourI);
-
-        // return ["hourI" => $hourI, "hour" => $hours->get("hour"), "hourA" => $hours->get("hourA"), "hour2" => $hours->get("hour2")];
-        $arrayMid   = collect();
-        $resultsMid = [];
-        if ($hourI === $hour) {
-            $resultsMid = $this->getAvailabilityBasic($microsite_id, $date, $hourI, $num_guests, $zone_id, $indexHourInitI, $timezone);
-        }
-        if (count($resultsMid) > 0) {
-            $arrayMid->push($resultsMid);
+        $event = $this->checkEvent($date, $microsite_id, $hour);
+        if ($event->get('result') == true) {
+            return $event->get('event');
         } else {
-            $arrayMid->push(["hour" => $hourI, "tables" => null]);
-        }
+            /**
+             * Test CheckStandingPeople
+             */
+            // return $this->checkReservationStandingPeople($date, $this->time_tolerance, $timezone, $microsite_id, $num_guests);
 
-        if ($next_day == 0) {
-            $indexHourActualAux = $this->defineIndexHour($next_day, $hours->get("hourA"));
-            $arrayUp            = $this->searchUpAvailability($indexHourInitUp, $microsite_id, $date, $num_guests, $zone_id, $timezone);
-            $arrayDown          = $this->searchDownAvailability($indexHourInitDown, $microsite_id, $date, $num_guests, $zone_id, $indexHourActualAux, $timezone);
-            $cantUp             = $arrayUp->count();
-            if ($cantUp < 2) {
-                $arrayUp = $this->addUpAvailavility($arrayUp, $indexHourInitUp + $cantUp);
+            /**
+             * Actualiza el estado de las reservaciones de una fecha determinada menores a la fecha actual
+             */
+            $this->checkReservationTimeTolerance($date, $this->time_tolerance, $microsite_id, $timezone);
+
+            $hourI             = $hour;
+            $hours             = $this->formatActualHour($hour, $timezone, $next_day);
+            $hour              = $hours->get("hour");
+            $indexHourInitI    = $this->defineIndexHour($next_day, $hourI);
+            $indexHourInitUp   = $this->defineIndexHour($hours->get("index"), $hours->get("hour2"));
+            $indexHourInitDown = $this->defineIndexHour($next_day, $hourI);
+
+            // return ["hourI" => $hourI, "hour" => $hours->get("hour"), "hourA" => $hours->get("hourA"), "hour2" => $hours->get("hour2")];
+            $arrayMid   = collect();
+            $resultsMid = [];
+            if ($hourI === $hour) {
+                $resultsMid = $this->getAvailabilityBasic($microsite_id, $date, $hourI, $num_guests, $zone_id, $indexHourInitI, $timezone);
             }
-            $cantDown = $arrayDown->count();
-            if ($cantDown < 2) {
-                $arrayDown = $this->addDownAvailavility($arrayDown, $indexHourInitDown - $cantDown, $indexHourActualAux);
+            if (count($resultsMid) > 0) {
+                $arrayMid->push($resultsMid);
+            } else {
+                $arrayMid->push(["hour" => $hourI, "tables" => null]);
             }
-        } else {
-            $arrayUp   = $this->searchUpAvailability($indexHourInitUp, $microsite_id, $date, $num_guests, $zone_id, $timezone);
-            $arrayDown = $this->searchDownAvailability($indexHourInitI, $microsite_id, $date, $num_guests, $zone_id, 0, $timezone);
-            $cantUp    = $arrayUp->count();
-            if ($cantUp < 2) {
-                $arrayUp = $this->addUpAvailavility($arrayUp, $indexHourInitUp + $cantUp);
+
+            if ($next_day == 0) {
+                $indexHourActualAux = $this->defineIndexHour($next_day, $hours->get("hourA"));
+                $arrayUp            = $this->searchUpAvailability($indexHourInitUp, $microsite_id, $date, $num_guests, $zone_id, $timezone);
+                $arrayDown          = $this->searchDownAvailability($indexHourInitDown, $microsite_id, $date, $num_guests, $zone_id, $indexHourActualAux, $timezone);
+                $cantUp             = $arrayUp->count();
+                if ($cantUp < 2) {
+                    $arrayUp = $this->addUpAvailavility($arrayUp, $indexHourInitUp + $cantUp);
+                }
+                $cantDown = $arrayDown->count();
+                if ($cantDown < 2) {
+                    $arrayDown = $this->addDownAvailavility($arrayDown, $indexHourInitDown - $cantDown, $indexHourActualAux);
+                }
+            } else {
+                $arrayUp   = $this->searchUpAvailability($indexHourInitUp, $microsite_id, $date, $num_guests, $zone_id, $timezone);
+                $arrayDown = $this->searchDownAvailability($indexHourInitI, $microsite_id, $date, $num_guests, $zone_id, 0, $timezone);
+                $cantUp    = $arrayUp->count();
+                if ($cantUp < 2) {
+                    $arrayUp = $this->addUpAvailavility($arrayUp, $indexHourInitUp + $cantUp);
+                }
+                $cantDown = $arrayDown->count();
+                if ($cantDown < 2) {
+                    $arrayDown = $this->addDownAvailavility($arrayUp, $indexHourInitI - $cantDown, 0);
+                }
             }
-            $cantDown = $arrayDown->count();
-            if ($cantDown < 2) {
-                $arrayDown = $this->addDownAvailavility($arrayUp, $indexHourInitI - $cantDown, 0);
-            }
+            return array_merge($arrayDown->toArray(), $arrayMid->toArray(), $arrayUp->toArray());
+
         }
-        return array_merge($arrayDown->toArray(), $arrayMid->toArray(), $arrayUp->toArray());
     }
 
     /**
@@ -519,6 +526,8 @@ class AvailabilityService
 
     public function checkReservationStandingPeople(string $date, string $time_tolerance, string $timezone, int $microsite_id, int $num_guests)
     {
+        $dateActual = Carbon::now()->tz($timezone);
+        $hourActual = $dateActual->toDateTimeString();
         if ($time_tolerance != 0) {
             $time_tolerance_string = Carbon::parse("00:00:00")->addMinutes($time_tolerance)->toTimeString();
             $reservations          = Reservation::selectRaw("count(num_guest) as num_guests_standing")->where('ms_microsite_id', $microsite_id)
@@ -547,9 +556,23 @@ class AvailabilityService
         }
     }
 
-    public function checkEvent()
+    public function checkEvent(string $date, int $microsite_id, string $hour)
     {
+        // return $date . " " . $hour;
+        // $today = Carbon::today()->toDateTimeString();
 
+        $dateC  = $date . " " . $hour;
+        $events = ev_event::where('ms_microsite_id', $microsite_id)
+            ->where('datetime_event', '<=', $dateC)
+        // ->where('datetime_event', '>=', $today)
+        // ->get();
+            ->first();
+        if ($events->count() > 0) {
+            return collect(["event" => $events, "result" => true]);
+        } else {
+            return collect(["event" => $events, "result" => false]);
+        }
+        // return $events;
     }
 
 }
