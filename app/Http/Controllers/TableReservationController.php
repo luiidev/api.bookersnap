@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\NotificationServerHelper;
 use App\Http\Requests;
 use App\Http\Requests\TableReservationRequest;
 use App\Services\TableReservationService as Service;
@@ -13,6 +14,12 @@ class TableReservationController extends Controller
 {
     private $service;
 
+    private $_NotificationServeHelper;
+
+    public function __construct(NotificationServerHelper $NotificationServerHelper)
+    {
+        $this->_NotificationServeHelper = $NotificationServerHelper;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -41,11 +48,11 @@ class TableReservationController extends Controller
      */
     public function store(Request $request)
     {
-         $this->service = Service::make($request);
-         return $this->TryCatchDB(function() {
-             $reservation = $this->service->create_reservation();
-             return $this->CreateJsonResponse(true, 201, "La reservacion fue registrada", $reservation);
-         });
+        $this->service = Service::make($request);
+        return $this->TryCatchDB(function () {
+            $reservation = $this->service->create_reservation();
+            return $this->CreateJsonResponse(true, 201, "La reservacion fue registrada", $reservation);
+        });
     }
 
     /**
@@ -68,7 +75,7 @@ class TableReservationController extends Controller
     public function edit(Request $request)
     {
         $this->service = Service::make($request);
-        $reservation = $this->service->edit();
+        $reservation   = $this->service->edit();
 
         return $this->CreateJsonResponse(true, 200, "", $reservation);
     }
@@ -83,7 +90,7 @@ class TableReservationController extends Controller
     public function update(TableReservationRequest $request)
     {
         $this->service = Service::make($request);
-        return $this->TryCatchDB(function() {
+        return $this->TryCatchDB(function () {
             $reservation = $this->service->update();
             return $this->CreateJsonResponse(true, 200, "Se actualizo la reservacion.", $reservation);
         });
@@ -100,12 +107,11 @@ class TableReservationController extends Controller
         //
     }
 
-
     public function cancel(Request $request)
     {
         $this->service = Service::make($request);
-        return $this->TryCatchDB(function() {
-            $confirmation =  $this->service->cancel();
+        return $this->TryCatchDB(function () {
+            $confirmation = $this->service->cancel();
             if ($confirmation) {
                 return $this->CreateJsonResponse(true, 200, "La reservacion fue cancelada.");
             } else {
@@ -117,15 +123,15 @@ class TableReservationController extends Controller
     public function quickEdit(Request $request)
     {
         $rules = [
-            "id" => "exists:res_reservation",
-            "status_id" =>  "required|exists:res_reservation_status,id",
-            "covers" =>  "required|integer|between:1,999",
-            "server_id" =>  "exists:res_server,id",
-            "note" =>  "string",
-            "guests" => "required|array",
-                "guests.men" => "required|integer",
-                "guests.women" => "required|integer",
-                "guests.children" => "required|integer",
+            "id"              => "exists:res_reservation",
+            "status_id"       => "required|exists:res_reservation_status,id",
+            "covers"          => "required|integer|between:1,999",
+            "server_id"       => "exists:res_server,id",
+            "note"            => "string",
+            "guests"          => "required|array",
+            "guests.men"      => "required|integer",
+            "guests.women"    => "required|integer",
+            "guests.children" => "required|integer",
         ];
 
         $request["id"] = $request->route("reservation");
@@ -137,8 +143,12 @@ class TableReservationController extends Controller
         }
 
         $this->service = Service::make($request);
-        return $this->TryCatch(function() {
+        return $this->TryCatch(function () {
             $this->service->quickEdit();
+
+            $this->_NotificationServeHelper->emit("b-mesas-floor-upd-res",
+                array('room' => 'microsites' . $request->route('microsite_id')));
+
             return $this->CreateJsonResponse(true, 200, "La eservacion fue actualizada.");
         });
     }
@@ -146,14 +156,14 @@ class TableReservationController extends Controller
     public function quickCreate(Request $request)
     {
         $yesterday = Carbon::yesterday()->setTimezone($request->timezone)->toDateString();
-        $rules = [
-            "date" =>  "required|date|after:$yesterday",
-            "hour" => "required",
-            "table_id" => "required|exists:res_table,id",
-            "guests" => "required|array",
-                "guests.men" => "required|integer",
-                "guests.women" => "required|integer",
-                "guests.children" => "required|integer",
+        $rules     = [
+            "date"            => "required|date|after:$yesterday",
+            "hour"            => "required",
+            "table_id"        => "required|exists:res_table,id",
+            "guests"          => "required|array",
+            "guests.men"      => "required|integer",
+            "guests.women"    => "required|integer",
+            "guests.children" => "required|integer",
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -163,7 +173,7 @@ class TableReservationController extends Controller
         }
 
         $this->service = Service::make($request);
-        return $this->TryCatchDB(function() {
+        return $this->TryCatchDB(function () {
             $reservation = $this->service->quickCreate();
             return $this->CreateJsonResponse(true, 200, "La reservacion fue registrada.", $reservation);
         });
@@ -171,25 +181,25 @@ class TableReservationController extends Controller
 
     public function sit(Request $request)
     {
-            $rules = [
-                "table_id" => "required|exists:res_table,id",
-            ];
+        $rules = [
+            "table_id" => "required|exists:res_table,id",
+        ];
 
-            $validator = Validator::make($request->all(), $rules);
+        $validator = Validator::make($request->all(), $rules);
 
-            if ($validator->fails()) {
-                return $this->CreateJsonResponse(false, 422, "", $validator->errors(), null, null, "Parametro incorrectos");
+        if ($validator->fails()) {
+            return $this->CreateJsonResponse(false, 422, "", $validator->errors(), null, null, "Parametro incorrectos");
+        }
+
+        $this->service = Service::make($request);
+        return $this->TryCatchDB(function () {
+            $reservation = $this->service->sit();
+
+            if ($reservation) {
+                return $this->CreateJsonResponse(true, 200, "");
+            } else {
+                return $this->CreateJsonResponse(true, 422, null, null, null, null, "No se enontro la reservacion.");
             }
-
-            $this->service = Service::make($request);
-            return $this->TryCatchDB(function() {
-                $reservation = $this->service->sit();
-
-                if ($reservation) {
-                    return $this->CreateJsonResponse(true, 200, "");
-                } else {
-                    return $this->CreateJsonResponse(true, 422, null, null, null, null, "No se enontro la reservacion.");
-                }
-            });
+        });
     }
 }
