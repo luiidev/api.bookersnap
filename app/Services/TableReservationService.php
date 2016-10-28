@@ -159,7 +159,7 @@ class TableReservationService extends Service
 
     public function cancel()
     {
-        return res_reservation::where("id", $this->reservation)->update(["res_reservation_status_id" => 12]);
+        return res_reservation::where("id", $this->reservation)->update(["res_reservation_status_id" => 6]);
     }
 
     public function quickEdit()
@@ -185,7 +185,7 @@ class TableReservationService extends Service
 
         $reservation = new res_reservation();
         $reservation->res_source_type_id = 1;
-        $reservation->res_reservation_status_id = 14;
+        $reservation->res_reservation_status_id = 4;
         $reservation->status_released = 0;
         $reservation->num_guest = $num_guest;
         $reservation->num_people_1 = $this->req->guests["men"];
@@ -215,7 +215,7 @@ class TableReservationService extends Service
         }])->where("id", $this->reservation)->first();
 
         if ($reservation != null){
-            $reservation->res_reservation_status_id = 14;
+            $reservation->res_reservation_status_id = 4;
             if ($reservation->datetime_input == null) {
                 $reservation->datetime_input = Carbon::now()->setTimezone($this->req->timezone)->toDateTimeString();
             }
@@ -229,13 +229,13 @@ class TableReservationService extends Service
                 $query->where('res_table_id', $this->req->table_id);
             }])->where("id", "<>", $this->reservation)
                 ->where("date_reservation", $today)
-                ->where("res_reservation_status_id", ">=", 14)
+                ->where("res_reservation_status_id", "=", 4)
                 ->where("ms_microsite_id", $this->microsite_id)
                 ->get();
 
             foreach ($others_reservation as $res) {
                 if ($res->tables_count > 0) {
-                    $res->res_reservation_status_id = 10;
+                    $res->res_reservation_status_id = 5;
                     if ($res->datetime_output == null) {
                         $res->datetime_output = Carbon::now()->setTimezone($this->req->timezone)->toDateTimeString();
                     }
