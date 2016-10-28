@@ -17,12 +17,12 @@ class AvailabilityService
     private $minCombinationTable;
     private $maxPeople;
     private $time_tolerance;
-    private $id_status_no_confirm        = 1;
-    private $id_res_source_type          = 4;
-    private $id_status_cancel_user       = 11;
-    private $id_status_cancel_restaurant = 12;
-    private $id_status_finish            = 18;
-    private $durationTimeAux             = "01:30:00";
+    private $id_res_source_type = 4; //Reservación tipo WEB
+    private $id_status_reserved = 1; //Reservado
+    private $id_status_released = 5; //Liberada
+    private $id_status_cancel   = 6; //Cancelada
+    private $id_status_absent   = 7; //Ausente
+    private $durationTimeAux    = "01:30:00";
 
     public function __construct(CalendarService $CalendarService, TurnService $TurnService, ConfigurationService $ConfigurationService, TimeForTable $TimeForTable)
     {
@@ -348,9 +348,9 @@ class AvailabilityService
         $listReservation = [];
         $reservations    = res_table_reservation::whereIn('res_table_id', $tables_id)->with(['reservation' => function ($query) use ($date, $hourI, $hourF) {
             $query->where('date_reservation', '=', $date)
-                ->where('res_reservation_status_id', '<>', $this->id_status_finish)
-                ->where('res_reservation_status_id', '<>', $this->id_status_cancel_user)
-                ->where('res_reservation_status_id', '<>', $this->id_status_cancel_restaurant)
+                ->where('res_reservation_status_id', '<>', $this->id_status_released)
+                ->where('res_reservation_status_id', '<>', $this->id_status_cancel)
+                ->where('res_reservation_status_id', '<>', $this->id_status_absent)
                 ->whereRaw("concat(date_reservation,' ',hours_reservation) <= ?", array($hourI))
                 ->whereRaw("addtime(concat(date_reservation,' ',hours_reservation),hours_duration) >= ?", array($hourI))
                 ->orwhereRaw("concat(date_reservation,' ',hours_reservation) < ?", array($hourF))
@@ -481,7 +481,7 @@ class AvailabilityService
             $reservations          = Reservation::where("ms_microsite_id", $microite_id)
                 ->where("date_reservation", $date)
                 ->where("res_source_type_id", $this->id_res_source_type)
-                ->where('res_reservation_status_id', $this->id_status_no_confirm)
+                ->where('res_reservation_status_id', $this->id_status_reserved)
                 ->whereRaw("addtime(concat(date_reservation,' ',hours_reservation),?) <= ?", array($time_tolerance_string, $hourActual))->get();
             if (!$reservations->isEmpty()) {
                 foreach ($reservations as $reservation) {
