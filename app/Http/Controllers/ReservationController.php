@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\MailMandrillHelper;
 use App\Http\Controllers\Controller as Controller;
 use App\Http\Requests\ReservationRequest;
+use App\Services\ReservationEmailService;
 use App\Services\ReservationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -12,12 +13,14 @@ use Illuminate\Http\Request;
 class ReservationController extends Controller
 {
     protected $_ReservationService;
+    protected $_ReservationEmailService;
     protected $_MailMandrillHelper;
 
-    public function __construct(ReservationService $ReservationService)
+    public function __construct(ReservationService $ReservationService, ReservationEmailService $ReservationEmailService)
     {
-        $this->_ReservationService = $ReservationService;
-        $this->_MailMandrillHelper = new MailMandrillHelper('gOPLZL8WNLUaeY2CsRmckQ');
+        $this->_ReservationService      = $ReservationService;
+        $this->_ReservationEmailService = $ReservationEmailService;
+        $this->_MailMandrillHelper      = new MailMandrillHelper('gOPLZL8WNLUaeY2CsRmckQ');
     }
 
     public function index(Request $request)
@@ -89,8 +92,9 @@ class ReservationController extends Controller
     public function sendEmail(Request $request)
     {
         $service = $this->_ReservationService;
-
-        return $this->TryCatch(function () use ($request, $service) {
+        $date    = Carbon::now()->setTimezone($request->timezone);
+        $date    = $date->format('Y-m-d');
+        return $this->TryCatch(function () use ($request, $service, $date) {
 
             $messageData['from_email'] = "user@bookersnap.com";
             $messageData['from_name']  = "bookersnap.com";
@@ -110,6 +114,11 @@ class ReservationController extends Controller
             $messageData['message'] = $request->input('message');
 
             $response = $this->_MailMandrillHelper->sendEmail($messageData, 'emails.reservation-cliente');
+
+            $messageData['res_reservation_id'] = $reservation->id;
+            $messageData['user_add']           = $request->_bs_user_id;
+            $messageData['date_add']           = $date;
+            $this->_ReservationEmailService->create($messageData);
 
             return $this->CreateResponse(true, 200, "Mensaje enviado", $response);
         });
