@@ -39,9 +39,8 @@ class TableReservationController extends Controller
      * @param App\Http\Requests\TableReservationRequest $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(TableReservationRequest $request)
     {
-        // return "o.o";
         $this->service = Service::make($request);
         return $this->TryCatchDB(function() {
             $reservation = $this->service->create_reservation();

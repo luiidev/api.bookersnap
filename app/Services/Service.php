@@ -11,9 +11,6 @@ class Service
     {
         if ($request){
             $this->properties = ($request->route())?$request->route()->parameters():[];
-            // $this->properties = [];
-            // $this->properties["microsite_id"] = $request->route("microsite_id");
-            // $this->properties["reservation"] = $request->route("reservation");
             $this->properties["req"] = $request;
             $this->properties["req"]["ms_microsite_id"] = $this->microsite_id;
         }
