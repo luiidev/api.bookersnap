@@ -142,7 +142,10 @@ class TableReservationController extends Controller
             $this->service->quickEdit();
 
             event(new EmitNotification("b-mesas-floor-upd-res",
-                array('microsite_id' => $request->route('microsite_id'))
+                array(
+                    'microsite_id' => $request->route('microsite_id'),
+                    'user_msg'     => 'Hay una actualización de reservación',
+                )
             ));
 
             return $this->CreateJsonResponse(true, 200, "La reservacion fue actualizada.");
