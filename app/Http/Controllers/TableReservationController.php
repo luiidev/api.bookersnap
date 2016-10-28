@@ -83,7 +83,7 @@ class TableReservationController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  App\Http\Requests\TableReservationRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
@@ -161,9 +161,9 @@ class TableReservationController extends Controller
             "hour"            => "required",
             "table_id"        => "required|exists:res_table,id",
             "guests"          => "required|array",
-            "guests.men"      => "required|integer",
-            "guests.women"    => "required|integer",
-            "guests.children" => "required|integer",
+                "guests.men"      => "required|integer",
+                "guests.women"    => "required|integer",
+                "guests.children" => "required|integer",
         ];
 
         $validator = Validator::make($request->all(), $rules);
