@@ -28,9 +28,15 @@ class EmitNotificationListener
      */
     public function handle(EmitNotification $event)
     {
-        $data  = $event->getData();
+        $data  = $this->prepareData($event->getData());
         $event = $event->getEvent();
 
         $this->_NotificationServeHelper->emit($event, $data);
+    }
+
+    private function prepareData($data)
+    {
+        $data['room'] = 'microsites' . $data['microsite_id'];
+        return $data;
     }
 }
