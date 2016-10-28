@@ -41,12 +41,11 @@ class TableReservationController extends Controller
      */
     public function store(Request $request)
     {
-        return "o.o";
-        // $this->service = Service::make($request);
-        // return $this->TryCatchDB(function() {
-        //     $reservation = $this->service->create_reservation();
-        //     return $this->CreateJsonResponse(true, 201, "La reservacion fue registrada", $reservation);
-        // });
+         $this->service = Service::make($request);
+         return $this->TryCatchDB(function() {
+             $reservation = $this->service->create_reservation();
+             return $this->CreateJsonResponse(true, 201, "La reservacion fue registrada", $reservation);
+         });
     }
 
     /**
