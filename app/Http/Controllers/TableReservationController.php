@@ -143,13 +143,13 @@ class TableReservationController extends Controller
         }
 
         $this->service = Service::make($request);
-        return $this->TryCatch(function () {
+        return $this->TryCatch(function ($request) {
             $this->service->quickEdit();
 
-            $this->_NotificationServeHelper->emit("b-mesas-floor-upd-res",
-                array('room' => 'microsites' . $request->route('microsite_id')));
+            // $this->_NotificationServeHelper->emit("b-mesas-floor-upd-res",
+            //  array('room' => 'microsites' . $request->route('microsite_id')));
 
-            return $this->CreateJsonResponse(true, 200, "La eservacion fue actualizada.");
+            return $this->CreateJsonResponse(true, 200, "La reservacion fue actualizada.");
         });
     }
 
