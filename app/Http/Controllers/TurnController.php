@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EmitNotification;
 use App\Http\Requests\TurnRequest;
 use App\Services\TurnService;
 use Illuminate\Http\Request;
@@ -63,6 +64,12 @@ class TurnController extends Controller
         return $this->TryCatch(function () use ($request, $service) {
             $result = $service->update($request, $request->route('microsite_id'), $request->_bs_user_id);
             if ($result["response"] == "ok") {
+                event(new EmitNotification("b-mesas-config-update",
+                    array(
+                        'microsite_id' => $request->route('microsite_id'),
+                        'user_msg'     => 'Hay una actualización en la configuración (Turnos)',
+                    )
+                ));
                 return $this->CreateJsonResponse(true, 201, "", null);
             } else {
                 return $this->CreateJsonResponse(true, 401, "", $result["data"], null, null, "Conflictos con otras fechas");
