@@ -83,8 +83,8 @@ class AvailabilityService
         }
         $dateCloseAux = Carbon::parse($dayClose)->addDay($day)->toDateString();
         // return $dateCloseAux;
-        $dateClose    = $dateCloseAux . " " . $hourClose;
-        return $event = $this->checkEventPayment($date, $microsite_id, $hour, $dateClose, 2, $next_day);
+        $dateClose = $dateCloseAux . " " . $hourClose;
+        $event     = $this->checkEventPayment($date, $microsite_id, $hour, $dateClose, 2, $next_day);
 
         if ($event->get("event") != null) {
             return $event->get('event');
