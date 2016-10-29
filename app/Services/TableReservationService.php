@@ -273,7 +273,7 @@ class TableReservationService extends Service
         $reservation->status_released           = 0;
         $reservation->wait_list                 = 1;
         $reservation->num_guest                 = $this->req->covers;
-        $reservation->hours_duration            = $this->req->quote;
+        $reservation->quote                     = $this->req->quote;
 
         $reservation->note            = $this->req->note;
         $reservation->phone           = $phone;
