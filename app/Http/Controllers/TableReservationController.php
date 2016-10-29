@@ -129,9 +129,9 @@ class TableReservationController extends Controller
             "server_id"       => "exists:res_server,id",
             "note"            => "string",
             "guests"          => "required|array",
-            "guests.men"      => "required|integer",
-            "guests.women"    => "required|integer",
-            "guests.children" => "required|integer",
+                "guests.men"      => "required|integer",
+                "guests.women"    => "required|integer",
+                "guests.children" => "required|integer",
         ];
 
         $request["id"] = $request->route("reservation");
