@@ -78,15 +78,18 @@ class AvailabilityService
             $availabilityTables->push($this->turnService->getListTable($turn['turn']['id'], $zone_id));
 
         };
+        if ($availabilityTables->count() == 0) {
+            return "No hay disponibilidad";
+        }
         $dateCloseAux = Carbon::parse($dayClose)->addDay($day)->toDateString();
         // return $dateCloseAux;
-        return $dateClose = $dateCloseAux . " " . $hourClose;
-        $event            = $this->checkEventPayment($date, $microsite_id, $hour, $dateClose, 2);
+        $dateClose    = $dateCloseAux . " " . $hourClose;
+        return $event = $this->checkEventPayment($date, $microsite_id, $hour, $dateClose, 2, $next_day);
 
         if ($event->get("event") != null) {
             return $event->get('event');
         } else {
-            return $availabilityTables;
+            // return $availabilityTables;
 
             if ($event->get('hourMax') != null) {
                 $indexHourMax = $this->defineIndexHour($next_day, $event->get('hourMax'));
@@ -117,7 +120,7 @@ class AvailabilityService
             $arrayMid   = collect();
             $resultsMid = [];
             if ($hourI === $hour) {
-                $resultsMid = $this->getAvailabilityBasic($microsite_id, $date, $hourI, $num_guests, $zone_id, $indexHourInitI, $timezone);
+                $resultsMid = $this->getAvailabilityBasic($microsite_id, $date, $hourI, $num_guests, $zone_id, $indexHourInitI, $timezone, $availabilityTables);
             }
             if (count($resultsMid) > 0) {
                 $arrayMid->push($resultsMid);
@@ -591,12 +594,16 @@ class AvailabilityService
         }
     }
 
-    public function checkEventPayment(string $date, int $microsite_id, string $hour, string $dateClose, int $type_event_id)
+    public function checkEventPayment(string $date, int $microsite_id, string $hour, string $dateClose, int $type_event_id, int $next_day)
     {
+        if ($next_day = 1) {
+            $dateC = Carbon::parse($date . " " . $hour)->addDay()->toDateTimeString();
+        } else {
+            $dateC = Carbon::parse($date . " " . $hour)->toDateTimeString();
+        }
         $today = Carbon::today();
         $final = Carbon::parse($dateClose);
-        $dateC = $date . " " . $hour;
-        // return $dateC;
+
         $event = ev_event::where('ms_microsite_id', $microsite_id)
             ->where('bs_type_event_id', $type_event_id) //1:eventogratuito 2:eventopaga 3:promocion gratis 4 promocion de paga
             ->where('datetime_event', '>=', $today->toDateTimeString())
@@ -605,7 +612,7 @@ class AvailabilityService
         // return $event;
         if (isset($event)) {
             // return $event->datetime_event <= $dateC;
-            if ($event->datetime_event <= $dateC) {
+            if ($final >= $dateC) {
                 return collect(["event" => $event, "hourMax" => null]);
             } else {
                 $dateEvent         = Carbon::parse($event->datetime_event);

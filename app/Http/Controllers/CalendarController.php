@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EmitNotification;
 use App\Http\Requests\CalendarRequest;
-use Illuminate\Http\Request;
 use App\Services\CalendarService;
+use Illuminate\Http\Request;
 use Validator;
 
 class CalendarController extends Controller
@@ -20,14 +21,13 @@ class CalendarController extends Controller
     {
         $service = $this->_CalendarService;
         return $this->TryCatch(function () use ($request, $service) {
-            $param = explode("-", $request->route('date'));
+            $param              = explode("-", $request->route('date'));
             list($year, $month) = $param;
-            $day = isset($param[2]) ? $param[2] : null;
-            $data = $service->getList($request->route('microsite_id'), $year, $month, $day);
+            $day                = isset($param[2]) ? $param[2] : null;
+            $data               = $service->getList($request->route('microsite_id'), $year, $month, $day);
             return $this->CreateResponse(true, 201, "", $data);
         });
     }
-
 
     public function listShift(Request $request)
     {
@@ -41,9 +41,17 @@ class CalendarController extends Controller
     public function storeCalendar($lang, $microsite_id, CalendarRequest $request)
     {
         $res_turn_id = $request->input('res_turn_id');
-        $date = $request->input('date');
+        $date        = $request->input('date');
         return $this->TryCatch(function () use ($microsite_id, $res_turn_id, $date) {
             $this->_CalendarService->create($microsite_id, $res_turn_id, $date);
+
+            event(new EmitNotification("b-mesas-config-update",
+                array(
+                    'microsite_id' => $microsite_id,
+                    'user_msg'     => 'Hay una actualización en la configuración (Calendario)',
+                )
+            ));
+
             return $this->CreateResponse(true, 201);
         });
     }
@@ -56,7 +64,7 @@ class CalendarController extends Controller
             return $this->CreateResponse(true, 200);
         });
     }
-    
+
     public function existConflictTurn(Request $request)
     {
         $service = $this->_CalendarService;
@@ -67,9 +75,9 @@ class CalendarController extends Controller
     }
 
     /**
-     * Cambio de turno en el calendario 
-     * @param  Illuminate\Http\Request $request 
-     * @return  Illuminate\Http\Response  
+     * Cambio de turno en el calendario
+     * @param  Illuminate\Http\Request $request
+     * @return  Illuminate\Http\Response
      */
     public function changeCalendar(Request $request)
     {
@@ -77,12 +85,12 @@ class CalendarController extends Controller
         return $this->TryCatch(function () use ($request, $service) {
 
             $rules = [
-                "turn_id"   =>  "required|integer|exists:res_turn,id",
-                "shift_id"  =>  "required|integer|exists:res_turn,id",
-                "date"       =>  "required|date"
+                "turn_id"  => "required|integer|exists:res_turn,id",
+                "shift_id" => "required|integer|exists:res_turn,id",
+                "date"     => "required|date",
             ];
 
-            if ( Validator::make($request->all(), $rules)->fails()){
+            if (Validator::make($request->all(), $rules)->fails()) {
                 abort(406, "No posee lo campos necesarios o validos para realizar el cambio de turno");
             }
 
@@ -105,7 +113,7 @@ class CalendarController extends Controller
 
         return $this->TryCatch(function () use ($microsite, $date, $service) {
 
-            if (Validator::make(["date" => $date], ["date" => "date"])->fails()){
+            if (Validator::make(["date" => $date], ["date" => "date"])->fails()) {
                 abort(406, "La fecha de consulta no es valida");
             }
 

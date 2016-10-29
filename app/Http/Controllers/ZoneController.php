@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EmitNotification;
 use App\Http\Controllers\Controller as Controller;
 use App\Http\Requests\ZoneRequest;
 use App\Services\ZoneService;
@@ -51,6 +52,13 @@ class ZoneController extends Controller
         $service = $this->_ZoneService;
         return $this->TryCatch(function () use ($request, $service) {
             $result = $service->update($request->all(), $request->route('zone_id'), $request->input('_bs_user_id'));
+            event(new EmitNotification("b-mesas-config-update",
+                array(
+                    'microsite_id' => $request->route('microsite_id'),
+                    'user_msg'     => 'Hay una actualización en la configuración (Zonas)',
+                    'reload'       => 'zonas',
+                )
+            ));
             return $this->CreateResponse(true, 200, "", $result);
         });
     }

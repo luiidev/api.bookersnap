@@ -154,6 +154,7 @@ class TableReservationController extends Controller
 
     public function quickCreate(Request $request)
     {
+        return "ola";
         $yesterday = Carbon::yesterday()->setTimezone($request->timezone)->toDateString();
         $rules     = [
             "date"            => "required|date|after:$yesterday",
@@ -172,14 +173,14 @@ class TableReservationController extends Controller
         }
 
         $this->service = Service::make($request);
-        return $this->TryCatchDB(function () use($request) {
+        return $this->TryCatchDB(function () use ($request) {
 
             event(new EmitNotification("b-mesas-floor-upd-res",
                 array(
                     'microsite_id' => $request->route('microsite_id'),
                     'user_msg'     => 'Se ha creado nueva reservación rapida',
                 )
-                ));
+            ));
 
             $reservation = $this->service->quickCreate();
             return $this->CreateJsonResponse(true, 200, "La reservacion fue registrada.", $reservation);
@@ -199,20 +200,30 @@ class TableReservationController extends Controller
         }
 
         $this->service = Service::make($request);
-        return $this->TryCatchDB(function () use($request) {
+        return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->sit();
 
             if ($reservation) {
                 event(new EmitNotification("b-mesas-floor-upd-res",
-                array(
-                    'microsite_id' => $request->route('microsite_id'),
-                    'user_msg'     => 'Hay una actualización de reservación',
-                )
+                    array(
+                        'microsite_id' => $request->route('microsite_id'),
+                        'user_msg'     => 'Hay una actualización de reservación',
+                    )
                 ));
                 return $this->CreateJsonResponse(true, 200, "");
             } else {
                 return $this->CreateJsonResponse(true, 422, null, null, null, null, "No se enontro la reservacion.");
             }
+        });
+    }
+
+    public function createWaitList(Request $request)
+    {
+        $this->service = Service::make($request);
+
+        return $this->TryCatchDB(function () {
+            $reservation = $this->service->create_waitlist();
+            return $this->CreateJsonResponse(true, 201, "La lista de espera fue registrada", $reservation);
         });
     }
 }

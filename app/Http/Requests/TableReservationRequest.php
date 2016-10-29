@@ -25,7 +25,6 @@ class TableReservationRequest extends Request
     public function rules()
     {
         $date = Carbon::yesterday()->setTimezone($this->timezone)->toDateString();
-        dd($date);
         return [
             "guest_id"         => "exists:res_guest,id",
             "status_id"        => "required|exists:res_reservation_status,id",
