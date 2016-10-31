@@ -66,7 +66,7 @@ class BlockService
     public function getTables($microsite, $date)
     {
 
-        $data = array();
+        $data   = array();
         $blocks = Block::where("ms_microsite_id", "=", $microsite)->where("start_date", "=", $date)->get();
         $i      = 0;
         foreach ($blocks as $block) {
@@ -94,9 +94,9 @@ class BlockService
     {
 
         $data = array();
-       
 
-        $reservations = res_reservation::with("server")->where("ms_microsite_id", "=", $microsite)->where("date_reservation", "=", $date)->get();
+        $reservations = res_reservation::with("server")->where("ms_microsite_id", "=", $microsite)->where("date_reservation", "=", $date)
+            ->where('wait_list', '<>', 1)->get();
 
         $i = 0;
         foreach ($reservations as $reservation) {
