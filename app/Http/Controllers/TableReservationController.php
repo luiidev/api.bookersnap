@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\EmitNotification;
 use App\Http\Requests;
 use App\Http\Requests\TableReservationRequest;
+use App\Services\ReservationService;
 use App\Services\TableReservationService as Service;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -13,6 +14,11 @@ use Illuminate\Support\Facades\Validator;
 class TableReservationController extends Controller
 {
     private $service;
+    private $_ReservationService;
+    public function __construct(ReservationService $ReservationService)
+    {
+        $this->_ReservationService = $ReservationService;
+    }
 
     /**
      * Display a listing of the resource.
@@ -43,8 +49,19 @@ class TableReservationController extends Controller
     public function store(TableReservationRequest $request)
     {
         $this->service = Service::make($request);
-        return $this->TryCatchDB(function () {
+        return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->create_reservation();
+
+            $reservationData = $this->_ReservationService->get($request->route("microsite_id"), $reservation->id);
+
+            event(new EmitNotification("b-mesas-floor-upd-res",
+                array(
+                    'microsite_id' => $request->route('microsite_id'),
+                    'user_msg'     => 'Hay una nueva reservación',
+                    'data'         => $reservationData,
+                )
+            ));
+
             return $this->CreateJsonResponse(true, 201, "La reservacion fue registrada", $reservation);
         });
     }
@@ -221,8 +238,14 @@ class TableReservationController extends Controller
     {
         $this->service = Service::make($request);
 
-        return $this->TryCatchDB(function () {
+        return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->create_waitlist();
+            event(new EmitNotification("b-mesas-floor-upd-res",
+                array(
+                    'microsite_id' => $request->route('microsite_id'),
+                    'user_msg'     => 'Hay una actualización de reservación (Lista de espera)',
+                )
+            ));
             return $this->CreateJsonResponse(true, 201, "La lista de espera fue registrada", $reservation);
         });
     }
