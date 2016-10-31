@@ -62,7 +62,7 @@ class TableReservationController extends Controller
                 )
             ));
 
-            return $this->CreateJsonResponse(true, 201, "La reservacion fue registrada", $reservation);
+            return $this->CreateJsonResponse(true, 201, "La reservacion fue registrada", $reservationData);
         });
     }
 
