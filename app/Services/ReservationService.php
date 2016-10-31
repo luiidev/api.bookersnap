@@ -60,6 +60,7 @@ class ReservationService
             $response[$i]["res_reservation_status_id"] = $row->res_reservation_status_id;
             $response[$i]["guest"]                     = $row->guest;
             $response[$i]["res_server_id"]             = $row->res_server_id;
+            $response[$i]["wait_list"]                 = $row->wait_list;
             $i++;
         }
         return $response;
