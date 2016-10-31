@@ -307,7 +307,11 @@ class CalendarService
             ->whereIn('tz.res_turn_id', $turns)
             ->where('ms_microsite_id', $microsite)
             ->distinct()
-            ->with('tables')
+            ->with(['tables' => function($query) {
+                return $query->with(["turns" => function($query) {
+                    return $query->where("res_turn_rule_id", 0);
+                }]);
+            }])
             ->get(array(
                 "id",
                 "name",
