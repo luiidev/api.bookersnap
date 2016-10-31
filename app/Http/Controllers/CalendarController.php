@@ -59,8 +59,15 @@ class CalendarController extends Controller
     public function deleteCalendar($lang, $microsite_id, Request $request, $res_turn_id)
     {
         $date = request('date');
-        return $this->TryCatch(function () use ($res_turn_id, $date) {
+        return $this->TryCatch(function () use ($res_turn_id, $date, $microsite_id) {
             $this->_CalendarService->deleteCalendar($res_turn_id, $date);
+
+            event(new EmitNotification("b-mesas-config-update",
+                array(
+                    'microsite_id' => $microsite_id,
+                    'user_msg'     => 'Hay una actualización en la configuración (Calendario)',
+                )
+            ));
             return $this->CreateResponse(true, 200);
         });
     }
