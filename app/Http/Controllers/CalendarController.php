@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\EmitNotification;
 use App\Http\Requests\CalendarRequest;
 use App\Services\CalendarService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Validator;
 
@@ -45,12 +46,7 @@ class CalendarController extends Controller
         return $this->TryCatch(function () use ($microsite_id, $res_turn_id, $date) {
             $this->_CalendarService->create($microsite_id, $res_turn_id, $date);
 
-            event(new EmitNotification("b-mesas-config-update",
-                array(
-                    'microsite_id' => $microsite_id,
-                    'user_msg'     => 'Hay una actualización en la configuración (Calendario)',
-                )
-            ));
+            $this->_notificationConfigCalendar($microsite_id, $date);
 
             return $this->CreateResponse(true, 201);
         });
@@ -62,12 +58,8 @@ class CalendarController extends Controller
         return $this->TryCatch(function () use ($res_turn_id, $date, $microsite_id) {
             $this->_CalendarService->deleteCalendar($res_turn_id, $date);
 
-            event(new EmitNotification("b-mesas-config-update",
-                array(
-                    'microsite_id' => $microsite_id,
-                    'user_msg'     => 'Hay una actualización en la configuración (Calendario)',
-                )
-            ));
+            $this->_notificationConfigCalendar($microsite_id, $date);
+
             return $this->CreateResponse(true, 200);
         });
     }
@@ -102,6 +94,9 @@ class CalendarController extends Controller
             }
 
             $service->changeCalendar($request->route("microsite_id"), request("turn_id"), request("shift_id"), request("date"));
+
+            $this->_notificationConfigCalendar($request->route("microsite_id"), request("date"));
+
             return $this->CreateResponse(true, 201, "");
 
         });
@@ -128,5 +123,19 @@ class CalendarController extends Controller
 
             return $this->CreateResponse(true, 200, "", $zones);
         });
+    }
+
+    private function _notificationConfigCalendar(Int $microsite_id, String $date)
+    {
+        $dateNow = Carbon::now()->toDateString();
+
+        if ($date == $dateNow) {
+            event(new EmitNotification("b-mesas-config-update",
+                array(
+                    'microsite_id' => $microsite_id,
+                    'user_msg'     => 'Hay una actualización en la configuración (Calendario)',
+                )
+            ));
+        }
     }
 }
