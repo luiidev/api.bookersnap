@@ -534,7 +534,7 @@ class AvailabilityService
     public function checkReservationTimeTolerance(string $date, string $time_tolerance, int $microsite_id, string $timezone)
     {
         if ($time_tolerance !== 0) {
-            $time_tolerance_string = Carbon::parse("00:00:00")->addMinutes($time_tolerance)->toTimeString();
+            $time_tolerance_string = Carbon::createFromTime(0, 0, 0, $timezone)->addMinutes($time_tolerance)->toTimeString();
             $dateActual            = Carbon::now($timezone);
             $hourActual            = $dateActual->toDateTimeString();
             $reservations          = Reservation::where("ms_microsite_id", $microsite_id)
@@ -628,7 +628,7 @@ class AvailabilityService
         $dateActual = Carbon::now($timezone);
         $hourActual = $dateActual->toDateTimeString();
         if ($time_tolerance !== 0) {
-            $time_tolerance_string = Carbon::parse("00:00:00")->addMinutes($time_tolerance)->toTimeString();
+            $time_tolerance_string = Carbon::createFromTime(0, 0, 0, $timezone)->addMinutes($time_tolerance)->toTimeString();
             $reservations          = Reservation::selectRaw("count(num_guest) as num_guests_standing")->where('ms_microsite_id', $microsite_id)
                 ->where('date_reservation', $date)
                 ->where('status_standing', $this->status_standing)
