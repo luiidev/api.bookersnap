@@ -27,7 +27,7 @@ class AvailabilityRequest extends Request
         $date = Carbon::now()->setTimezone($this->timezone)->subDay()->toDateString();
         return [
             'hour'       => 'required|date_format: H:i:s|multiple_hour:15',
-            // 'date'       => "required|date_format: Y-m-d|after:$date",
+            'date'       => "required|date_format: Y-m-d|after:$date",
             'num_guests' => 'required|integer',
             'next_day'   => 'required|integer|between:0,1',
             'zone_id'    => 'required|integer|exists:res_zone,id',
