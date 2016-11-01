@@ -19,11 +19,11 @@ class AvailabilityController extends Controller
         $microsite_id = $request->route('microsite_id');
         $date         = $request->date;
         $hour         = $request->hour;
-        // $timezone     = $request->timezone;
-        $timezone   = 'America/Lima';
-        $next_day   = $request->next_day;
-        $num_guests = $request->num_guests;
-        $zone_id    = $request->zone_id;
+        $timezone     = $request->timezone;
+        $timezone     = 'America/Lima';
+        $next_day     = $request->next_day;
+        $num_guests   = $request->num_guests;
+        $zone_id      = $request->zone_id;
 
         // testArrayDay
         return $this->TryCatch(function () use ($microsite_id, $date, $hour, $next_day, $num_guests, $zone_id, $timezone) {

@@ -83,7 +83,7 @@ class AvailabilityService
         if ($availabilityTables->count() == 0) {
             return "No hay disponibilidad";
         }
-        $dateClose  = Carbon::parse($dayClose . " " . $hourClose)->tz($timezone)->addDay($day);
+        $dateClose  = Carbon::createFromFormat('Y-m-d H:i:s', $dayClose . " " . $hourClose, $timezone)->addDay($day);
         $indexClose = $this->defineIndexHour($day, $dateClose->toTimeString());
 
         $event = $this->checkEventPayment($date, $microsite_id, $hour, $dateClose, $this->id_event_payment, $next_day, $timezone);
@@ -92,7 +92,7 @@ class AvailabilityService
             return $event->get('event');
         } else {
 
-            return $hours     = $this->formatActualHour($hour, $timezone, $next_day);
+            return $hours     = $this->formatActualHour($date, $hour, $timezone, $next_day);
             $hourQuery        = $hours->get("hourQuery");
             $hourAvailability = $hours->get("hourAvailability");
             $hourUp           = $hours->get("hourUp");
@@ -185,14 +185,11 @@ class AvailabilityService
  * @param  int    $next_day valor de 0 y 1
  * @return array           devuelve un array con la hora de busqueda, hora actual y hora de busqueda superior inicial
  */
-    public function formatActualHour(string $hourQuery, string $timezone, int $next_day)
+    public function formatActualHour(string $date, string $hourQuery, string $timezone, int $next_day)
     {
-        // dd(Carbon::parse($hourQuery));
-        $hourQuery = Carbon::parse($hourQuery)->tz($timezone)->addDay($next_day);
-        dd($hourQuery);
-
+        $hourQuery        = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $hourQuery, $timezone)->addDay($next_day);
         $hourQueryAux     = $hourQuery->copy();
-        $hourAvailability = $this->dateMaxFormat(Carbon::now()->tz($timezone)->toDateTimeString(), $timezone);
+        $hourAvailability = $this->dateMaxFormat(Carbon::now($timezone));
         if ($hourQueryAux <= $hourAvailability) {
             $hourQueryAux = $hourAvailability->copy();
             $hourInitDown = $hourQueryAux->copy();
@@ -323,8 +320,8 @@ class AvailabilityService
         list($year, $month, $day) = explode("-", $date);
         list($h, $m, $s)          = explode(":", $hour);
         list($hd, $md, $sd)       = explode(":", $this->durationTimeAux);
-        $startHour                = Carbon::create($year, $month, $day, $h, $m, $s)->tz($timezone);
-        $endHour                  = Carbon::create($year, $month, $day, $h, $m, $s)->tz($timezone)->addHours($hd)->addMinutes($md)->addSeconds($sd);
+        $startHour                = Carbon::create($year, $month, $day, $h, $m, $s, $timezone);
+        $endHour                  = Carbon::create($year, $month, $day, $h, $m, $s, $timezone)->addHours($hd)->addMinutes($md)->addSeconds($sd);
 
         //Buscar las mesas disponibles en los turnos filtrados
         //Devuelve las mesas filtradas por el tipo de reservacion
@@ -538,7 +535,7 @@ class AvailabilityService
     {
         if ($time_tolerance !== 0) {
             $time_tolerance_string = Carbon::parse("00:00:00")->addMinutes($time_tolerance)->toTimeString();
-            $dateActual            = Carbon::now()->tz($timezone);
+            $dateActual            = Carbon::now($timezone);
             $hourActual            = $dateActual->toDateTimeString();
             $reservations          = Reservation::where("ms_microsite_id", $microsite_id)
                 ->where("date_reservation", $date)
@@ -559,28 +556,26 @@ class AvailabilityService
         }
     }
 
-    public function checkEventPayment(string $date, int $microsite_id, string $hour, string $dateClose, int $type_event_id, int $next_day, string $timezone)
+    public function checkEventPayment(string $date, int $microsite_id, string $hour, Carbon $dateClose, int $type_event_id, int $next_day, string $timezone)
     {
+        $dateC = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $hour, $timezone);
         if ($next_day == 1) {
-            $dateC = Carbon::parse($date . " " . $hour)->tz($timezone)->addDay()->toDateTimeString();
-        } else {
-            $dateC = Carbon::parse($date . " " . $hour)->tz($timezone)->toDateTimeString();
+            $dateC->addDay();
         }
-        $today = Carbon::today()->tz($timezone);
-        $final = Carbon::parse($dateClose)->tz($timezone);
-        // return [$today, $final, $dateC];
+        $today = Carbon::today($timezone);
+        $final = $dateClose;
         $event = ev_event::where('ms_microsite_id', $microsite_id)
             ->where('bs_type_event_id', $type_event_id) //1:eventogratuito 2:eventopaga 3:promocion gratis 4 promocion de paga
             ->where('datetime_event', '>=', $today->toDateTimeString())
             ->where('datetime_event', '<=', $final->toDateTimeString())
             ->first();
         if (isset($event)) {
-            $dateEvent = $this->dateMinFormat($event->datetime_event, $timezone);
+            $dateEvent = $this->dateMinFormat(Carbon::createFromFormat('Y-m-d H:i:s', $event->datetime_event, $timezone));
             $hourInit  = $dateEvent;
             $hourFin   = $final;
-            if ($dateEvent->toDateTimeString() > $dateC) {
+            if ($dateEvent->toDateTimeString() > $dateC->toDateTimeString()) {
                 return collect(["event" => $event, "hourMin" => $hourInit, "hourMax" => $hourFin]);
-            } elseif ($dateC <= $final->toDateTimeString()) {
+            } elseif ($dateC->toDateTimeString() <= $final->toDateTimeString()) {
                 return collect(["event" => $event, "hourMin" => $hourInit, "hourMax" => $hourFin]);
             } else {
                 return collect(["event" => $event, "hourMin" => $hourInit, "hourMax" => $hourFin]);
@@ -595,9 +590,9 @@ class AvailabilityService
 
     }
 
-    private function dateMinFormat(string $dateTime, string $timezone)
+    private function dateMinFormat(Carbon $dateTime)
     {
-        $date         = Carbon::parse($dateTime)->tz($timezone);
+        $date         = $dateTime;
         $date->second = 0;
         if ($date->minute < 15) {
             $date->minute = 0;
@@ -611,9 +606,9 @@ class AvailabilityService
         return $date;
     }
 
-    private function dateMaxFormat(string $dateTime, string $timezone)
+    private function dateMaxFormat(Carbon $dateTime)
     {
-        $date         = Carbon::parse($dateTime)->tz($timezone);
+        $date         = $dateTime;
         $date->second = 0;
         if ($date->minute < 15) {
             $date->minute = 15;
@@ -630,7 +625,7 @@ class AvailabilityService
 
     public function checkReservationStandingPeople(string $date, string $time_tolerance, string $timezone, int $microsite_id, int $num_guests)
     {
-        $dateActual = Carbon::now()->tz($timezone);
+        $dateActual = Carbon::now($timezone);
         $hourActual = $dateActual->toDateTimeString();
         if ($time_tolerance !== 0) {
             $time_tolerance_string = Carbon::parse("00:00:00")->addMinutes($time_tolerance)->toTimeString();
