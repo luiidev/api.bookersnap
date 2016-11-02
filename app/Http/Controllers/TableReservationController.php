@@ -86,7 +86,7 @@ class TableReservationController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  App\Http\Requests\TableReservationRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
@@ -133,9 +133,9 @@ class TableReservationController extends Controller
             "server_id"       => "exists:res_server,id",
             "note"            => "string",
             "guests"          => "required|array",
-            "guests.men"      => "required|integer",
-            "guests.women"    => "required|integer",
-            "guests.children" => "required|integer",
+                "guests.men"      => "required|integer",
+                "guests.women"    => "required|integer",
+                "guests.children" => "required|integer",
         ];
 
         $request["id"] = $request->route("reservation");
@@ -158,16 +158,15 @@ class TableReservationController extends Controller
 
     public function quickCreate(Request $request)
     {
-
         $yesterday = Carbon::yesterday()->setTimezone($request->timezone)->toDateString();
         $rules     = [
             "date"            => "required|date|after:$yesterday",
             "hour"            => "required",
             "table_id"        => "required|exists:res_table,id",
             "guests"          => "required|array",
-            "guests.men"      => "required|integer",
-            "guests.women"    => "required|integer",
-            "guests.children" => "required|integer",
+                "guests.men"      => "required|integer",
+                "guests.women"    => "required|integer",
+                "guests.children" => "required|integer",
         ];
 
         $validator = Validator::make($request->all(), $rules);
