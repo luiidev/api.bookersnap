@@ -148,8 +148,9 @@ class BlockService
             }
             DB::commit();
 
-            $response["mensaje"] = "messages.block_create_success";
-            $response["estado"]  = true;
+            $response["mensaje"]  = "messages.block_create_success";
+            $response["estado"]   = true;
+            $response["block_id"] = $model->id;
 
         } catch (\Exception $e) {
 

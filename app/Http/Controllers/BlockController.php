@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EmitNotification;
 use App\Http\Controllers\Controller as Controller;
 use App\Http\Requests\BlockCreateRequest;
 use App\Http\Requests\BlockListRequest;
@@ -44,6 +45,9 @@ class BlockController extends Controller
 
         return $this->TryCatch(function () use ($request) {
             $data = $this->_blockService->insert($request->route('microsite_id'), $request->all());
+
+            $this->_notificationBlock($request->route('microsite_id'), $data->block_id, "Se agrego un nuevo bloqueo");
+
             return $this->CreateJsonResponse($data->estado, 201, trans($data->mensaje));
         });
 
@@ -77,6 +81,20 @@ class BlockController extends Controller
             $data = $this->_blockService->update($request->route('microsite_id'), $request->route('block_id'), $request->all());
             return $this->CreateJsonResponse($data->estado, 201, trans($data->mensaje));
         });
+
+    }
+
+    private function _notificationBlock(Int $microsite_id, Int $block_id, $message)
+    {
+        $blockData = $this->_blockService->getBlock($microsite_id, $block_id);
+
+        event(new EmitNotification("b-mesas-floor-upd-block",
+            array(
+                'microsite_id' => $microsite_id,
+                'user_msg'     => $message,
+                'data'         => $blockData,
+            )
+        ));
 
     }
 

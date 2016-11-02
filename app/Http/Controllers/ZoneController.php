@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EmitNotification;
 use App\Http\Controllers\Controller as Controller;
 use App\Http\Requests\ZoneRequest;
 use App\Services\ZoneService;
