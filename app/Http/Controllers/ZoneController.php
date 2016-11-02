@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\EmitNotification;
 use App\Http\Controllers\Controller as Controller;
 use App\Http\Requests\ZoneRequest;
 use App\Services\ZoneService;
@@ -52,13 +51,9 @@ class ZoneController extends Controller
         $service = $this->_ZoneService;
         return $this->TryCatch(function () use ($request, $service) {
             $result = $service->update($request->all(), $request->route('zone_id'), $request->input('_bs_user_id'));
-            event(new EmitNotification("b-mesas-config-update",
-                array(
-                    'microsite_id' => $request->route('microsite_id'),
-                    'user_msg'     => 'Hay una actualización en la configuración (Zonas)',
-                    'reload'       => 'zonas',
-                )
-            ));
+
+            $this->_notificationConfigTurn($request->route('microsite_id'), $request->route('zone_id'), "turns");
+
             return $this->CreateResponse(true, 200, "", $result);
         });
     }
@@ -80,6 +75,21 @@ class ZoneController extends Controller
             $result = $service->getListTable($request->route('microsite_id'), $request->route('zone_id'));
             return $this->CreateResponse(true, 200, "", $result);
         });
+    }
+
+    private function _notificationConfigTurn(Int $microsite_id, Int $turn_id, String $with)
+    {
+        $zoneData = $this->_ZoneService->get($microsite_id, $turn_id, $with);
+
+        if (count($zoneData->turns) > 0) {
+            event(new EmitNotification("b-mesas-config-update",
+                array(
+                    'microsite_id' => $microsite_id,
+                    'user_msg'     => 'Hay una actualización en la configuración (Zonas)',
+                )
+            ));
+        }
+
     }
 
 }

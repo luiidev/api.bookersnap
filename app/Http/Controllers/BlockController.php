@@ -7,8 +7,9 @@ use App\Http\Requests\BlockCreateRequest;
 use App\Http\Requests\BlockListRequest;
 use App\Http\Requests\BlockUpdateRequest;
 use App\Services\BlockService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Carbon\Carbon; 
+
 class BlockController extends Controller
 {
 
@@ -18,12 +19,13 @@ class BlockController extends Controller
     {
         $this->_blockService = $blockService;
     }
-    
-    function index(BlockListRequest $request) {
+
+    public function index(BlockListRequest $request)
+    {
         return $this->TryCatch(function () use ($request) {
             $dateNow = Carbon::now()->setTimezone($request->timezone);
-            $date = $request->input('date', $dateNow->format('Y-m-d'));
-            $data = $this->_blockService->listado($request->route('microsite_id'), $date);
+            $date    = $request->input('date', $dateNow->format('Y-m-d'));
+            $data    = $this->_blockService->listado($request->route('microsite_id'), $date);
             return $this->CreateJsonResponse(true, 201, "messages.block_list", $data);
         });
     }
@@ -57,15 +59,12 @@ class BlockController extends Controller
 
     }
 
-    
-
     public function getTables(BlockListRequest $request)
     {
-
         return $this->TryCatch(function () use ($request) {
             $dateNow = Carbon::now()->setTimezone($request->timezone);
-            $date = $request->input('date', $dateNow->format('Y-m-d'));
-            $data = $this->_blockService->getTables($request->route('microsite_id'), $date);
+            $date    = $request->input('date', $dateNow->format('Y-m-d'));
+            $data    = $this->_blockService->getTables($request->route('microsite_id'), $date);
             return $this->CreateJsonResponse(true, 201, "messages.block_list", $data);
         });
 

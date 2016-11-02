@@ -22,7 +22,7 @@ class ReservationService
     public function get(int $microsite_id, int $reservation_id)
     {
         $rows = res_reservation::where('ms_microsite_id', $microsite_id)
-            ->where('id', $reservation_id)->with('guest')->first();
+            ->where('id', $reservation_id)->with('guest')->with('tables')->first();
 
         return $rows;
     }
@@ -60,6 +60,7 @@ class ReservationService
             $response[$i]["res_reservation_status_id"] = $row->res_reservation_status_id;
             $response[$i]["guest"]                     = $row->guest;
             $response[$i]["res_server_id"]             = $row->res_server_id;
+            $response[$i]["wait_list"]                 = $row->wait_list;
             $i++;
         }
         return $response;

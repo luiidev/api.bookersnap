@@ -275,8 +275,8 @@ class TableReservationService extends Service
         $reservation->date_reservation          = Carbon::now()->setTimezone($this->req->timezone)->toDateTimeString();
         $reservation->num_guest                 = $this->req->covers;
         $reservation->hours_reservation         = Carbon::now()->setTimezone($this->req->timezone)->toTimeString();
-
-        $reservation->quote = $this->req->quote;
+        $reservation->hours_duration            = "00:00:00";
+        $reservation->quote                     = $this->req->quote;
 
         $reservation->note            = $this->req->note;
         $reservation->phone           = $phone;

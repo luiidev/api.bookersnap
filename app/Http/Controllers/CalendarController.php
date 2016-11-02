@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\EmitNotification;
 use App\Http\Requests\CalendarRequest;
 use App\Services\CalendarService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Validator;
 
@@ -45,22 +46,30 @@ class CalendarController extends Controller
         return $this->TryCatch(function () use ($microsite_id, $res_turn_id, $date) {
             $this->_CalendarService->create($microsite_id, $res_turn_id, $date);
 
-            event(new EmitNotification("b-mesas-config-update",
-                array(
-                    'microsite_id' => $microsite_id,
-                    'user_msg'     => 'Hay una actualización en la configuración (Calendario)',
-                )
-            ));
+            $this->_notificationConfigCalendar($microsite_id, $date);
 
             return $this->CreateResponse(true, 201);
         });
     }
 
-    public function deleteCalendar($lang, $microsite_id, Request $request, $res_turn_id)
+    public function deleteCalendar(Request $request)
     {
-        $date = request('date');
-        return $this->TryCatch(function () use ($res_turn_id, $date) {
+        $microsite_id = $request->route("microsite_id");
+        $res_turn_id  = $request->route("res_turn_id");
+
+        $now  = Carbon::now($request->timezone);
+        $date = $request->input('date', $now);
+
+        $val_date = Carbon::createFromFormat('Y-m-d', $date, $request->timezone);
+
+        return $this->TryCatchDB(function () use ($res_turn_id, $date, $microsite_id, $val_date, $now) {
+            if ($val_date->lt($now)) {
+                abort(400, 'No puede eliminar un turno de una fecha menor a la actual.');
+            }
             $this->_CalendarService->deleteCalendar($res_turn_id, $date);
+
+            $this->_notificationConfigCalendar($microsite_id, $date);
+
             return $this->CreateResponse(true, 200);
         });
     }
@@ -95,6 +104,9 @@ class CalendarController extends Controller
             }
 
             $service->changeCalendar($request->route("microsite_id"), request("turn_id"), request("shift_id"), request("date"));
+
+            $this->_notificationConfigCalendar($request->route("microsite_id"), request("date"));
+
             return $this->CreateResponse(true, 201, "");
 
         });
@@ -121,5 +133,19 @@ class CalendarController extends Controller
 
             return $this->CreateResponse(true, 200, "", $zones);
         });
+    }
+
+    private function _notificationConfigCalendar(Int $microsite_id, String $date)
+    {
+        $dateNow = Carbon::now()->toDateString();
+
+        if ($date == $dateNow) {
+            event(new EmitNotification("b-mesas-config-update",
+                array(
+                    'microsite_id' => $microsite_id,
+                    'user_msg'     => 'Hay una actualización en la configuración (Calendario)',
+                )
+            ));
+        }
     }
 }
