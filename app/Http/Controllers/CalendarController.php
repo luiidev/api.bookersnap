@@ -52,10 +52,20 @@ class CalendarController extends Controller
         });
     }
 
-    public function deleteCalendar($lang, $microsite_id, Request $request, $res_turn_id)
+    public function deleteCalendar(Request $request)
     {
-        $date = request('date');
-        return $this->TryCatch(function () use ($res_turn_id, $date, $microsite_id) {
+        $microsite_id = $request->route("microsite_id");
+        $res_turn_id  = $request->route("res_turn_id");
+
+        $now  = Carbon::now($request->timezone);
+        $date = $request->input('date', $now);
+
+        $val_date = Carbon::createFromFormat('Y-m-d', $date, $request->timezone);
+
+        return $this->TryCatchDB(function () use ($res_turn_id, $date, $microsite_id, $val_date, $now) {
+            if ($val_date->lt($now)) {
+                abort(400, 'No puede eliminar un turno de una fecha menor a la actual.');
+            }
             $this->_CalendarService->deleteCalendar($res_turn_id, $date);
 
             $this->_notificationConfigCalendar($microsite_id, $date);
