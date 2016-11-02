@@ -8,8 +8,8 @@ class bs_type_event extends Model
 {
     protected $table = "bs_type_event";
 
-    public function events()
-    {
-        return $this->hasMany('App\Entities\ev_event', 'bs_type_event_id');
-    }
+    // public function events()
+    // {
+    //     return $this->hasMany('App\Entities\ev_event', 'bs_type_event_id');
+    // }
 }

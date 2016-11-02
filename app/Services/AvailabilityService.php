@@ -70,31 +70,62 @@ class AvailabilityService
             abort(500, "La configuracion del sitio no soporta la esa cantidad de usuario");
         }
 
-        $availabilityTables       = collect();
-        list($year, $month, $day) = explode("-", $date);
-        $turnsFilter              = $this->calendarService->getList($microsite_id, $year, $month, $day);
-        foreach ($turnsFilter as $turn) {
-            $dayClose  = $turn['end_date'];
-            $hourClose = $turn['turn']['hours_end'];
-            if ($turn['turn']['hours_ini'] > $turn['turn']['hours_end']) {
-                $day = 1;
-            } else {
-                $day = 0;
-            }
-            $availabilityTables->push($this->turnService->getListTable($turn['turn']['id'], $zone_id));
-        };
+        $today    = Carbon::today($timezone);
+        $tomorrow = $today->copy()->addDay();
 
-        if ($availabilityTables->count() == 0) {
-            return "No hay disponibilidad";
-        }
-        $dateClose  = Carbon::createFromFormat('Y-m-d H:i:s', $dayClose . " " . $hourClose, $timezone)->addDay($day);
-        $indexClose = $this->defineIndexHour($day, $dateClose->toTimeString());
+        $dateClose  = Carbon::createFromFormat('Y-m-d H:i:s', $tomorrow->toDateString() . " " . '05:45:00', $timezone);
+        $indexClose = $this->defineIndexHour(1, $dateClose->toTimeString());
 
         $event = $this->checkEventPayment($date, $microsite_id, $hour, $dateClose, $this->id_event_payment, $next_day, $timezone);
 
         if ($event->get("event") !== null) {
             return $event->get('event');
         } else {
+            //EventGratuito
+            $availabilityTablesEvents = collect();
+            $eventsFree               = ev_event::with("turn")
+                ->where('datetime_event', '>=', $today->toDateTimeString())
+                ->where('datetime_event', '<', $tomorrow->toDateTimeString())
+                ->where('bs_type_event_id', $this->id_event_free)
+                ->where('ms_microsite_id', $microsite_id)
+                ->whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
+                ->get();
+            foreach ($eventsFree as $eventFree) {
+                $dayCloseEvent  = $today->toDateString();
+                $hourCloseEvent = $eventFree['turn']['hours_end'];
+                if ($eventFree['turn']['hours_ini'] > $eventFree['turn']['hours_end']) {
+                    $day = 1;
+                } else {
+                    $day = 0;
+                }
+                return $availabilityTablesEvents->push($this->turnService->getListTable($eventFree['turn']['id'], $zone_id));
+            };
+
+            if ($availabilityTablesEvents->count() == 0) {
+                return "No hay disponibilidad";
+            }
+
+            //Reservacion
+            $availabilityTables       = collect();
+            list($year, $month, $day) = explode("-", $date);
+            return $turnsFilter       = $this->calendarService->getList($microsite_id, $year, $month, $day);
+            foreach ($turnsFilter as $turn) {
+                $dayClose  = $turn['end_date'];
+                $hourClose = $turn['turn']['hours_end'];
+                if ($turn['turn']['hours_ini'] > $turn['turn']['hours_end']) {
+                    $day = 1;
+                } else {
+                    $day = 0;
+                }
+                $availabilityTables->push($this->turnService->getListTable($turn['turn']['id'], $zone_id));
+            };
+
+            if ($availabilityTables->count() == 0) {
+                return "No hay disponibilidad";
+            }
+
+            $dateClose  = Carbon::createFromFormat('Y-m-d H:i:s', $dayClose . " " . $hourClose, $timezone)->addDay($day);
+            $indexClose = $this->defineIndexHour($day, $dateClose->toTimeString());
 
             $hours            = $this->formatActualHour($date, $hour, $timezone, $next_day);
             $hourQuery        = $hours->get("hourQuery");
