@@ -154,7 +154,6 @@ class TableReservationController extends Controller
 
     public function quickCreate(Request $request)
     {
-        return "ola";
         $yesterday = Carbon::yesterday()->setTimezone($request->timezone)->toDateString();
         $rules     = [
             "date"            => "required|date|after:$yesterday",

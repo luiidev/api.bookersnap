@@ -292,7 +292,7 @@ class CalendarService
      * @param  String    $date
      * @return  Illuminate\Database\Eloquent\Collection App\res_zone
      */
-    public function getBlock(Int $microsite, String $date)
+    public function getZones(Int $microsite, String $date)
     {
         $now   = Carbon::now();
         $turns = res_turn_calendar::where(function ($query) use ($date) {
