@@ -35,5 +35,13 @@ class res_reservation extends Model {
     {
         return $this->belongsTo(res_server::class, "res_server_id");
     }
+    public function source()
+    {
+        return $this->belongsTo('App\res_source_type', "res_source_type_id");
+    }
+    public function typeTurn()
+    {
+        return $this->belongsTo('App\res_type_turn', "res_type_turn_id");
+    }
 
 }
