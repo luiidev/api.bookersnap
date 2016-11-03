@@ -17,7 +17,7 @@ class EnableTimesForTable {
 
     protected $availability = [];
 
-    public function __construct() {        
+    public function __construct() {
         
     }
 
@@ -26,7 +26,7 @@ class EnableTimesForTable {
         $this->initAvailability();
         $ini = $this->timeToIntegerRangePosition($turn->hours_ini);
         $end = $this->timeToIntegerRangePosition($turn->hours_end);
-        for ($i = $ini; $i <= $end; $i++) {            
+        for ($i = $ini; $i <= $end; $i++) {
             $this->availability[$i]['rule_id'] = 1;
         }
         $this->defineRule($turns_table);
@@ -43,13 +43,13 @@ class EnableTimesForTable {
             );
         }
     }
-    
+
     public function disabled() {
         $this->availability = [];
         $this->initAvailability();
         return $this->availability;
     }
-    
+
     /*
      * Retorna el numero de segmento de 15 min de las  120 min = 30 horas.
      */
@@ -65,11 +65,18 @@ class EnableTimesForTable {
     /*
      * Funcion recursiva para asignacion de tipo de avilitacion segun su intervalo de tiempo.
      */
+
     private function defineRule($turns_table, $index = 0) {
         if (count($turns_table) > 0 && @$turns_table[$index]) {
             $turn = $turns_table[$index];
             $ini = $this->timeToIntegerRangePosition($turn->start_time);
             $end = $this->timeToIntegerRangePosition($turn->end_time);
+            if ($turn->next_day == 1 && $ini < $end) {
+                $ini = $ini + 96;
+                $end = $end + 96;
+            }else if($end < $ini){
+                $end = $end + 96;
+            }
             for ($i = $ini; $i <= $end; $i++) {
                 $this->availability[$i]['rule_id'] = $turn->res_turn_rule_id;
             }
