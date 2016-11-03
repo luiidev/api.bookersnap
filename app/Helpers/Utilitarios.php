@@ -75,7 +75,7 @@ class Utilitarios {
       $hours = floor($seconds/3600);
       $seconds -= $hours*3600;
       $minutes  = floor($seconds/60);
-      $seconds -= $minutes*60;
+      $seconds = "00";
       return "{$hours}:{$minutes}:{$seconds}";
     }
 

@@ -33,8 +33,8 @@ class ReservationService
     {
         $reservations = res_reservation::where('ms_microsite_id', $microsite_id)
             ->where('date_reservation', $date)->with(["tables" => function($query) {
-                return $query->select("res_table.id", "res_zone_id", "name");
-            }, "guest", "source", "status","typeTurn"])->get();
+                return $query->select("res_table.id", "name");
+            }, "guest", "server", "source", "status","typeTurn"])->get();
 
         return $reservations->toArray();
     }
