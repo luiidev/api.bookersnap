@@ -414,6 +414,7 @@ class TurnService {
                     $entity->res_turn_id = $turnTable['res_turn_id'];
                     $entity->start_time = $turnTable['start_time'];
                     $entity->end_time = $turnTable['end_time'];
+                    $entity->next_day = $turnTable['next_day'];
                     $entity->res_turn_rule_id = $turnTable['res_turn_rule_id'];
                     $entity->save();
                 }
