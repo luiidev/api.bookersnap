@@ -22,7 +22,9 @@ class ReservationService
     public function get(int $microsite_id, int $reservation_id)
     {
         $rows = res_reservation::where('ms_microsite_id', $microsite_id)
-            ->where('id', $reservation_id)->with('guest')->with('tables')->first();
+            ->where('id', $reservation_id)->with(["tables"=> function($query) {
+                return $query->select("res_table.id", "res_zone_id", "name");
+            }, "guest", "source", "status","typeTurn"])->first();
 
         return $rows;
     }
