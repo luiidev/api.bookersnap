@@ -148,12 +148,15 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE:: RESERVATION
         //-----------------------------------------------------
-        // Route::resource('table/reservation', 'TableReservationController', ["only" => ["edit", "update"]]);
+
+        Route::resource('table/reservation', 'TableReservationController', ["only" => ["store", "edit", "update"]]);
+
         Route::put('table/reservation/{reservation}/cancel', 'TableReservationController@cancel');
         Route::put('table/reservation/{reservation}/quickedit', 'TableReservationController@quickEdit');
         Route::put('table/reservation/{reservation}/sit', 'TableReservationController@sit');
         Route::post('table/reservation/quickcreate', 'TableReservationController@quickCreate');
-        Route::post('table/reservation', 'TableReservationController@store');
+
+        Route::post('waitlist', 'TableReservationController@createWaitList');
 
         //-----------------------------------------------------
         // MICROSITE:: RESERVATION TAGS

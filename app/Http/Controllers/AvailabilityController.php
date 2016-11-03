@@ -20,6 +20,7 @@ class AvailabilityController extends Controller
         $date         = $request->date;
         $hour         = $request->hour;
         $timezone     = $request->timezone;
+        $timezone     = 'America/Lima';
         $next_day     = $request->next_day;
         $num_guests   = $request->num_guests;
         $zone_id      = $request->zone_id;

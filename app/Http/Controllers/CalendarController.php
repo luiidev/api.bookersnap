@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EmitNotification;
 use App\Http\Requests\CalendarRequest;
-use Illuminate\Http\Request;
 use App\Services\CalendarService;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Validator;
 
 class CalendarController extends Controller
@@ -20,14 +22,13 @@ class CalendarController extends Controller
     {
         $service = $this->_CalendarService;
         return $this->TryCatch(function () use ($request, $service) {
-            $param = explode("-", $request->route('date'));
+            $param              = explode("-", $request->route('date'));
             list($year, $month) = $param;
-            $day = isset($param[2]) ? $param[2] : null;
-            $data = $service->getList($request->route('microsite_id'), $year, $month, $day);
+            $day                = isset($param[2]) ? $param[2] : null;
+            $data               = $service->getList($request->route('microsite_id'), $year, $month, $day);
             return $this->CreateResponse(true, 201, "", $data);
         });
     }
-
 
     public function listShift(Request $request)
     {
@@ -41,22 +42,38 @@ class CalendarController extends Controller
     public function storeCalendar($lang, $microsite_id, CalendarRequest $request)
     {
         $res_turn_id = $request->input('res_turn_id');
-        $date = $request->input('date');
+        $date        = $request->input('date');
         return $this->TryCatch(function () use ($microsite_id, $res_turn_id, $date) {
             $this->_CalendarService->create($microsite_id, $res_turn_id, $date);
+
+            $this->_notificationConfigCalendar($microsite_id, $date);
+
             return $this->CreateResponse(true, 201);
         });
     }
 
-    public function deleteCalendar($lang, $microsite_id, Request $request, $res_turn_id)
+    public function deleteCalendar(Request $request)
     {
-        $date = request('date');
-        return $this->TryCatch(function () use ($res_turn_id, $date) {
+        $microsite_id = $request->route("microsite_id");
+        $res_turn_id  = $request->route("res_turn_id");
+
+        $now  = Carbon::now($request->timezone);
+        $date = $request->input('date', $now);
+
+        $val_date = Carbon::createFromFormat('Y-m-d', $date, $request->timezone);
+
+        return $this->TryCatchDB(function () use ($res_turn_id, $date, $microsite_id, $val_date, $now) {
+            if ($val_date->lt($now)) {
+                abort(400, 'No puede eliminar un turno de una fecha menor a la actual.');
+            }
             $this->_CalendarService->deleteCalendar($res_turn_id, $date);
+
+            $this->_notificationConfigCalendar($microsite_id, $date);
+
             return $this->CreateResponse(true, 200);
         });
     }
-    
+
     public function existConflictTurn(Request $request)
     {
         $service = $this->_CalendarService;
@@ -67,9 +84,9 @@ class CalendarController extends Controller
     }
 
     /**
-     * Cambio de turno en el calendario 
-     * @param  Illuminate\Http\Request $request 
-     * @return  Illuminate\Http\Response  
+     * Cambio de turno en el calendario
+     * @param  Illuminate\Http\Request $request
+     * @return  Illuminate\Http\Response
      */
     public function changeCalendar(Request $request)
     {
@@ -77,16 +94,19 @@ class CalendarController extends Controller
         return $this->TryCatch(function () use ($request, $service) {
 
             $rules = [
-                "turn_id"   =>  "required|integer|exists:res_turn,id",
-                "shift_id"  =>  "required|integer|exists:res_turn,id",
-                "date"       =>  "required|date"
+                "turn_id"  => "required|integer|exists:res_turn,id",
+                "shift_id" => "required|integer|exists:res_turn,id",
+                "date"     => "required|date",
             ];
 
-            if ( Validator::make($request->all(), $rules)->fails()){
+            if (Validator::make($request->all(), $rules)->fails()) {
                 abort(406, "No posee lo campos necesarios o validos para realizar el cambio de turno");
             }
 
             $service->changeCalendar($request->route("microsite_id"), request("turn_id"), request("shift_id"), request("date"));
+
+            $this->_notificationConfigCalendar($request->route("microsite_id"), request("date"));
+
             return $this->CreateResponse(true, 201, "");
 
         });
@@ -105,13 +125,27 @@ class CalendarController extends Controller
 
         return $this->TryCatch(function () use ($microsite, $date, $service) {
 
-            if (Validator::make(["date" => $date], ["date" => "date"])->fails()){
+            if (Validator::make(["date" => $date], ["date" => "date"])->fails()) {
                 abort(406, "La fecha de consulta no es valida");
             }
 
-            $zones = $service->getBlock($microsite, $date);
+            $zones = $service->getZones($microsite, $date);
 
             return $this->CreateResponse(true, 200, "", $zones);
         });
+    }
+
+    private function _notificationConfigCalendar(Int $microsite_id, String $date)
+    {
+        $dateNow = Carbon::now()->toDateString();
+
+        if ($date == $dateNow) {
+            event(new EmitNotification("b-mesas-config-update",
+                array(
+                    'microsite_id' => $microsite_id,
+                    'user_msg'     => 'Hay una actualización en la configuración (Calendario)',
+                )
+            ));
+        }
     }
 }

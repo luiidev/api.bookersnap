@@ -34,6 +34,7 @@ class ZoneService
         if (isset($with)) {
             $split = explode('|', $with);
             $rows  = (in_array("turns", $split)) ? $rows->with('turns') : $rows;
+            $rows  = (in_array("turns.type_turn", $split)) ? $rows->with('turns.typeTurn') : $rows;
         }
         return $rows->get();
     }
@@ -52,6 +53,7 @@ class ZoneService
         if (isset($with)) {
             $split = explode('|', $with);
             $rows  = (in_array("turns", $split)) ? $rows->with('turns') : $rows;
+            $rows  = (in_array("turns.type_turn", $split)) ? $rows->with('turns.typeTurn') : $rows;
         }
         return $rows->first();
     }

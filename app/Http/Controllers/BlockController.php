@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EmitNotification;
 use App\Http\Controllers\Controller as Controller;
 use App\Http\Requests\BlockCreateRequest;
 use App\Http\Requests\BlockListRequest;
 use App\Http\Requests\BlockUpdateRequest;
 use App\Services\BlockService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Carbon\Carbon; 
+
 class BlockController extends Controller
 {
 
@@ -18,12 +20,13 @@ class BlockController extends Controller
     {
         $this->_blockService = $blockService;
     }
-    
-    function index(BlockListRequest $request) {
+
+    public function index(BlockListRequest $request)
+    {
         return $this->TryCatch(function () use ($request) {
             $dateNow = Carbon::now()->setTimezone($request->timezone);
-            $date = $request->input('date', $dateNow->format('Y-m-d'));
-            $data = $this->_blockService->listado($request->route('microsite_id'), $date);
+            $date    = $request->input('date', $dateNow->format('Y-m-d'));
+            $data    = $this->_blockService->listado($request->route('microsite_id'), $date);
             return $this->CreateJsonResponse(true, 201, "messages.block_list", $data);
         });
     }
@@ -42,6 +45,9 @@ class BlockController extends Controller
 
         return $this->TryCatch(function () use ($request) {
             $data = $this->_blockService->insert($request->route('microsite_id'), $request->all());
+
+            $this->_notificationBlock($request->route('microsite_id'), $data->block_id, "Se agrego un nuevo bloqueo");
+
             return $this->CreateJsonResponse($data->estado, 201, trans($data->mensaje));
         });
 
@@ -57,15 +63,12 @@ class BlockController extends Controller
 
     }
 
-    
-
     public function getTables(BlockListRequest $request)
     {
-
         return $this->TryCatch(function () use ($request) {
             $dateNow = Carbon::now()->setTimezone($request->timezone);
-            $date = $request->input('date', $dateNow->format('Y-m-d'));
-            $data = $this->_blockService->getTables($request->route('microsite_id'), $date);
+            $date    = $request->input('date', $dateNow->format('Y-m-d'));
+            $data    = $this->_blockService->getTables($request->route('microsite_id'), $date);
             return $this->CreateJsonResponse(true, 201, "messages.block_list", $data);
         });
 
@@ -78,6 +81,20 @@ class BlockController extends Controller
             $data = $this->_blockService->update($request->route('microsite_id'), $request->route('block_id'), $request->all());
             return $this->CreateJsonResponse($data->estado, 201, trans($data->mensaje));
         });
+
+    }
+
+    private function _notificationBlock(Int $microsite_id, Int $block_id, $message)
+    {
+        $blockData = $this->_blockService->getBlock($microsite_id, $block_id);
+
+        event(new EmitNotification("b-mesas-floor-upd-block",
+            array(
+                'microsite_id' => $microsite_id,
+                'user_msg'     => $message,
+                'data'         => $blockData,
+            )
+        ));
 
     }
 

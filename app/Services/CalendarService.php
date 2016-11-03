@@ -72,42 +72,35 @@ class CalendarService
 
     public function deleteCalendar(int $res_turn_id, string $date)
     {
-        $now      = Carbon::now();
-        $val_date = Carbon::createFromFormat('Y-m-d', $date);
-        if ($val_date->lt($now)) {
-            abort(401, 'No puede eliminar un turno de una fecha menor a la actual.');
+
+        $count = res_turn_calendar::where('start_date', $date)
+            ->where('end_date', $date)
+            ->where('res_turn_id', $res_turn_id)
+            ->count();
+
+        if ($count > 0) {
+            DB::Table('res_turn_calendar')->where('start_date', $date)
+                ->where('end_date', $date)
+                ->where('res_turn_id', $res_turn_id)
+                ->delete();
         } else {
-            DB::Transaction(function () use ($res_turn_id, $date) {
-                $count = res_turn_calendar::where('start_date', $date)
-                    ->where('end_date', $date)
+            $count = res_turn_calendar::where('start_date', $date)
+                ->where('res_turn_id', $res_turn_id)
+                ->count();
+
+            if ($count > 0) {
+                $this->deleteCalendarEquealStartDateCase($res_turn_id, $date);
+            } else {
+                $count = res_turn_calendar::where('end_date', $date)
                     ->where('res_turn_id', $res_turn_id)
                     ->count();
 
                 if ($count > 0) {
-                    DB::Table('res_turn_calendar')->where('start_date', $date)
-                        ->where('end_date', $date)
-                        ->where('res_turn_id', $res_turn_id)
-                        ->delete();
+                    $this->deleteCalendarEquealEndDateCase($res_turn_id, $date);
                 } else {
-                    $count = res_turn_calendar::where('start_date', $date)
-                        ->where('res_turn_id', $res_turn_id)
-                        ->count();
-
-                    if ($count > 0) {
-                        $this->deleteCalendarEquealStartDateCase($res_turn_id, $date);
-                    } else {
-                        $count = res_turn_calendar::where('end_date', $date)
-                            ->where('res_turn_id', $res_turn_id)
-                            ->count();
-
-                        if ($count > 0) {
-                            $this->deleteCalendarEquealEndDateCase($res_turn_id, $date);
-                        } else {
-                            $this->deleteCalendarBetweenDatesCase($res_turn_id, $date);
-                        }
-                    }
+                    $this->deleteCalendarBetweenDatesCase($res_turn_id, $date);
                 }
-            });
+            }
         }
     }
 
@@ -292,7 +285,7 @@ class CalendarService
      * @param  String    $date
      * @return  Illuminate\Database\Eloquent\Collection App\res_zone
      */
-    public function getBlock(Int $microsite, String $date)
+    public function getZones(Int $microsite, String $date)
     {
         $now   = Carbon::now();
         $turns = res_turn_calendar::where(function ($query) use ($date) {
@@ -307,7 +300,11 @@ class CalendarService
             ->whereIn('tz.res_turn_id', $turns)
             ->where('ms_microsite_id', $microsite)
             ->distinct()
-            ->with('tables')
+            ->with(['tables' => function($query) {
+                return $query->with(["turns" => function($query) {
+                    return $query->where("res_turn_rule_id", 0)->orderBy("start_time", "asc");
+                }]);
+            }])
             ->get(array(
                 "id",
                 "name",
@@ -321,5 +318,4 @@ class CalendarService
 
         return $zones;
     }
-
 }

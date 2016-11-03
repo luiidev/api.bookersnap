@@ -66,7 +66,7 @@ class BlockService
     public function getTables($microsite, $date)
     {
 
-        $data = array();
+        $data   = array();
         $blocks = Block::where("ms_microsite_id", "=", $microsite)->where("start_date", "=", $date)->get();
         $i      = 0;
         foreach ($blocks as $block) {
@@ -94,7 +94,6 @@ class BlockService
     {
 
         $data = array();
-       
 
         $reservations = res_reservation::with("server")->where("ms_microsite_id", "=", $microsite)->where("date_reservation", "=", $date)->get();
 
@@ -149,8 +148,9 @@ class BlockService
             }
             DB::commit();
 
-            $response["mensaje"] = "messages.block_create_success";
-            $response["estado"]  = true;
+            $response["mensaje"]  = "messages.block_create_success";
+            $response["estado"]   = true;
+            $response["block_id"] = $model->id;
 
         } catch (\Exception $e) {
 
