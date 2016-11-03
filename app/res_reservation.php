@@ -12,7 +12,7 @@ class res_reservation extends Model {
     const UPDATED_AT = "date_upd";
 
     protected $table = "res_reservation";
-    protected $fillable = ['date_reservation', 'hours_reservation', 'hours_duration', 'num_people', 'note', 'email', 'phone', 'res_guest_id'];
+    protected $hidden = ["ev_event_id", "ms_microsite_id", "bs_user_id", "date_add", "date_upd", "user_add"];
     
     public function status() {
         return $this->belongsTo('App\res_reservation_status', 'res_reservation_status_id');
