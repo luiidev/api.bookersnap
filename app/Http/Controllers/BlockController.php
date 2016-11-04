@@ -79,6 +79,7 @@ class BlockController extends Controller
 
         return $this->TryCatch(function () use ($request) {
             $data = $this->_blockService->update($request->route('microsite_id'), $request->route('block_id'), $request->all());
+            $this->_notificationBlock($request->route('microsite_id'), $request->route('block_id'), "Se edito un bloqueo");
             return $this->CreateJsonResponse($data->estado, 201, trans($data->mensaje));
         });
 
