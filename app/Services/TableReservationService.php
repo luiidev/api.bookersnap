@@ -210,40 +210,53 @@ class TableReservationService extends Service
 
     public function sit()
     {
-        $today = Carbon::now()->setTimezone($this->req->timezone)->toDateString();
+        $now = Carbon::now()->setTimezone($this->req->timezone);
 
         $reservation = res_reservation::withCount(['tables' => function ($query) {
             $query->where('res_table_id', $this->req->table_id);
         }])->where("id", $this->reservation)->first();
 
-        if ($reservation != null) {
+        if ($reservation !== null) {
+
+            // Actualizar reservacion
             $reservation->res_reservation_status_id = 4;
-            if ($reservation->datetime_input == null) {
-                $reservation->datetime_input = Carbon::now()->setTimezone($this->req->timezone)->toDateTimeString();
+            if ($reservation->datetime_input === null) {
+                $reservation->datetime_input = $now->toDateTimeString();
             }
             $reservation->save();
 
-            if ($reservation->tables_count == 0) {
+            if ($reservation->tables_count === 0) {
                 $reservation->tables()->sync([$this->req->table_id => ["num_people" => 0]]);
             }
+            // end
 
+            // Actualizar otras reservaciones que estasn ocupando la mesa
             $others_reservation = res_reservation::withCount(['tables' => function ($query) {
                 $query->where('res_table_id', $this->req->table_id);
             }])->where("id", "<>", $this->reservation)
-                ->where("date_reservation", $today)
+                ->where("date_reservation", $now->toDateString())
                 ->where("res_reservation_status_id", "=", 4)
                 ->where("ms_microsite_id", $this->microsite_id)
                 ->get();
 
-            foreach ($others_reservation as $res) {
-                if ($res->tables_count > 0) {
-                    $res->res_reservation_status_id = 5;
-                    if ($res->datetime_output == null) {
-                        $res->datetime_output = Carbon::now()->setTimezone($this->req->timezone)->toDateTimeString();
-                    }
-                    $res->save();
-                }
+            $filtered = $others_reservation->filter(function ($item) {
+                return $item['tables_count'] > 0;
+            });
+
+            if ($others_reservation->count()) {
+                res_reservation::whereIn("id", $filtered->pluck("id"))
+                    ->update([
+                        "res_reservation_status_id" => 5,
+                        "datetime_output" =>  $now->toDateTimeString()
+                    ]);
             }
+            // end
+
+            $data = res_reservation::where("id", $reservation->id)
+                                                    ->orwhereIn("id", $filtered->pluck("id"))
+                                                    ->withRelations()
+                                                    ->get();
+            return $data;
         }
 
         return $reservation;

@@ -200,11 +200,11 @@ class TableReservationController extends Controller
 
         $this->service = Service::make($request);
         return $this->TryCatchDB(function () use ($request) {
-            $reservation = $this->service->sit();
+            $reservations = $this->service->sit();
 
-            if ($reservation) {
-                $this->_notificationReservation($request->route("microsite_id"), $reservation->id, "Actualización de reservación");
-                return $this->CreateJsonResponse(true, 200, "");
+            if ($reservations) {
+                $this->_notification($request->route("microsite_id"), $reservations, "Actualización de reservación");
+                return $this->CreateJsonResponse(true, 200, "", $reservations);
             } else {
                 return $this->CreateJsonResponse(true, 422, null, null, null, null, "No se enontro la reservacion.");
             }
@@ -219,7 +219,6 @@ class TableReservationController extends Controller
             $reservation = $this->service->create_waitlist();
 
             $this->_notificationReservation($request->route("microsite_id"), $reservation->id, "Hay una actualización de reservación (Lista de espera)");
-
             return $this->CreateJsonResponse(true, 201, "La lista de espera fue registrada", $reservation);
         });
     }
@@ -235,6 +234,18 @@ class TableReservationController extends Controller
                 'data'         => $reservationData,
             )
         ));
-
     }
+
+    private function _notification(Int $microsite_id, $data, String $message)
+    {
+        event(new EmitNotification("b-mesas-floor-upd-res",
+            array(
+                'microsite_id' => $microsite_id,
+                'user_msg'     => $message,
+                'data'         => $data,
+            )
+        ));
+    }
+
+
 }
