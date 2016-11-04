@@ -15,51 +15,18 @@ class BlockService
 
     public function getBlock($microsite, $id_block)
     {
+        $block = Block::with('tables')->find($id_block);
 
-        $data  = array();
-        $block = Block::find($id_block);
-
-        $data["id"]         = $block->id;
-        $data["start_date"] = $block->start_date;
-        $data["start_time"] = $block->start_time;
-        $data["end_time"]   = $block->end_time;
-        $data["tables"]     = array();
-
-        $blockTables = BlockTable::where("res_block_id", "=", $id_block)->get();
-
-        $i = 0;
-        foreach ($blockTables as $item) {
-            $data["tables"][$i]["id"] = $item->res_table_id;
-            $i++;
-        }
-        return $data;
+        return $block;
 
     }
 
     public function listado($microsite, $date)
     {
         $data   = array();
-        $blocks = Block::where("ms_microsite_id", "=", $microsite)->where("start_date", "=", $date)->get();
-        $m      = 0;
-        foreach ($blocks as $block) {
-
-            $data[$m]["id"]         = $block->id;
-            $data[$m]["start_date"] = $block->start_date;
-            $data[$m]["start_time"] = $block->start_time;
-            $data[$m]["end_time"]   = $block->end_time;
-            $data[$m]["tables"]     = array();
-
-            $blockTables = BlockTable::where("res_block_id", "=", $block->id)->get();
-
-            $i = 0;
-            foreach ($blockTables as $item) {
-                $data[$m]["tables"][$i]["id"] = $item->res_table_id;
-                $i++;
-            }
-
-            $m++;
-        }
-        return $data;
+        $blocks = Block::with('tables')->where("ms_microsite_id", "=", $microsite)->where("start_date", "=", $date)->get();
+        
+        return $blocks;
 
     }
 
