@@ -22,49 +22,21 @@ class ReservationService
     public function get(int $microsite_id, int $reservation_id)
     {
         $rows = res_reservation::where('ms_microsite_id', $microsite_id)
-            ->where('id', $reservation_id)->with('guest')->with('tables')->first();
+            ->where('id', $reservation_id)->with(["tables"=> function($query) {
+                return $query->select("res_table.id", "res_zone_id", "name");
+            }, "guest", "source", "status","typeTurn"])->first();
 
         return $rows;
     }
 
     public function getList(int $microsite_id, string $date = null)
     {
-        $rows = res_reservation::where('ms_microsite_id', $microsite_id)
-            ->where('date_reservation', $date)->with('guest')->get();
+        $reservations = res_reservation::where('ms_microsite_id', $microsite_id)
+            ->where('date_reservation', $date)->with(["tables" => function($query) {
+                return $query->select("res_table.id", "res_zone_id","name");
+            }, "guest", "server", "source", "status","typeTurn"])->get();
 
-        $response = [];
-        $i        = 0;
-        foreach ($rows as $row) {
-            $response[$i]["id"]                        = $row->id;
-            $response[$i]["date_reservation"]          = $row->date_reservation;
-            $response[$i]["hours_reservation"]         = $row->hours_reservation;
-            $response[$i]["hours_duration"]            = $row->hours_duration;
-            $response[$i]["num_guest"]                 = $row->num_guest;
-            $response[$i]["num_people_1"]              = $row->num_people_1;
-            $response[$i]["num_people_2"]              = $row->num_people_2;
-            $response[$i]["num_people_3"]              = $row->num_people_3;
-            $response[$i]["status_release"]            = $row->status_released;
-            $response[$i]["datetime_input"]            = $row->datetime_input;
-            $response[$i]["datetime_output"]           = $row->datetime_output;
-            $response[$i]["total"]                     = $row->total;
-            $response[$i]["consume"]                   = $row->consume;
-            $response[$i]["num_table"]                 = $row->num_table;
-            $response[$i]["colaborator"]               = $row->colaborator;
-            $response[$i]["note"]                      = $row->note;
-            $response[$i]["type_reservation"]          = $row->type_reservation;
-            $response[$i]["email"]                     = $row->email;
-            $response[$i]["phone"]                     = $row->phone;
-            $response[$i]["res_guest_id"]              = $row->res_guest_id;
-            $response[$i]["res_type_turn_id"]          = $row->res_type_turn_id;
-            $response[$i]["res_source_type_id"]        = $row->res_source_type_id;
-            $response[$i]["res_reservation_status_id"] = $row->res_reservation_status_id;
-            $response[$i]["guest"]                     = $row->guest;
-            $response[$i]["res_server_id"]             = $row->res_server_id;
-            $response[$i]["wait_list"]                 = $row->wait_list;
-            $i++;
-        }
-        return $response;
-
+        return $reservations->toArray();
     }
 
     public function create(array $data, int $microsite_id, int $user_id)
