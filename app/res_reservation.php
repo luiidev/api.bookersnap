@@ -35,13 +35,25 @@ class res_reservation extends Model {
     {
         return $this->belongsTo(res_server::class, "res_server_id");
     }
+
     public function source()
     {
         return $this->belongsTo('App\res_source_type', "res_source_type_id");
     }
+
     public function typeTurn()
     {
         return $this->belongsTo('App\res_type_turn', "res_type_turn_id");
     }
 
+    public function scopeWithRelations($query)
+    {
+        return $query->with(["tables"=> function($query) {
+                        return $query->select("res_table.id", "name");
+                    }, "guest" => function ($query) {
+                        return $query->select("id", "first_name", "last_name")->with("emails", "phones");
+                    }, "tags" => function ($query) {
+                        return $query->select("id");
+                    }, "source", "status", "typeTurn"]);
+    }
 }
