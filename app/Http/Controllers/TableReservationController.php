@@ -46,7 +46,7 @@ class TableReservationController extends Controller
         return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->create_reservation();
 
-            $this->_notification($request->route("microsite_id"), $reservation, "Se creo una nueva reservación", "create");
+            $this->_notification($request->route("microsite_id"), $reservation, "Se creo una nueva reservación", "create", $request->key);
 
             return $this->CreateJsonResponse(true, 201, "La reservacion fue registrada", $reservation);
         });
@@ -90,7 +90,7 @@ class TableReservationController extends Controller
         return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->update();
 
-            $this->_notification($request->route("microsite_id"), $reservation, "Se edito una reservación", "update");
+            $this->_notification($request->route("microsite_id"), $reservation, "Se edito una reservación", "update", $request->key);
 
             return $this->CreateJsonResponse(true, 200, "Se actualizo la reservacion.", $reservation);
         });
@@ -113,7 +113,7 @@ class TableReservationController extends Controller
         return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->cancel();
             if ($reservation) {
-                $this->_notification($request->route("microsite_id"), $reservation, "Se cancelo una reservación", "update");
+                $this->_notification($request->route("microsite_id"), $reservation, "Se cancelo una reservación", "update", $request->key);
 
                 return $this->CreateJsonResponse(true, 200, "La reservacion fue cancelada.");
             } else {
@@ -149,7 +149,7 @@ class TableReservationController extends Controller
         return $this->TryCatch(function () use ($request) {
             $reservation = $this->service->quickEdit();
 
-            $this->_notification($request->route("microsite_id"), $reservation, "Actualización mesa rápida", "update");
+            $this->_notification($request->route("microsite_id"), $reservation, "Actualización mesa rápida", "update", $request->key);
 
             return $this->CreateJsonResponse(true, 200, "La reservacion fue actualizada.");
         });
@@ -179,7 +179,7 @@ class TableReservationController extends Controller
 
             $reservation = $this->service->quickCreate();
 
-            $this->_notification($request->route("microsite_id"), $reservation, "Se ha creado nueva reservación rápida", "create");
+            $this->_notification($request->route("microsite_id"), $reservation, "Se ha creado nueva reservación rápida", "create", $request->key);
 
             return $this->CreateJsonResponse(true, 200, "La reservacion fue registrada.", $reservation);
         });
@@ -202,7 +202,7 @@ class TableReservationController extends Controller
             $reservations = $this->service->sit();
 
             if ($reservations) {
-                $this->_notification($request->route("microsite_id"), $reservations, "Actualización de reservación", "update");
+                $this->_notification($request->route("microsite_id"), $reservations, "Actualización de reservación", "update", $request->key);
                 return $this->CreateJsonResponse(true, 200, "", $reservations);
             } else {
                 return $this->CreateJsonResponse(true, 422, null, null, null, null, "No se enontro la reservacion.");
@@ -217,19 +217,20 @@ class TableReservationController extends Controller
         return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->create_waitlist();
 
-            $this->_notification($request->route("microsite_id"), $reservation, "Hay una actualización de reservación (Lista de espera)", "create");
+            $this->_notification($request->route("microsite_id"), $reservation, "Hay una actualización de reservación (Lista de espera)", "create", $request->key);
             return $this->CreateJsonResponse(true, 201, "La lista de espera fue registrada", $reservation);
         });
     }
 
-    private function _notification(Int $microsite_id, $data, String $message, String $action)
+    private function _notification(Int $microsite_id, $data, String $message, String $action, String $key = null)
     {
         event(new EmitNotification("b-mesas-floor-res",
             array(
                 'microsite_id' => $microsite_id,
-                'user_msg'     => $message,
-                'data'         => $data,
-                'action'    =>  $action
+                'user_msg' => $message,
+                'data' => $data,
+                'action' => $action,
+                'key' => $key
             )
         ));
     }
