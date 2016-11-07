@@ -144,6 +144,7 @@ class CalendarController extends Controller
                 array(
                     'microsite_id' => $microsite_id,
                     'user_msg'     => 'Hay una actualización en la configuración (Calendario)',
+
                 )
             ));
         }

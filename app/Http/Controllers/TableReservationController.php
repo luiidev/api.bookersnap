@@ -133,9 +133,9 @@ class TableReservationController extends Controller
             "server_id"       => "exists:res_server,id",
             "note"            => "string",
             "guests"          => "required|array",
-                "guests.men"      => "required|integer",
-                "guests.women"    => "required|integer",
-                "guests.children" => "required|integer",
+            "guests.men"      => "required|integer",
+            "guests.women"    => "required|integer",
+            "guests.children" => "required|integer",
         ];
 
         $request["id"] = $request->route("reservation");
@@ -164,9 +164,9 @@ class TableReservationController extends Controller
             "hour"            => "required",
             "table_id"        => "required|exists:res_table,id",
             "guests"          => "required|array",
-                "guests.men"      => "required|integer",
-                "guests.women"    => "required|integer",
-                "guests.children" => "required|integer",
+            "guests.men"      => "required|integer",
+            "guests.women"    => "required|integer",
+            "guests.children" => "required|integer",
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -231,7 +231,7 @@ class TableReservationController extends Controller
             array(
                 'microsite_id' => $microsite_id,
                 'user_msg'     => $message,
-                'data'         => $reservationData,
+                'data'         => [$reservationData],
             )
         ));
     }
@@ -246,6 +246,5 @@ class TableReservationController extends Controller
             )
         ));
     }
-
 
 }
