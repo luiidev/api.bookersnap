@@ -11,6 +11,7 @@ class NotificationServerHelper
 
     public function __construct()
     {
+
         $url_socket    = config('settings.SOCKET_NOTIFICATION_URL');
         $this->_client = new Client(new Version1X('http://127.0.0.1:1337'));
     }

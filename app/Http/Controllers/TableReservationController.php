@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Events\EmitNotification;
 use App\Http\Requests;
 use App\Http\Requests\TableReservationRequest;
-use App\Services\ReservationService;
 use App\Services\TableReservationService as Service;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -14,11 +13,6 @@ use Illuminate\Support\Facades\Validator;
 class TableReservationController extends Controller
 {
     private $service;
-    private $_ReservationService;
-    public function __construct(ReservationService $ReservationService)
-    {
-        $this->_ReservationService = $ReservationService;
-    }
 
     /**
      * Display a listing of the resource.
@@ -52,7 +46,7 @@ class TableReservationController extends Controller
         return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->create_reservation();
 
-            $this->_notificationReservation($request->route("microsite_id"), $reservation->id, "Se creo una nueva reservación");
+            $this->_notification($request->route("microsite_id"), $reservation, "Se creo una nueva reservación", "create");
 
             return $this->CreateJsonResponse(true, 201, "La reservacion fue registrada", $reservation);
         });
@@ -93,8 +87,11 @@ class TableReservationController extends Controller
     public function update(TableReservationRequest $request)
     {
         $this->service = Service::make($request);
-        return $this->TryCatchDB(function () {
+        return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->update();
+
+            $this->_notification($request->route("microsite_id"), $reservation, "Se edito una reservación", "update");
+
             return $this->CreateJsonResponse(true, 200, "Se actualizo la reservacion.", $reservation);
         });
     }
@@ -113,9 +110,11 @@ class TableReservationController extends Controller
     public function cancel(Request $request)
     {
         $this->service = Service::make($request);
-        return $this->TryCatchDB(function () {
-            $confirmation = $this->service->cancel();
-            if ($confirmation) {
+        return $this->TryCatchDB(function () use ($request) {
+            $reservation = $this->service->cancel();
+            if ($reservation) {
+                $this->_notification($request->route("microsite_id"), $reservation, "Se cancelo una reservación", "update");
+
                 return $this->CreateJsonResponse(true, 200, "La reservacion fue cancelada.");
             } else {
                 return $this->CreateJsonResponse(true, 422, null, null, null, null, "No se enontro la reservacion o ya fue cancelada.");
@@ -148,9 +147,9 @@ class TableReservationController extends Controller
 
         $this->service = Service::make($request);
         return $this->TryCatch(function () use ($request) {
-            $this->service->quickEdit();
+            $reservation = $this->service->quickEdit();
 
-            $this->_notificationReservation($request->route("microsite_id"), $request->route("reservation"), "Actualización mesa rápida");
+            $this->_notification($request->route("microsite_id"), $reservation, "Actualización mesa rápida", "update");
 
             return $this->CreateJsonResponse(true, 200, "La reservacion fue actualizada.");
         });
@@ -180,7 +179,7 @@ class TableReservationController extends Controller
 
             $reservation = $this->service->quickCreate();
 
-            $this->_notificationReservation($request->route("microsite_id"), $reservation->id, "Se ha creado nueva reservación rápida");
+            $this->_notification($request->route("microsite_id"), $reservation, "Se ha creado nueva reservación rápida", "create");
 
             return $this->CreateJsonResponse(true, 200, "La reservacion fue registrada.", $reservation);
         });
@@ -203,7 +202,7 @@ class TableReservationController extends Controller
             $reservations = $this->service->sit();
 
             if ($reservations) {
-                $this->_notification($request->route("microsite_id"), $reservations, "Actualización de reservación");
+                $this->_notification($request->route("microsite_id"), $reservations, "Actualización de reservación", "update");
                 return $this->CreateJsonResponse(true, 200, "", $reservations);
             } else {
                 return $this->CreateJsonResponse(true, 422, null, null, null, null, "No se enontro la reservacion.");
@@ -218,31 +217,19 @@ class TableReservationController extends Controller
         return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->create_waitlist();
 
-            $this->_notificationReservation($request->route("microsite_id"), $reservation->id, "Hay una actualización de reservación (Lista de espera)");
+            $this->_notification($request->route("microsite_id"), $reservation, "Hay una actualización de reservación (Lista de espera)", "create");
             return $this->CreateJsonResponse(true, 201, "La lista de espera fue registrada", $reservation);
         });
     }
 
-    private function _notificationReservation(Int $microsite_id, Int $reservation_id, String $message)
+    private function _notification(Int $microsite_id, $data, String $message, String $action)
     {
-        $reservationData = $this->_ReservationService->get($microsite_id, $reservation_id);
-
-        event(new EmitNotification("b-mesas-floor-upd-res",
-            array(
-                'microsite_id' => $microsite_id,
-                'user_msg'     => $message,
-                'data'         => [$reservationData],
-            )
-        ));
-    }
-
-    private function _notification(Int $microsite_id, $data, String $message)
-    {
-        event(new EmitNotification("b-mesas-floor-upd-res",
+        event(new EmitNotification("b-mesas-floor-res",
             array(
                 'microsite_id' => $microsite_id,
                 'user_msg'     => $message,
                 'data'         => $data,
+                'action'       => $action,
             )
         ));
     }
