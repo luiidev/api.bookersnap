@@ -118,7 +118,9 @@ class TableReservationService extends Service
             $reservation->tags()->sync($this->req->tags);
         }
 
-        return $reservation;
+        $data = res_reservation::withRelations()->find($reservation->id);
+
+        return $data;
     }
 
     public function create_reservation()
@@ -156,17 +158,22 @@ class TableReservationService extends Service
     public function update()
     {
         $reservation = res_reservation::find($this->reservation);
-        return $this->save_reservation($reservation, "update");
+        $data =  $this->save_reservation($reservation, "update");
+
+        return array($data);
     }
 
     public function cancel()
     {
-        return res_reservation::where("id", $this->reservation)->update(["res_reservation_status_id" => 6]);
+        res_reservation::where("id", $this->reservation)->update(["res_reservation_status_id" => 6]);
+        $data = res_reservation::withRelations()->find($this->reservation);
+
+        return array($data);
     }
 
     public function quickEdit()
     {
-        return res_reservation::where("id", $this->reservation)
+        res_reservation::where("id", $this->reservation)
             ->update([
                 "res_reservation_status_id" => $this->req->status_id,
                 "num_guest"                 => $this->req->covers,
@@ -176,6 +183,10 @@ class TableReservationService extends Service
                 "num_people_2"              => $this->req->guests["women"],
                 "num_people_3"              => $this->req->guests["children"],
             ]);
+
+        $data = res_reservation::withRelations()->find($this->reservation);
+
+        return array($data);
     }
 
     public function quickCreate()
@@ -205,7 +216,9 @@ class TableReservationService extends Service
 
         $reservation->tables()->attach($this->req->table_id, ["num_people" => $num_guest]);
 
-        return $reservation;
+        $data = res_reservation::withRelations()->find($reservation->id);
+
+        return $data;
     }
 
     public function sit()
@@ -299,6 +312,8 @@ class TableReservationService extends Service
 
         $reservation->save();
 
-        return $reservation;
+        $data = res_reservation::withRelations()->find($reservation->id);
+
+        return $data;
     }
 }
