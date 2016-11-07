@@ -151,7 +151,7 @@ class TableReservationController extends Controller
 
             $this->_notification($request->route("microsite_id"), $reservation, "Actualización mesa rápida", "update", $request->key);
 
-            return $this->CreateJsonResponse(true, 200, "La reservacion fue actualizada.");
+            return $this->CreateJsonResponse(true, 200, "La reservacion fue actualizada.", $reservation);
         });
     }
 
