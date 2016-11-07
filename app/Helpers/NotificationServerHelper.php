@@ -11,6 +11,8 @@ class NotificationServerHelper
 
     public function __construct()
     {
+
+        $url_socket    = config('settings.SOCKET_NOTIFICATION_URL');
         $this->_client = new Client(new Version1X('http://weblaravel.studework.com:1337'));
     }
     public function emit(string $emit, array $data)

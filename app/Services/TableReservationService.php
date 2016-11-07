@@ -118,7 +118,9 @@ class TableReservationService extends Service
             $reservation->tags()->sync($this->req->tags);
         }
 
-        return $reservation;
+        $data = res_reservation::withRelations()->find($reservation->id);
+
+        return $data;
     }
 
     public function create_reservation()
@@ -156,17 +158,22 @@ class TableReservationService extends Service
     public function update()
     {
         $reservation = res_reservation::find($this->reservation);
-        return $this->save_reservation($reservation, "update");
+        $data        = $this->save_reservation($reservation, "update");
+
+        return array($data);
     }
 
     public function cancel()
     {
-        return res_reservation::where("id", $this->reservation)->update(["res_reservation_status_id" => 6]);
+        res_reservation::where("id", $this->reservation)->update(["res_reservation_status_id" => 6]);
+        $data = res_reservation::withRelations()->find($this->reservation);
+
+        return array($data);
     }
 
     public function quickEdit()
     {
-        return res_reservation::where("id", $this->reservation)
+        res_reservation::where("id", $this->reservation)
             ->update([
                 "res_reservation_status_id" => $this->req->status_id,
                 "num_guest"                 => $this->req->covers,
@@ -176,11 +183,18 @@ class TableReservationService extends Service
                 "num_people_2"              => $this->req->guests["women"],
                 "num_people_3"              => $this->req->guests["children"],
             ]);
+
+        $data = res_reservation::withRelations()->find($this->reservation);
+
+        return array($data);
     }
 
     public function quickCreate()
     {
         $num_guest = (int) $this->req->guests["men"] + (int) $this->req->guests["women"] + (int) $this->req->guests["children"];
+        if (@$this->req->guests["total"]) {
+            $num_guest = ($num_guest == 0) ? $this->req->guests["total"] : $num_guest;
+        }
 
         $turn     = TurnsHelper::TypeTurnWithHourForHour($this->req->date, $this->req->hour, $this->microsite_id);
         $duration = res_turn_time::where("res_turn_id", $turn->turn_id)->where("num_guests", $num_guest)->first();
@@ -205,7 +219,9 @@ class TableReservationService extends Service
 
         $reservation->tables()->attach($this->req->table_id, ["num_people" => $num_guest]);
 
-        return $reservation;
+        $data = res_reservation::withRelations()->find($reservation->id);
+
+        return $data;
     }
 
     public function sit()
@@ -220,6 +236,17 @@ class TableReservationService extends Service
 
             // Actualizar reservacion
             $reservation->res_reservation_status_id = 4;
+
+            $num_guest = $this->req->guests["men"] + $this->req->guests["women"] + $this->req->guests["children"];
+
+            $reservation->num_people_1 = $this->req->guests["men"];
+            $reservation->num_people_2 = $this->req->guests["women"];
+            $reservation->num_people_3 = $this->req->guests["children"];
+
+            /* if (@$this->req->guests["total"]) {
+            $num_guest = ($num_guest == 0) ? $this->req->guests["total"] : $num_guest;
+            }*/
+
             if ($reservation->datetime_input === null) {
                 $reservation->datetime_input = $now->toDateTimeString();
             }
@@ -247,15 +274,15 @@ class TableReservationService extends Service
                 res_reservation::whereIn("id", $filtered->pluck("id"))
                     ->update([
                         "res_reservation_status_id" => 5,
-                        "datetime_output" =>  $now->toDateTimeString()
+                        "datetime_output"           => $now->toDateTimeString(),
                     ]);
             }
             // end
 
             $data = res_reservation::where("id", $reservation->id)
-                                                    ->orwhereIn("id", $filtered->pluck("id"))
-                                                    ->withRelations()
-                                                    ->get();
+                ->orwhereIn("id", $filtered->pluck("id"))
+                ->withRelations()
+                ->get();
             return $data;
         }
 
@@ -299,6 +326,8 @@ class TableReservationService extends Service
 
         $reservation->save();
 
-        return $reservation;
+        $data = res_reservation::withRelations()->find($reservation->id);
+
+        return $data;
     }
 }

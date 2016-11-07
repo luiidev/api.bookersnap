@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Events\EmitNotification;
 use App\Http\Requests;
 use App\Http\Requests\TableReservationRequest;
-use App\Services\ReservationService;
 use App\Services\TableReservationService as Service;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -14,11 +13,6 @@ use Illuminate\Support\Facades\Validator;
 class TableReservationController extends Controller
 {
     private $service;
-    private $_ReservationService;
-    public function __construct(ReservationService $ReservationService)
-    {
-        $this->_ReservationService = $ReservationService;
-    }
 
     /**
      * Display a listing of the resource.
@@ -52,7 +46,7 @@ class TableReservationController extends Controller
         return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->create_reservation();
 
-            $this->_notificationReservation($request->route("microsite_id"), $reservation->id, "Se creo una nueva reservación");
+            $this->_notification($request->route("microsite_id"), $reservation, "Se creo una nueva reservación", "create", $request->key);
 
             return $this->CreateJsonResponse(true, 201, "La reservacion fue registrada", $reservation);
         });
@@ -93,8 +87,11 @@ class TableReservationController extends Controller
     public function update(TableReservationRequest $request)
     {
         $this->service = Service::make($request);
-        return $this->TryCatchDB(function () {
+        return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->update();
+
+            $this->_notification($request->route("microsite_id"), $reservation, "Se edito una reservación", "update", $request->key);
+
             return $this->CreateJsonResponse(true, 200, "Se actualizo la reservacion.", $reservation);
         });
     }
@@ -113,9 +110,11 @@ class TableReservationController extends Controller
     public function cancel(Request $request)
     {
         $this->service = Service::make($request);
-        return $this->TryCatchDB(function () {
-            $confirmation = $this->service->cancel();
-            if ($confirmation) {
+        return $this->TryCatchDB(function () use ($request) {
+            $reservation = $this->service->cancel();
+            if ($reservation) {
+                $this->_notification($request->route("microsite_id"), $reservation, "Se cancelo una reservación", "update", $request->key);
+
                 return $this->CreateJsonResponse(true, 200, "La reservacion fue cancelada.");
             } else {
                 return $this->CreateJsonResponse(true, 422, null, null, null, null, "No se enontro la reservacion o ya fue cancelada.");
@@ -133,9 +132,9 @@ class TableReservationController extends Controller
             "server_id"       => "exists:res_server,id",
             "note"            => "string",
             "guests"          => "required|array",
-                "guests.men"      => "required|integer",
-                "guests.women"    => "required|integer",
-                "guests.children" => "required|integer",
+            "guests.men"      => "required|integer",
+            "guests.women"    => "required|integer",
+            "guests.children" => "required|integer",
         ];
 
         $request["id"] = $request->route("reservation");
@@ -148,11 +147,11 @@ class TableReservationController extends Controller
 
         $this->service = Service::make($request);
         return $this->TryCatch(function () use ($request) {
-            $this->service->quickEdit();
+            $reservation = $this->service->quickEdit();
 
-            $this->_notificationReservation($request->route("microsite_id"), $request->route("reservation"), "Actualización mesa rápida");
+            $this->_notification($request->route("microsite_id"), $reservation, "Actualización mesa rápida", "update", $request->key);
 
-            return $this->CreateJsonResponse(true, 200, "La reservacion fue actualizada.");
+            return $this->CreateJsonResponse(true, 200, "La reservacion fue actualizada.", $reservation);
         });
     }
 
@@ -164,9 +163,9 @@ class TableReservationController extends Controller
             "hour"            => "required",
             "table_id"        => "required|exists:res_table,id",
             "guests"          => "required|array",
-                "guests.men"      => "required|integer",
-                "guests.women"    => "required|integer",
-                "guests.children" => "required|integer",
+            "guests.men"      => "required|integer",
+            "guests.women"    => "required|integer",
+            "guests.children" => "required|integer",
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -180,7 +179,7 @@ class TableReservationController extends Controller
 
             $reservation = $this->service->quickCreate();
 
-            $this->_notificationReservation($request->route("microsite_id"), $reservation->id, "Se ha creado nueva reservación rápida");
+            $this->_notification($request->route("microsite_id"), $reservation, "Se ha creado nueva reservación rápida", "create", $request->key);
 
             return $this->CreateJsonResponse(true, 200, "La reservacion fue registrada.", $reservation);
         });
@@ -203,7 +202,7 @@ class TableReservationController extends Controller
             $reservations = $this->service->sit();
 
             if ($reservations) {
-                $this->_notification($request->route("microsite_id"), $reservations, "Actualización de reservación");
+                $this->_notification($request->route("microsite_id"), $reservations, "Actualización de reservación", "update", $request->key);
                 return $this->CreateJsonResponse(true, 200, "", $reservations);
             } else {
                 return $this->CreateJsonResponse(true, 422, null, null, null, null, "No se enontro la reservacion.");
@@ -218,34 +217,22 @@ class TableReservationController extends Controller
         return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->create_waitlist();
 
-            $this->_notificationReservation($request->route("microsite_id"), $reservation->id, "Hay una actualización de reservación (Lista de espera)");
+            $this->_notification($request->route("microsite_id"), $reservation, "Hay una actualización de reservación (Lista de espera)", "create", $request->key);
             return $this->CreateJsonResponse(true, 201, "La lista de espera fue registrada", $reservation);
         });
     }
 
-    private function _notificationReservation(Int $microsite_id, Int $reservation_id, String $message)
+    private function _notification(Int $microsite_id, $data, String $message, String $action, String $key = null)
     {
-        $reservationData = $this->_ReservationService->get($microsite_id, $reservation_id);
-
-        event(new EmitNotification("b-mesas-floor-upd-res",
+        event(new EmitNotification("b-mesas-floor-res",
             array(
                 'microsite_id' => $microsite_id,
-                'user_msg'     => $message,
-                'data'         => $reservationData,
+                'user_msg' => $message,
+                'data' => $data,
+                'action' => $action,
+                'key' => $key
             )
         ));
     }
-
-    private function _notification(Int $microsite_id, $data, String $message)
-    {
-        event(new EmitNotification("b-mesas-floor-upd-res",
-            array(
-                'microsite_id' => $microsite_id,
-                'user_msg'     => $message,
-                'data'         => $data,
-            )
-        ));
-    }
-
 
 }

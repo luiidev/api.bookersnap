@@ -54,6 +54,6 @@ class res_reservation extends Model {
                         return $query->select("id", "first_name", "last_name")->with("emails", "phones");
                     }, "tags" => function ($query) {
                         return $query->select("id");
-                    }, "source", "status", "typeTurn"]);
+                    }, "source", "status", "typeTurn", "server"]);
     }
 }
