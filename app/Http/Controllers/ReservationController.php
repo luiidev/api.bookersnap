@@ -29,7 +29,7 @@ class ReservationController extends Controller
 
         return $this->TryCatch(function () use ($request, $service) {
             $date = Carbon::now()->setTimezone($request->timezone);
-            $date = $date->format('Y-m-d');
+            $date = ($request->input('date')) ? $request->input('date') : $date->format('Y-m-d');
             $data = $service->getList($request->route('microsite_id'), $date);
             return $this->CreateResponse(true, 201, "", $data);
         });
