@@ -157,6 +157,7 @@ function routeMesas()
         Route::post('table/reservation/quickcreate', 'TableReservationController@quickCreate');
 
         Route::post('waitlist', 'TableReservationController@createWaitList');
+        Route::delete('waitlist/{id}', 'TableReservationController@deleteWaitList');
 
         //-----------------------------------------------------
         // MICROSITE:: RESERVATION TAGS

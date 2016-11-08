@@ -330,4 +330,11 @@ class TableReservationService extends Service
 
         return $data;
     }
+
+    public function delete_waitList()
+    {
+        $reservation = res_reservation::where('id', $this->req->id)->where('ms_microsite_id', $this->microsite_id)->first();
+
+        $reservation->res_reservation_status_id = 6;
+    }
 }
