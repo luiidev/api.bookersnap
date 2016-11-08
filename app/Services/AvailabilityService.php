@@ -93,10 +93,10 @@ class AvailabilityService
                 // return ["event" => $availabilityTablesEvents['availability']->count(), "normal" => $availabilityTablesNormal['availability']->count()];
                 if ($availabilityTablesNormal['availability']->count() > 0 && $availabilityTablesEvents['availability']->count() > 0) {
                     //Algoritmo de mezcla de array de mesas
-                    return $this->algoritmoTables($date, $timezone, $next_day, $availabilityTablesEvents, $availabilityTablesNormal);
 
-                    $dateCloseNormal = Carbon::createFromFormat('Y-m-d H:i:s', $availabilityTablesNormal['dayClose'] . " " . $availabilityTablesNormal['hourClose'], $timezone)->addDay($availabilityTablesNormal['day']);
-                    $dateCloseEvent  = Carbon::createFromFormat('Y-m-d H:i:s', $availabilityTablesEvents['dayClose'] . " " . $availabilityTablesEvents['hourClose'], $timezone)->addDay($availabilityTablesEvents['day']);
+                    $availabilityTables = $this->algoritmoTables($date, $timezone, $next_day, $availabilityTablesEvents, $availabilityTablesNormal);
+                    $dateCloseNormal    = Carbon::createFromFormat('Y-m-d H:i:s', $availabilityTablesNormal['dayClose'] . " " . $availabilityTablesNormal['hourClose'], $timezone)->addDay($availabilityTablesNormal['day']);
+                    $dateCloseEvent     = Carbon::createFromFormat('Y-m-d H:i:s', $availabilityTablesEvents['dayClose'] . " " . $availabilityTablesEvents['hourClose'], $timezone)->addDay($availabilityTablesEvents['day']);
                     if ($dateCloseNormal->toDateTimeString() > $dateCloseEvent->toDateTimeString()) {
                         $dateClose  = $dateCloseNormal;
                         $indexClose = $this->defineIndexHour($availabilityTablesNormal['day'], $dateClose->toTimeString());
@@ -104,6 +104,7 @@ class AvailabilityService
                         $dateClose  = $dateCloseEvent;
                         $indexClose = $this->defineIndexHour($availabilityTablesEvents['day'], $dateClose->toTimeString());
                     }
+                    // return [$dateClose, $indexClose];
                 } elseif ($availabilityTablesEvents['availability']->count() > 0) {
                     $availabilityTables = $availabilityTablesEvents;
                     $dateClose          = Carbon::createFromFormat('Y-m-d H:i:s', $availabilityTablesEvents['dayClose'] . " " . $availabilityTablesEvents['hourClose'], $timezone)->addDay($availabilityTablesEvents['day']);
@@ -172,6 +173,7 @@ class AvailabilityService
                 $indexHourMin = $indexAvailability;
                 // return collect(["indexQuery" => $indexQuery, "indexHourInitUp" => $indexHourInitUp, "indexHourInitI" => $indexAvailability, "indexHourInitDown" => $indexHourInitDown, "indexCloseLocal" => $indexClose, "indexEventMin" => $indexHourMin, "indexEventMax" => $indexHourMax]);
                 // return $availabilityTables['eventFree'];
+                // return $availabilityTables;
                 return $this->searchAvailavilityFormat($indexQuery, $indexAvailability, $indexHourInitDown, $indexHourInitUp, $indexHourMin, $indexHourMax, $microsite_id, $date, $hourQuery, $num_guests, $zone_id, $timezone, $availabilityTables['availability'], $availabilityTables['eventFree']);
             }
 
@@ -182,7 +184,6 @@ class AvailabilityService
     {
         $arrayMid   = collect();
         $resultsMid = [];
-
         if ($indexQuery < $indexAvailability) {
             $indexQuery      = $indexAvailability;
             $indexHourInitUp = $indexAvailability;
@@ -192,7 +193,7 @@ class AvailabilityService
                 $indexHourMin--;
             }
         }
-
+        // dd("test");
         if (count($resultsMid) > 0) {
             $arrayMid->push($resultsMid);
         } else {
@@ -211,6 +212,7 @@ class AvailabilityService
         if ($cantDown < 2) {
             $arrayDown = $this->addDownAvailavility($arrayDown, $indexHourInitDown - $cantDown, $indexHourMin, $eventFree);
         }
+        // dd("test");
         return array_merge($arrayDown->toArray(), $arrayMid->toArray(), $arrayUp->toArray());
     }
 /**
@@ -348,6 +350,7 @@ class AvailabilityService
     public function getAvailabilityBasic(int $microsite_id, string $date, string $hour, int $num_guests, int $zone_id, int $indexHour, string $timezone, $availabilityTables, $eventFree)
 // public function getAvailabilityBasic(int $microsite_id, string $date, string $hour, int $num_guests, int $zone_id, int $next_day)
     {
+        // return $availabilityTables;
         $timeFoTable                = new TimeForTable;
         $availabilityTablesFilter   = [];
         $unavailabilityTablesFilter = [];
@@ -730,19 +733,14 @@ class AvailabilityService
 
     public function searchTablesReservation(string $date, int $microsite_id, int $zone_id)
     {
-        $availabilityTables       = collect();
-        $turnHour                 = collect();
-        list($year, $month, $day) = explode("-", $date);
-        $turnsFilter              = $this->calendarService->getList($microsite_id, $year, $month, $day);
+        $availabilityTables = collect();
+        $turnHour           = collect();
+        list($y, $m, $d)    = explode("-", $date);
+        $turnsFilter        = $this->calendarService->getList($microsite_id, $y, $m, $d);
         foreach ($turnsFilter as $turn) {
             $dayClose  = $turn['end_date'];
             $hourClose = $turn['turn']['hours_end'];
             $day       = $turn['turn']['hours_ini'] > $turn['turn']['hours_end'] ? 1 : 0;
-            // if ($turn['turn']['hours_ini'] > $turn['turn']['hours_end']) {
-            //     $day = 1;
-            // } else {
-            //     $day = 0;
-            // }
             $turnHour->push($turn['turn']);
             $availabilityTables->push($this->turnService->getListTable($turn['turn']['id'], $zone_id));
         };
@@ -751,47 +749,26 @@ class AvailabilityService
 
     public function algoritmoTables(string $date, string $timezone, int $next_day, $availabilityTablesEvents, $availabilityTablesNormal)
     {
-
+        // return $availabilityTablesEvents;
+        // return $availabilityTablesNormal;
         // return $availabilityTablesNormal['turn'];
-        $dataRange = $this->rangeEvent($date, $timezone, $availabilityTablesEvents, $availabilityTablesNormal);
-
+        $dataRange           = $this->rangeEvent($date, $timezone, $availabilityTablesEvents, $availabilityTablesNormal);
+        $eventID             = $availabilityTablesEvents['eventFree']->first()->id;
         $turnEvent           = $dataRange['event']->first();
         $turnEvent['tables'] = $turnEvent['tables']->first();
         $turnNormal          = $dataRange['normal'];
         $turnNormal          = $dataRange['normal']->push($turnEvent);
         $turnRange           = $dataRange['range'];
+        $initE               = $dataRange['initE'];
+        $finE                = $dataRange['finE'];
 
-        // return $turnNewEventormal[0]['tables'][0]['availability'][0]['rule_id'];
-        // return [$turnEvent, $turnNormal, $turnRange];
-        // Buscar en el rango
-        $availavilityAux  = collect();
-        $availabilityTurn = collect();
+        $availabilityTurn         = collect();
+        $availabilityAvailability = collect();
         foreach ($turnRange as $range) {
             $normal = $turnNormal->where('id', $range['id'])->first();
             // return $normal;
             if (isset($normal)) {
-                //Falta Editar la Mesas en el horario del Evento
-                $diffTablesNormal = $normal['tables']->diffKeys($turnEvent['tables']->first())->values()->all();
-                // $normal['tables']->reject(function ($table) use ($diffTablesNormal) {
-                //     $diffId = collect($diffTablesNormal)->pluck('id');
-                //     foreach ($diffId as $id) {
-                //         if ($table['id'] == $id) {
-                //             return true;
-                //         }
-                //     }
-                //     return false;
-                // });
-                //Estas mesas se agregaran al resultado final
-                $diffTablesEvent = $turnEvent['tables']->diffKeys($normal['tables'])->values()->all();
-                // $turnEvent['tables']->reject(function ($table) use ($diffTablesEvent) {
-                //     $diffId = collect($diffTablesEvent)->pluck('id');
-                //     foreach ($diffId as $id) {
-                //         if ($table['id'] == $id) {
-                //             return false;
-                //         }
-                //     }
-                //     return false;
-                // });
+                $availavilityAux = collect();
                 foreach ($normal['tables'] as $tableNormal) {
                     // $auxNormal = $normal;
                     $tableEvent = $turnEvent['tables']->where('id', $tableNormal['id'])->first();
@@ -799,43 +776,50 @@ class AvailabilityService
                         // $auxE = $tableEvent['availability'];
                         $auxN = $tableNormal['availability'];
                         for ($i = $range['indexHourInit']; $i <= $range['indexHourFin']; $i++) {
-                            if ($tableEvent['availability'][$i]['rule_id'] == 2 && $tableNormal['availability'][$i]['rule_id'] != 2) {
-                                $auxN[$i]['rule_id'] = 2;
-                                $auxN[$i]['event']   = true;
-                            } else if ($tableEvent['availability'][$i]['rule_id'] == 1 && $tableNormal['availability'][$i]['rule_id'] == 2) {
-                                $auxN[$i]['rule_id'] = 1;
-                                $auxN[$i]['event']   = true;
+                            if ($tableEvent['availability'][$i]['rule_id'] == 2 && $i <= $finE) {
+                                $auxN[$i]['rule_id']  = 2;
+                                $auxN[$i]['event']    = true;
+                                $auxN[$i]['event_id'] = $eventID;
+                            } else if ($tableEvent['availability'][$i]['rule_id'] !== 2 && $i <= $finE) {
+                                $auxN[$i]['rule_id']  = -1;
+                                $auxN[$i]['event']    = true;
+                                $auxN[$i]['event_id'] = $eventID;
+                            } else {
+                                $auxN[$i]['rule_id']  = $tableNormal['availability'][$i]['rule_id'];
+                                $auxN[$i]['event']    = false;
+                                $auxN[$i]['event_id'] = null;
                             }
-                            $auxN[$i]['event'] = true;
                         }
                         $tableNormal['availability'] = $auxN;
                         $availavilityAux->push($tableNormal);
                     }
-
-                    // else {
-                    //     // $tableNormal['availability'] = $auxN;
-                    //     $auxNorma['tables'] = $tableNormal;
-                    //     $availavilityAux->push($tableNormal);
-                    //     // $availavilityAux->push($tableEvent);
-                    // }
                 }
-
-                // foreach ($diffTablesEvent as $key => $diffEvent) {
-                //     $availavilityAux->push($diffEvent);
-                // }
-                // foreach ($diffTablesNormal as $diffNormal) {
-                //     $availavilityAux->push($diffNormal);
-                // }
-
+                $normalAux1 = $normal;
+                $normalAux2 = $availavilityAux;
+                $availabilityTurn->push($normalAux1);
+                $availabilityAvailability->push($normalAux2);
             }
         }
-        // return true;
-        //
-        return $availavilityAux->chunk(29);
-        // return [$turnEvent, $turnNormal, $turnRange];
-        // return 'termino';
+        $finalFormat                 = [];
+        $finalFormat['availability'] = $availabilityAvailability;
+        $finalFormat['turn']         = $availabilityTurn;
 
-        return ["event" => $availabilityTablesEvents['turn'], "normal" => $availabilityTablesNormal['turn']];
+        $finalFormat['eventFree'] = $availabilityTablesEvents['eventFree'];
+        // if ($availabilityTablesEvents['dayClose'] > $availabilityTablesNormal['dayClose']) {
+        //     $finalFormat['dayClose'] = $availabilityTablesEvents['dayClose'];
+        // } else {
+        //     $finalFormat['dayClose'] = $availabilityTablesNormal['dayClose'];
+        // }
+        if ($availabilityTablesEvents['day'] > $availabilityTablesNormal['day']) {
+            $finalFormat['day'] = $availabilityTablesEvents['day'];
+        } else {
+            $finalFormat['day'] = $availabilityTablesNormal['day'];
+        }
+
+        // $finalFormat['day']       = $availabilityTablesEvents['day'] == 1 ? 1 : 0;
+        // return $finalFormat;
+        // return "test";
+        return $finalFormat;
     }
 
     private function rangeEvent(string $date, string $timezone, $availabilityTablesEvents, $availabilityTablesNormal)
@@ -848,16 +832,20 @@ class AvailabilityService
         $dayEventIni  = $hourIni->toDateString() < $hourFin->toDateString() ? 0 : $dayEvent;
         $init         = $this->defineIndexHour($dayEventIni, $hourIni->toTimeString());
         $fin          = $this->defineIndexHour($dayEvent, $hourFin->toTimeString());
-        $turnNewEvent->push(["id" => $turnEvent->id, 'name' => $turnEvent->name, 'hourIni' => $hourIni, 'hourFin' => $hourFin, 'tables' => $availabilityTablesEvents['availability']]);
+        // $turnNewEvent->push(["id" => $turnEvent->id, 'name' => $turnEvent->name, 'hourIni' => $hourIni, 'hourFin' => $hourFin, 'tables' => $availabilityTablesEvents['availability']]);
         // $turnNewEvent->push(["id" => $turnEvent->id, 'name' => $turnEvent->name, 'tables' => $availabilityTablesEvents['availability']]);
+        $turnEvent['tables'] = $availabilityTablesEvents['availability'];
+        $turnNewEvent->push($turnEvent);
 
         $turnNormalCollection = collect();
         $turnChange           = collect();
         $turnNewNormal        = collect();
+
         foreach ($availabilityTablesNormal['turn'] as $index => $turnNormal) {
-            $turnNewNormal->push(['id' => $turnNormal['id'], 'name' => $turnNormal['name'], 'tables' => $availabilityTablesNormal['availability'][$index]]);
+            $turnNormal['tables'] = $availabilityTablesNormal['availability'][$index];
+            $turnNewNormal->push($turnNormal);
         };
-        $turnNewNormal;
+        // $turnNewNormal;
 
         foreach ($availabilityTablesNormal['turn'] as $indexAux => $turnNormal) {
             $dayNormal = $turnNormal['hours_ini'] > $turnNormal['hours_end'] ? 1 : 0;
@@ -900,7 +888,7 @@ class AvailabilityService
             $inicio['indexHourInit'] = $init;
         }
         $turnChange->prepend($inicio);
-        return ["event" => $turnNewEvent, "normal" => $turnNewNormal, "range" => $turnChange];
+        return ["event" => $turnNewEvent, "normal" => $turnNewNormal, "range" => $turnChange, "initE" => $init, "finE" => $fin];
     }
 
 }
