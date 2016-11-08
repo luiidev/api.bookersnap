@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\EmitNotification;
 use App\Http\Controllers\Controller as Controller;
 use App\Services\NoteService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class NoteController extends Controller
@@ -20,7 +21,10 @@ class NoteController extends Controller
     {
         return $this->TryCatchDB(function () use ($request) {
 
-            $date = ($request->has('date')) ? $request->input('date') : date('Y-m-d');
+            $date = Carbon::now($request->timezone);
+            $now  = $date->format('Y-m-d');
+            $date = ($request->has('date')) ? $request->input('date') : $now;
+
             //return $date;
             $note = $this->_NoteService->getList($request->route('microsite_id'), $date);
             return $this->CreateJsonResponse(true, 201, "Listado de notas", $note);
