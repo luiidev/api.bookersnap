@@ -187,6 +187,11 @@ function routeMesas()
         Route::resource("configuration/users", "ConfigurationUserController", ["only" => ["index", "destroy", "store"]]);
 
         //-----------------------------------------------------
+        // MICROSITE:: Reservation Temporal
+        //-----------------------------------------------------
+        Route::resource("reservationtemporal/", "ReservationTemporalController", ["only" => ["index", "destroy", "store"]]);
+
+        //-----------------------------------------------------
         // MICROSITE:: Availability
         //-----------------------------------------------------
         Route::group(['prefix' => 'availability/'], function () {

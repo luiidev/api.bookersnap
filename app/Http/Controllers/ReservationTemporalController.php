@@ -2,12 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ReservationTemporalRequest;
+use App\Services\ReservationTemporalService;
 use Illuminate\Http\Request;
-
-use App\Http\Requests;
 
 class ReservationTemporalController extends Controller
 {
+    private $service;
+
+    public function __construct(ReservationTemporalService $ReservationTemporalService)
+    {
+        $this->service = $ReservationTemporalService;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -25,7 +32,7 @@ class ReservationTemporalController extends Controller
      */
     public function create()
     {
-        //
+
     }
 
     /**
@@ -34,9 +41,24 @@ class ReservationTemporalController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ReservationTemporalRequest $request)
     {
-        //
+        $request->request->set('ev_event_id', 1);
+
+        $user_id      = $request->input("_bs_user_id");
+        $microsite_id = $request->route('microsite_id');
+        $hour         = $request->hour;
+        $date         = $request->date;
+        $num_guest    = $request->num_guest;
+        $zone_id      = $request->zone_id;
+        $tables_id    = $request->tables_id;
+        $ev_event_id  = $request->ev_event_id;
+
+        return $this->TryCatch(function () use ($user_id, $microsite_id, $hour, $date, $num_guest, $zone_id, $tables_id, $ev_event_id) {
+            $reservationTemporal = $this->service->createReservationTemporal($user_id, $microsite_id, $hour, $date, $num_guest, $zone_id, $tables_id, $ev_event_id);
+            return $this->CreateJsonResponse(true, 200, "", $reservationTemporal);
+        });
+
     }
 
     /**
