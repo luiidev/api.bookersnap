@@ -12,7 +12,7 @@ class res_server extends Model
     const UPDATED_AT = "date_upd";
 
     protected $table = "res_server";
-    protected $visible = ["id", "name", "color"];
+    protected $visible = ["id", "name", "color", "tables", "reservations"];
 
     public function tables(){
         return $this->hasMany(res_table::class, "res_server_id");
