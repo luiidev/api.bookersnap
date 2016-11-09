@@ -222,7 +222,7 @@ class TableReservationController extends Controller
         return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->create_waitlist();
 
-            $this->_notification($request->route("microsite_id"), $reservation, "Hay una actualización de reservación (Lista de espera)", "create", $request->key);
+            $this->_notification($request->route("microsite_id"), $reservation, "Se ha creado una lista de espera", "create", $request->key);
             return $this->CreateJsonResponse(true, 201, "La lista de espera fue registrada", $reservation);
         });
     }
