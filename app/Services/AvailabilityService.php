@@ -188,12 +188,18 @@ class AvailabilityService
 
                             //Buscar promociones se tiene $date & $hour
                             //Servicio para buscar las promociones
-                            $promotionsId                = $this->searchPromotions($date, $next_day, $availability['hour'], $microsite_id, $timezone);
-                            $availability['ev_event_id'] = $promotionsId;
+                            $promotionsId = $this->searchPromotions($date, $next_day, $availability['hour'], $microsite_id, $timezone);
+                            if ($promotionsId->count() > 0) {
+                                $availability['ev_event_id'] = $promotionsId;
+
+                            } else {
+                                $availability['ev_event_id'] = null;
+                            }
                         }
                         $aux->push($availability);
                     }
                     return $aux;
+
                 } else if ($searchPromotions == false) {
                     $availabilityEventsFree = $this->searchAvailavilityFormat($indexQuery, $indexAvailability, $indexHourInitDown, $indexHourInitUp, $indexHourMin, $indexHourMax, $microsite_id, $date, $hourQuery, $num_guests, $zone_id, $timezone, $availabilityTables['availability'], $availabilityTables['event_id']);
                     $aux                    = collect();
@@ -216,8 +222,12 @@ class AvailabilityService
 
                                 //Buscar promociones se tiene $date & $hour
                                 //Servicio para buscar las promociones
-                                $promotionsId                    = $this->searchPromotions($date, $next_day, $availabilityFree['hour'], $microsite_id, $timezone);
-                                $availabilityFree['ev_event_id'] = $promotionsId;
+                                $promotionsId = $this->searchPromotions($date, $next_day, $availabilityFree['hour'], $microsite_id, $timezone);
+                                if ($promotionsId->count()) {
+                                    $availabilityFree['ev_event_id'] = $promotionsId;
+                                } else {
+                                    $availabilityFree['ev_event_id'] = null;
+                                }
                             }
                         }
                         $aux->push($availabilityFree);
@@ -956,10 +966,13 @@ class AvailabilityService
             });
             foreach ($listReservationTemp as $reservationTemp) {
                 $tables_id = explode(",", $reservationTemp->tables_id);
-                $tables->push($tables_id);
+                foreach ($tables_id as $id) {
+                    $id = (int) $id;
+                    $tables->push($id);
+                }
+
             }
-            dd($tables->values()->all());
-            return collect($tables_id)->values()->all();
+            return $tables->toArray();
         } else {
             return $listReservationTemp;
         }
