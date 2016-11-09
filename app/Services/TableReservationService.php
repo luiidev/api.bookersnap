@@ -173,16 +173,27 @@ class TableReservationService extends Service
 
     public function quickEdit()
     {
-        res_reservation::where("id", $this->reservation)
-            ->update([
-                "res_reservation_status_id" => $this->req->status_id,
-                "num_guest"                 => $this->req->covers,
-                "res_server_id"             => $this->req->server_id,
-                "note"                      => $this->req->note,
-                "num_people_1"              => $this->req->guests["men"],
-                "num_people_2"              => $this->req->guests["women"],
-                "num_people_3"              => $this->req->guests["children"],
-            ]);
+        $now = Carbon::now()->setTimezone($this->req->timezone);
+
+        $reservation = res_reservation::find($this->reservation);
+
+        $reservation->num_guest                    = $this->req->covers;
+        $reservation->res_server_id                = $this->req->server_id;
+        $reservation->note                                = $this->req->note;
+        $reservation->num_people_1              = $this->req->guests["men"];
+        $reservation->num_people_2              = $this->req->guests["women"];
+        $reservation->num_people_3              = $this->req->guests["children"];
+        $reservation->res_reservation_status_id   = $this->req->status_id;
+
+        if ( $this->req->status_id == 4 ) {
+            $reservation->datetime_input = $now->toDateTimeString();
+        } else if ($this->req->status_id == 5 ) {
+            $reservation->datetime_output = $now->toDateTimeString();
+        }
+
+        $reservation->save();
+
+        if ($this->req->has("tags"))  $reservation->tags()->sync($this->req->tags);
 
         $data = res_reservation::withRelations()->find($this->reservation);
 
@@ -329,5 +340,12 @@ class TableReservationService extends Service
         $data = res_reservation::withRelations()->find($reservation->id);
 
         return $data;
+    }
+
+    public function delete_waitList()
+    {
+        $reservation = res_reservation::where('id', $this->req->id)->where('ms_microsite_id', $this->microsite_id)->first();
+
+        $reservation->res_reservation_status_id = 6;
     }
 }
