@@ -157,6 +157,7 @@ function routeMesas()
         Route::post('table/reservation/quickcreate', 'TableReservationController@quickCreate');
 
         Route::post('waitlist', 'TableReservationController@createWaitList');
+        Route::put('waitlist', 'TableReservationController@updateWaitList');
         Route::delete('waitlist/{id}', 'TableReservationController@deleteWaitList');
 
         //-----------------------------------------------------
@@ -185,6 +186,11 @@ function routeMesas()
         //-----------------------------------------------------
         Route::get("configuration/users/privileges", "ConfigurationUserController@getAllUser");
         Route::resource("configuration/users", "ConfigurationUserController", ["only" => ["index", "destroy", "store"]]);
+
+        //-----------------------------------------------------
+        // MICROSITE:: Reservation Temporal
+        //-----------------------------------------------------
+        Route::resource("reservationtemporal/", "ReservationTemporalController", ["only" => ["index", "destroy", "store"]]);
 
         //-----------------------------------------------------
         // MICROSITE:: Availability

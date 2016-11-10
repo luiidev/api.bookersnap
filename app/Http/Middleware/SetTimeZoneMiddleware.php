@@ -15,7 +15,7 @@ class SetTimeZoneMiddleware
      */
     public function handle($request, Closure $next)
     {
-        $request["timezone"] = "America/Mexico_City";
+        $request["timezone"] = "America/Lima";
         return $next($request);
     }
 }

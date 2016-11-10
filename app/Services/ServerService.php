@@ -5,6 +5,8 @@ namespace App\Services;
 //use App\Helpers\Utilitarios;
 use App\Entities\Server;
 use App\Entities\Table;
+use App\res_server;
+use App\res_table;
 Use DB;
 Use Exception;
 
@@ -101,38 +103,28 @@ class ServerService {
         DB::beginTransaction();
         try {
 
-            $model = Server::find($server_id);
-            $model->name = $variables["name"];
-            $model->color = $variables["color"];
-            $model->date_upd = date("Y-m-d H:i:s");
-            $model->user_upd = 1;
-            if (!$model->update()) {
-                throw new Exception('messages.server_error_update');
-            }
+            $server = res_server::where("ms_microsite_id", $microsite)->where("id", $server_id)->first();
+            $server->name = $variables["name"];
+            $server->color = $variables["color"];
+            $server->user_upd = 1;
 
-            $tables = DB::table('res_table')->where('res_server_id', '=', $server_id)->update(array('res_server_id' => NULL));
-            
+            $server->save();
 
-            foreach ($variables["tables"] as $table) {
+            res_table::where("res_server_id", $server_id)->update(["res_server_id" => null]);
 
-                $modelTable = Table::find($table["id"]);
-                if($modelTable == NULL){
-                    throw new Exception('messages.table_update_not_exist');
-                }else{
-                    $modelTable->res_server_id = $model->id;
-                    $modelTable->date_upd = date("Y-m-d H:i:s");
-                    $modelTable->user_upd = 1;
-                    if(!$modelTable->update()){
-                      throw new Exception('messages.table_error_update');  
-                    }
-                }
+            $tables = collect($variables["tables"])->pluck("id");
 
-            }
-            
+            res_table::whereIn("id", $tables)->update(["res_server_id" => $server_id, "user_upd" => 1]);
+
+            $data = res_server::with(["tables" => function($query) {
+                return $query->select("id", "name", "res_server_id");
+            }])->find($server_id);
+
             DB::commit();
 
             $response["mensaje"] = "messages.server_update_success";
             $response["estado"] = true;
+            $response["server"]  = $data;
 
         } catch (\Exception $e) {
 

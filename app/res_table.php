@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\res_server;
 use Illuminate\Database\Eloquent\Model;
 
 class res_table extends Model
@@ -37,6 +38,11 @@ class res_table extends Model
     public function reservations()
     {
         return $this->belongsToMany('App\Entities\Reservation', 'res_table_reservation', 'res_table_id', 'res_reservation_id')->withPivot('num_people');
+    }
+
+    public function server()
+    {
+        return $this->belongsTo(res_server::class, "res_server_id");
     }
 
 }
