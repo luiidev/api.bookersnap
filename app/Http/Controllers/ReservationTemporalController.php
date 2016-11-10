@@ -3,16 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ReservationTemporalRequest;
+use App\Services\AvailabilityService;
 use App\Services\ReservationTemporalService;
 use Illuminate\Http\Request;
 
 class ReservationTemporalController extends Controller
 {
     private $service;
+    private $availabilityService;
 
-    public function __construct(ReservationTemporalService $ReservationTemporalService)
+    public function __construct(ReservationTemporalService $ReservationTemporalService, AvailabilityService $AvailabilityService)
     {
-        $this->service = $ReservationTemporalService;
+        $this->service             = $ReservationTemporalService;
+        $this->availabilityService = $AvailabilityService;
     }
 
     /**
@@ -43,22 +46,30 @@ class ReservationTemporalController extends Controller
      */
     public function store(ReservationTemporalRequest $request)
     {
+        //inyectar evento
         $request->request->set('ev_event_id', 1);
+        $ev_event_id = $request->ev_event_id;
 
         $user_id      = $request->input("_bs_user_id");
         $microsite_id = $request->route('microsite_id');
+        $token        = 'test';
         $hour         = $request->hour;
         $date         = $request->date;
-        $num_guest    = $request->num_guest;
+        $num_guests   = $request->num_guests;
         $zone_id      = $request->zone_id;
-        $tables_id    = $request->tables_id;
-        $ev_event_id  = $request->ev_event_id;
+        $next_day     = $request->next_day;
+        $timezone     = $request->timezone;
 
-        return $this->TryCatch(function () use ($user_id, $microsite_id, $hour, $date, $num_guest, $zone_id, $tables_id, $ev_event_id) {
-            $reservationTemporal = $this->service->createReservationTemporal($user_id, $microsite_id, $hour, $date, $num_guest, $zone_id, $tables_id, $ev_event_id);
+        if (isset($zone_id)) {
+            $availability = $this->availabilityService->searchAvailabilityDay($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone);
+        } else {
+            $availability = $this->availabilityService->searchAvailabilityDayAllZone($microsite_id, $date, $hour, $num_guests, $next_day, $timezone);
+        }
+
+        return $this->TryCatch(function () use ($user_id, $microsite_id, $hour, $date, $num_guests, $zone_id, $timezone, $availability, $ev_event_id, $token, $next_day, $num_guests) {
+            $reservationTemporal = $this->service->createReservationTemporal($user_id, $microsite_id, $hour, $date, $num_guests, $zone_id, $timezone, $availability, $ev_event_id, $token, $next_day, $num_guests);
             return $this->CreateJsonResponse(true, 200, "", $reservationTemporal);
         });
-
     }
 
     /**
