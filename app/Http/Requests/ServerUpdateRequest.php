@@ -19,10 +19,9 @@ class ServerUpdateRequest extends Request {
         return true;
     }
 
-    public function formatErrors(\Illuminate\Contracts\Validation\Validator $validator) {
-        $data["response"] = false;
-        $data["jsonError"] = $validator->errors()->all();
-        return $data;
+    public function response(array $errors)
+    {
+        return $this->CreateJsonResponse(false, 422, "", $errors, null, null, "Parametros no admitidos");
     }
 
     /**
