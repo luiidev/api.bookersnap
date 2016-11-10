@@ -39,6 +39,52 @@ class AvailabilityService
         $this->timeForTable         = $TimeForTable;
     }
 
+    public function searchAvailabilityDayAllZone(int $microsite_id, string $date, string $hour, int $num_guests, int $next_day, string $timezone)
+    {
+
+        $zonesId  = $this->calendarService->getZones($microsite_id, $date)->pluck('id');
+        $response = collect();
+        foreach ($zonesId as $index => $zoneId) {
+            $zoneAvailability = $this->searchAvailabilityDay($microsite_id, $date, $hour, $num_guests, $zoneId, $next_day, $timezone);
+
+            if ($zoneAvailability->count() !== 1) {
+                $auxZone = $zoneAvailability->map(function ($item) use ($zoneId) {
+                    $item["zone_id"] = $zoneId;
+                    return $item;
+                });
+                foreach ($auxZone as $availability) {
+                    if (isset($availability["tables_id"])) {
+                        if (count($availability["tables_id"]) > 0) {
+                            return $auxZone;
+                        }
+                    }
+                }
+            } elseif ($zoneAvailability->count() == 1) {
+                return $zoneAvailability;
+            }
+        }
+        //Si no encuentra disponibilidad en ningun micrositio
+        return $this->setAvailabilityNull($date, $hour, $timezone, $next_day);
+    }
+
+    private function setAvailabilityNull(string $date, string $hour, string $timezone, int $next_day)
+    {
+        $arrayMid  = collect();
+        $hourQuery = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $hour, $timezone)->addDay($next_day);
+        $init      = $this->defineIndexHour($next_day, $hourQuery->toTimeString());
+        $arrayMid->push(["hour" => $hourQuery->toTimeString(), "tables_id" => null, "ev_event_id" => null]);
+        $arrayUp   = collect();
+        $arrayUp   = $this->addUpAvailavility($arrayUp, $init + 1, 120, null);
+        $arrayDown = collect();
+        $arrayDown = $this->addDownAvailavility($arrayDown, $init - 1, 0, null);
+
+        $auxCollect = collect(array_merge($arrayDown->toArray(), $arrayMid->toArray(), $arrayUp->toArray()));
+        return $auxCollect->map(function ($item) {
+            $item["zone_id"] = null;
+            return $item;
+        });
+    }
+
     /**
      * Busca la disponibilidad en un dia y hora determinado valida la hora actual de busqueda y devulve un formato fijo de 5 horarios
      * @param  int    $microsite_id id del micrositio
@@ -82,7 +128,7 @@ class AvailabilityService
         }
 
         if ($event->get("event") !== null) {
-            return ["ev_env_id" => $event->get('event')['id']];
+            return collect(["ev_env_id" => $event->get('event')['id']]);
         } else {
             $searchPromotions = false;
             if ($event->get('hourMax') == null && $event->get('hourMin') == null) {
@@ -188,12 +234,18 @@ class AvailabilityService
 
                             //Buscar promociones se tiene $date & $hour
                             //Servicio para buscar las promociones
-                            $promotionsId                = $this->searchPromotions($date, $next_day, $availability['hour'], $microsite_id, $timezone);
-                            $availability['ev_event_id'] = $promotionsId;
+                            $promotionsId = $this->searchPromotions($date, $next_day, $availability['hour'], $microsite_id, $timezone);
+                            if ($promotionsId->count() > 0) {
+                                $availability['ev_event_id'] = $promotionsId;
+
+                            } else {
+                                $availability['ev_event_id'] = null;
+                            }
                         }
                         $aux->push($availability);
                     }
                     return $aux;
+
                 } else if ($searchPromotions == false) {
                     $availabilityEventsFree = $this->searchAvailavilityFormat($indexQuery, $indexAvailability, $indexHourInitDown, $indexHourInitUp, $indexHourMin, $indexHourMax, $microsite_id, $date, $hourQuery, $num_guests, $zone_id, $timezone, $availabilityTables['availability'], $availabilityTables['event_id']);
                     $aux                    = collect();
@@ -216,8 +268,12 @@ class AvailabilityService
 
                                 //Buscar promociones se tiene $date & $hour
                                 //Servicio para buscar las promociones
-                                $promotionsId                    = $this->searchPromotions($date, $next_day, $availabilityFree['hour'], $microsite_id, $timezone);
-                                $availabilityFree['ev_event_id'] = $promotionsId;
+                                $promotionsId = $this->searchPromotions($date, $next_day, $availabilityFree['hour'], $microsite_id, $timezone);
+                                if ($promotionsId->count()) {
+                                    $availabilityFree['ev_event_id'] = $promotionsId;
+                                } else {
+                                    $availabilityFree['ev_event_id'] = null;
+                                }
                             }
                         }
                         $aux->push($availabilityFree);
@@ -428,7 +484,7 @@ class AvailabilityService
         //Devuelve id de las mesas filtradas que estan reservadas en una fecha y hora
         $listReservations = $this->getTableReservation($availabilityTablesId->toArray(), $date, $startHour->toDateTimeString(), $endHour->toDateTimeString());
 
-        $listReservationsTemp = $this->getReservationTemp($availabilityTablesId->toArray(), $date, $startHour->toDateTimeString(), $timezone);
+        $listReservationsTemp = $this->getReservationTemp($availabilityTablesId->toArray(), $date, $startHour->toDateTimeString(), $timezone, $microsite_id);
 
         $unavailabilityTablesFilter = collect(array_merge($listBlocks, $listReservations, $listReservationsTemp))->unique();
 
@@ -619,7 +675,7 @@ class AvailabilityService
  * Reviza las reservaciones de esa fecha y hora actual y les cambia de estado a estado de cancelado por el restaurante, si el el tiempo de tolerancia es 0 no se realiza ningun cambio
  * @param  string $date           Fecha del dia de busqueda
  * @param  string $time_tolerance tiempo de tolerancia de 0 a 180 minutos 0  es ilimintado
- * @param  int    $microite_id    id del micrositio
+ * @param  int    $microsite_id    id del micrositio
  * @param  string $timezone       time zone del micrositio
  * @return boolean                 Si se realiza algun cambio devuelve true caso contratio falso
  */
@@ -744,11 +800,9 @@ class AvailabilityService
         }
         $cantGuest = $num_guests + $reservations->num_guests_standing;
         if ($num_guests + $reservations->num_guests_standing <= $this->max_people_standing) {
-            return ["availability_standing" => true, "num_guest_availability" => $cantGuest, "num_guest_s_max" => $this->max_people_standing];
-            return true;
+            return collect(["availability_standing" => true, "num_guest_availability" => $cantGuest, "num_guest_s_max" => $this->max_people_standing]);
         } else {
-            return ["availability_standing" => false, "num_guest_availability" => $cantGuest, "num_guest_s_max" => $this->max_people_standing];
-            return false;
+            return collect();
         }
     }
 
@@ -944,22 +998,25 @@ class AvailabilityService
         return $promoaux;
     }
 
-    public function getReservationTemp(array $tables_id, string $date, string $hourI, string $timezone)
+    public function getReservationTemp(array $tables_id, string $date, string $hourI, string $timezone, int $microsite_id)
     {
         $hour                = Carbon::createFromFormat('Y-m-d H:i:s', $hourI, $timezone);
         $listReservationTemp = [];
         $tables              = collect();
-        $reservations        = res_table_reservation_temp::where('date', $date)->where('hour', $hour->toTimeString())->get();
+        $reservations        = res_table_reservation_temp::where('date', $date)->where('hour', $hour->toTimeString())->where('ms_microsite_id', $microsite_id)->get();
         if ($reservations->count() > 0) {
             $listReservationTemp = $reservations->reject(function ($value) use ($hour) {
                 return $value->expire < $hour->toDateTimeString();
             });
             foreach ($listReservationTemp as $reservationTemp) {
                 $tables_id = explode(",", $reservationTemp->tables_id);
-                $tables->push($tables_id);
+                foreach ($tables_id as $id) {
+                    $id = (int) $id;
+                    $tables->push($id);
+                }
+
             }
-            dd($tables->values()->all());
-            return collect($tables_id)->values()->all();
+            return $tables->toArray();
         } else {
             return $listReservationTemp;
         }
