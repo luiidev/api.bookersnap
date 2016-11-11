@@ -119,17 +119,20 @@ class CalendarController extends Controller
      * @param  String    $date      fecha de consulta
      * @return Illuminate\Http\Response      App\res_zone
      */
-    public function getZones($lang, $microsite, $date)
+    public function getZones(Request $request)
     {
         $service = $this->_CalendarService;
 
-        return $this->TryCatch(function () use ($microsite, $date, $service) {
+        return $this->TryCatch(function () use ($request, $service) {
+            $date     = $request->route("date");
+            $dateNow  = Carbon::now($request->timezone)->toDateString();
+            $date_end = $request->input("end", $dateNow);
 
             if (Validator::make(["date" => $date], ["date" => "date"])->fails()) {
                 abort(406, "La fecha de consulta no es valida");
             }
 
-            $zones = $service->getZones($microsite, $date);
+            $zones = $service->getZones($request->route("microsite_id"), $date, $date_end);
 
             return $this->CreateResponse(true, 200, "", $zones);
         });
