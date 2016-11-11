@@ -1001,12 +1001,14 @@ class AvailabilityService
     public function getReservationTemp(array $tables_id, string $date, string $hourI, string $timezone, int $microsite_id)
     {
         $hour                = Carbon::createFromFormat('Y-m-d H:i:s', $hourI, $timezone);
+        $hourActual          = Carbon::now($timezone)->subMinutes(10);
         $listReservationTemp = [];
         $tables              = collect();
         $reservations        = res_table_reservation_temp::where('date', $date)->where('hour', $hour->toTimeString())->where('ms_microsite_id', $microsite_id)->get();
+        // dd($reservations);
         if ($reservations->count() > 0) {
-            $listReservationTemp = $reservations->reject(function ($value) use ($hour) {
-                return $value->expire < $hour->toDateTimeString();
+            $listReservationTemp = $reservations->reject(function ($value) use ($hourActual) {
+                return $value->expire < $hourActual->toDateTimeString();
             });
             foreach ($listReservationTemp as $reservationTemp) {
                 $tables_id = explode(",", $reservationTemp->tables_id);
