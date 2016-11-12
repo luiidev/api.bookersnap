@@ -22,9 +22,9 @@ class ReservationService
     public function get(int $microsite_id, int $reservation_id)
     {
         $rows = res_reservation::where('ms_microsite_id', $microsite_id)
-            ->where('id', $reservation_id)->with(["tables"=> function($query) {
-                return $query->select("res_table.id", "res_zone_id", "name");
-            }, "guest", "server","source", "status","typeTurn", "tags"])->first();
+            ->where('id', $reservation_id)->with(["tables" => function ($query) {
+            return $query->select("res_table.id", "res_zone_id", "name");
+        }, "guest", "server", "source", "status", "typeTurn", "tags"])->first();
 
         return $rows;
     }
@@ -32,9 +32,9 @@ class ReservationService
     public function getList(int $microsite_id, string $date = null)
     {
         $reservations = res_reservation::where('ms_microsite_id', $microsite_id)
-            ->where('date_reservation', $date)->with(["tables" => function($query) {
-                return $query->select("res_table.id", "res_zone_id","name");
-            }, "guest", "server", "source", "status","typeTurn", "tags"])->get();
+            ->where('date_reservation', $date)->with(["tables" => function ($query) {
+            return $query->select("res_table.id", "res_zone_id", "name");
+        }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "typeTurn", "tags"])->get();
 
         return $reservations->toArray();
     }

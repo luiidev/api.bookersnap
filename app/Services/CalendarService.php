@@ -285,16 +285,16 @@ class CalendarService
      * @param  String    $date
      * @return  Illuminate\Database\Eloquent\Collection App\res_zone
      */
-    public function getZones(Int $microsite, String $date)
+    public function getZones(Int $microsite, String $date, String $date_end)
     {
         $now   = Carbon::now();
-        $turns = res_turn_calendar::where(function ($query) use ($date) {
-            $query->whereRaw("start_date = ? and end_date = ?", array($date, $date));
-        })
-            ->orWhere(function ($query) use ($date) {
-                $query->whereRaw("start_date <= ?  and end_date >= ? and dayofweek(start_date) = dayofweek(?)", array($date, $date, $date));
-            })
-            ->distinct()->get()->pluck("res_turn_id");
+        $turns = res_turn_calendar::where(function ($query) use ($date, $date_end) {
+
+            $query->whereBetween("start_date", array($date, $date_end));
+
+        })->orWhere(function ($query) use ($date) {
+            $query->whereRaw("start_date <= ?  and end_date >= ? and dayofweek(start_date) = dayofweek(?)", array($date, $date, $date));
+        })->distinct()->get()->pluck("res_turn_id");
 
         $zones = res_zone::join("res_turn_zone as tz", "tz.res_zone_id", "=", "res_zone.id")
             ->whereIn('tz.res_turn_id', $turns)
