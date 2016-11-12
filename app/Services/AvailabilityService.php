@@ -39,10 +39,36 @@ class AvailabilityService
         $this->timeForTable         = $TimeForTable;
     }
 
+    public function getHours(int $microsite_id, string $date, $zone_id, string $timezone)
+    {
+        $now                     = Carbon::now($timezone);
+        $timeNow                 = $this->dateMaxFormat($now);
+        $availabilityTablesInit  = collect($this->searchTablesReservation($date, $microsite_id, $zone_id));
+        $itemAux['nextDayClose'] = $availabilityTablesInit['day'];
+        $itemAux['hourClose']    = $availabilityTablesInit['hourClose'];
+        $itemAux['dayClose']     = $availabilityTablesInit['dayClose'];
+
+        return $itemAux;
+    }
+
+    public function searchZones(int $microsite_id, string $date)
+    {
+
+        $zonesId  = $this->calendarService->getZones($microsite_id, $date, $date);
+        $zoneNull = collect(["id" => null, "name" => "TODOS"]);
+        $zonesId->prepend($zoneNull);
+        return $zonesId->map(function ($item, $key) {
+            $itemAux           = [];
+            $itemAux['id']     = $item['id'];
+            $itemAux['option'] = $item['name'];
+            return $itemAux;
+        });
+    }
+
     public function searchAvailabilityDayAllZone(int $microsite_id, string $date, string $hour, int $num_guests, int $next_day, string $timezone)
     {
 
-        $zonesId  = $this->calendarService->getZones($microsite_id, $date)->pluck('id');
+        $zonesId  = $this->calendarService->getZones($microsite_id, $date, $date)->pluck('id');
         $response = collect();
         foreach ($zonesId as $index => $zoneId) {
             $zoneAvailability = $this->searchAvailabilityDay($microsite_id, $date, $hour, $num_guests, $zoneId, $next_day, $timezone);
