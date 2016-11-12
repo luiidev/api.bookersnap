@@ -85,6 +85,7 @@ class TableReservationService extends Service
             }
         }
 
+        $now = Carbon::now()->setTimezone($this->req->timezone);
         $type_turn = TurnsHelper::TypeTurnForHour($this->req->date, $this->req->hour, $this->microsite_id);
 
         $reservation->res_guest_id              = $guest_id;
@@ -102,6 +103,12 @@ class TableReservationService extends Service
         $reservation->user_add                  = $this->req->_bs_user_id;
         $reservation->ms_microsite_id           = $this->microsite_id;
         $reservation->res_type_turn_id          = $type_turn;
+
+        if ( $this->req->status_id == 4 ) {
+            $reservation->datetime_input = $now->toDateTimeString();
+        } else if ($this->req->status_id == 5 ) {
+            $reservation->datetime_output = $now->toDateTimeString();
+        }
 
         $reservation->save();
 
@@ -144,15 +151,7 @@ class TableReservationService extends Service
             "res_server_id",
         );
 
-        return res_reservation::select($get)
-            ->with(["tables" => function ($query) {
-                return $query->select("res_table.id");
-            }, "guest" => function ($query) {
-                return $query->select("id", "first_name", "last_name")->with("emails", "phones");
-            }, "tags" => function ($query) {
-                return $query->select("id");
-            }])
-            ->where("ms_microsite_id", $this->microsite_id)->find($this->reservation);
+        return res_reservation::select($get)->withRelations()->where("ms_microsite_id", $this->microsite_id)->find($this->reservation);
     }
 
     public function update()

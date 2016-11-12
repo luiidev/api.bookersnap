@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Events\EmitNotification;
 use App\Http\Controllers\Controller as Controller;
+use Illuminate\Http\Request;
 use App\Http\Requests\ServerCreateRequest;
 use App\Http\Requests\ServerUpdateRequest;
 use App\Services\ServerService;
@@ -15,10 +16,13 @@ class ServerController  extends Controller {
         $this->_serverService = $serverService;
     }
 
-    public function delete($lang, $microsite, $server_id){
-        return $this->TryCatch(function () use ($microsite, $server_id) {
+    public function delete(Request $request, $lang, $microsite, $server_id){
+        return $this->TryCatch(function () use ($microsite, $server_id, $request) {
             $data = $this->_serverService->delete($microsite, $server_id);
-            return $this->CreateJsonResponse($data->estado, 201, trans($data->mensaje));
+
+            $this->_notification($microsite, $data->server, "Se elimino el servidor", "delete", $request->key);
+
+            return $this->CreateJsonResponse($data->estado, 200, trans($data->mensaje), $data->server);
         });
     }
 
@@ -27,9 +31,12 @@ class ServerController  extends Controller {
         return $this->TryCatch(function () use ($microsite, $request) {
             $data = $this->_serverService->insert($microsite, $request->all());
 
-            $this->_notification($microsite, $data->data, "Se añadio un nuevo servidor", "create", $request->key);
+            $this->_notification($microsite, $data->server, "Se añadio un nuevo servidor", "create", $request->key);
+            if (count($data->others)) {
+                $this->_notification($microsite, $data->others, "Actualizacion de servidor y mesas ", "update");
+            }
 
-            return $this->CreateJsonResponse($data->estado, 201, trans($data->mensaje), $data->data);
+            return $this->CreateJsonResponse($data->estado, 201, trans($data->mensaje), $data->server);
         });
 
     }
@@ -53,9 +60,9 @@ class ServerController  extends Controller {
         return $this->TryCatch(function () use ($microsite, $server_id, $request) {
             $data = $this->_serverService->update($microsite, $server_id, $request->all());
 
-            $this->_notification($microsite, [$data->server], "Actualizacion de servidor y mesas", "update", $request->key);
+            $this->_notification($microsite, $data->servers, "Actualizacion de servidor y mesas", "update", $request->key);
 
-            return $this->CreateJsonResponse($data->estado, 200, trans($data->mensaje), [$data->server]);
+            return $this->CreateJsonResponse($data->estado, 200, trans($data->mensaje), $data->servers);
         });
         
     }

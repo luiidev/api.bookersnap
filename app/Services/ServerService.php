@@ -42,6 +42,15 @@ class ServerService {
 
         DB::beginTransaction();
         try {
+            /**
+             * Tablas afectadas
+             */
+            $tables_id = collect($variables["tables"])->pluck("id");
+            $filter = res_table::select("res_server_id")->distinct()->whereIn("id", $tables_id)->get()->pluck("res_server_id");
+            /**
+             * END
+             */
+
             $tables = array();
 
             $model = new Server();
@@ -75,6 +84,16 @@ class ServerService {
             }
             DB::commit();
 
+            /**
+             * Tablas afectadas
+             */
+            $others = res_server::with(["tables" => function($query) {
+                return $query->select("id", "name", "res_server_id");
+            }])->where("id", "<>", $model->id)->whereIn("id", $filter)->get();
+            /**
+             * END
+             */
+
             $data["id"] = $model->id;
             $data["name"] = $model->name;
             $data["color"] = $model->color;
@@ -82,7 +101,8 @@ class ServerService {
 
             $response["mensaje"] = "messages.server_create_success";
             $response["estado"] = true;
-            $response["data"] = $data;
+            $response["server"] = $data;
+            $response["others"] = $others;
 
         } catch (\Exception $e) {
 
@@ -114,17 +134,18 @@ class ServerService {
 
             $tables = collect($variables["tables"])->pluck("id");
 
+            $filter = res_table::select("res_server_id")->distinct()->whereIn("id", $tables)->get()->pluck("res_server_id");
             res_table::whereIn("id", $tables)->update(["res_server_id" => $server_id, "user_upd" => 1]);
 
             $data = res_server::with(["tables" => function($query) {
                 return $query->select("id", "name", "res_server_id");
-            }])->find($server_id);
+            }])->where("id", $server_id)->orWhereIn("id", $filter)->get();
 
             DB::commit();
 
             $response["mensaje"] = "messages.server_update_success";
             $response["estado"] = true;
-            $response["server"]  = $data;
+            $response["servers"]  = $data;
 
         } catch (\Exception $e) {
 
@@ -143,6 +164,10 @@ class ServerService {
 
         try {
 
+            $data = res_server::with(["tables" => function($query) {
+                return $query->select("id", "name", "res_server_id");
+            }])->find($server_id);
+
             $server = Server::find($server_id);
             if ($server == NULL) {
                 throw new Exception('messages.server_not_exist_turn');
@@ -154,13 +179,16 @@ class ServerService {
             $tables = DB::table('res_table')->where('res_server_id', '=', $server_id)->update(array('res_server_id' => NULL));
 
             DB::commit();
+
             $response["mensaje"] = "messages.server_delete_success";
             $response["estado"] = true;
+            $response["server"]  = $data;
 
         } catch (\Exception $e) {
 
             $response["mensaje"] = $e->getMessage();
             $response["estado"] = false;
+            $response["server"]  = null;
             DB::rollBack();
 
         }   
