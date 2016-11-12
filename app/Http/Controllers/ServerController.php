@@ -55,7 +55,7 @@ class ServerController  extends Controller {
 
             $this->_notification($microsite, [$data->server], "Actualizacion de servidor y mesas", "update", $request->key);
 
-            return $this->CreateJsonResponse($data->estado, 201, trans($data->mensaje), $data->server);
+            return $this->CreateJsonResponse($data->estado, 200, trans($data->mensaje), [$data->server]);
         });
         
     }
