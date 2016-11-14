@@ -41,6 +41,7 @@ class NoteController extends Controller
             event(new EmitNotification("b-mesas-floor-notes",
                 array(
                     'microsite_id' => $request->route('microsite_id'),
+                    'data' => $note
                 )
             ));
 
