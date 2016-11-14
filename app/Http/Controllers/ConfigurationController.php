@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EmitNotification;
 use App\Http\Requests\ConfigurationRequest;
 use App\Services\ConfigurationService;
 use Illuminate\Http\Request;
@@ -92,6 +93,7 @@ class ConfigurationController extends Controller
         $microsite_id = $request->route("microsite_id");
         return $this->TryCatchDB(function () use ($microsite_id, $request) {
             $response = $this->service->updateConfiguration($microsite_id, $request->all());
+            $this->_notification($microsite_id);
             return $this->CreateJsonResponse(true, 200, "Se actualizo la configuración", $response);
         });
     }
@@ -105,5 +107,15 @@ class ConfigurationController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    private function _notification(Int $microsite_id)
+    {
+        event(new EmitNotification("b-mesas-config-update",
+            array(
+                'microsite_id' => $microsite_id,
+                'user_msg'     => 'Hay una actualización en la configuración.',
+            )
+        ));
     }
 }
