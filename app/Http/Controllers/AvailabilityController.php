@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AvailabilityInfoRequest;
 use App\Http\Requests\AvailabilityRequest;
 use App\Services\AvailabilityService;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Validator;
 
 class AvailabilityController extends Controller
 {
@@ -41,22 +39,18 @@ class AvailabilityController extends Controller
 
     }
 
-    public function getZones(Request $request)
+    public function getZones(AvailabilityInfoRequest $request)
     {
         $microsite_id = $request->route('microsite_id');
         $date         = $request->date;
         $timezone     = $request->timezone;
         return $this->TryCatch(function () use ($microsite_id, $date, $timezone) {
-            $dateMin = Carbon::yesterday($timezone)->toDateString();
-            if (Validator::make(["date" => $date], ["date" => "date_format: Y-m-d|after:$dateMin"])->fails()) {
-                abort(406, "La fecha de consulta no es valida YYYY-mm-dd");
-            }
             $zones = $this->service->searchZones($microsite_id, $date);
             return $this->CreateJsonResponse(true, 200, "", $zones);
         });
     }
 
-    public function getHours(Request $request)
+    public function getHours(AvailabilityInfoRequest $request)
     {
         $microsite_id = $request->route('microsite_id');
         $date         = $request->date;
@@ -64,12 +58,22 @@ class AvailabilityController extends Controller
         $timezone     = $request->timezone;
 
         return $this->TryCatch(function () use ($microsite_id, $date, $zone_id, $timezone) {
-            $dateMin = Carbon::yesterday($timezone)->toDateString();
-            if (Validator::make(["date" => $date], ["date" => "date_format: Y-m-d|after:$dateMin"])->fails()) {
-                abort(406, "La fecha de consulta no es valida YYYY-mm-dd");
-            }
             $hours = $this->service->getHours($microsite_id, $date, $zone_id, $timezone);
             return $this->CreateJsonResponse(true, 200, "", $hours);
+        });
+    }
+
+    public function getEvents(AvailabilityInfoRequest $request)
+    {
+        $microsite_id = $request->route('microsite_id');
+        $date         = $request->date;
+        $zone_id      = $request->zone_id;
+        $hour         = $request->hour;
+        $next_day     = $request->next_day;
+        $timezone     = $request->timezone;
+        return $this->TryCatch(function () use ($microsite_id, $date, $hour, $zone_id, $timezone, $next_day) {
+            $events = $this->service->getEvents($microsite_id, $date, $hour, $timezone, $next_day, $zone_id);
+            return $this->CreateJsonResponse(true, 200, "", $events);
         });
     }
 }

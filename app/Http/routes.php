@@ -199,6 +199,7 @@ function routeMesas()
             Route::get('basic/', 'AvailabilityController@basic');
             Route::get('zones/', 'AvailabilityController@getZones');
             Route::get('hours/', 'AvailabilityController@getHours');
+            Route::get('events/', 'AvailabilityController@getEvents');
         });
     });
 
