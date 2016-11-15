@@ -197,6 +197,8 @@ function routeMesas()
         //-----------------------------------------------------
         Route::group(['prefix' => 'availability/'], function () {
             Route::get('basic/', 'AvailabilityController@basic');
+            Route::get('zones/', 'AvailabilityController@getZones');
+            Route::get('hours/', 'AvailabilityController@getHours');
         });
     });
 
