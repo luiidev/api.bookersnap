@@ -222,7 +222,7 @@ class TableReservationController extends Controller
         return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->create_waitlist();
 
-            $this->_notification($request->route("microsite_id"), $reservation, "Nueva Lista de espera", "create", $request->key, "waitList");
+            $this->_notification($request->route("microsite_id"), $reservation, "Nueva Lista de espera", "create", $request->key);
             return $this->CreateJsonResponse(true, 201, "La lista de espera fue registrada", $reservation);
         });
     }
@@ -234,8 +234,7 @@ class TableReservationController extends Controller
         return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->update_waitlist();
 
-            $this->_notification($request->route("microsite_id"), $reservation, "Lista de espera actualizada", "update", $request->key,
-                "waitList");
+            $this->_notification($request->route("microsite_id"), $reservation, "Lista de espera actualizada", "update", $request->key);
             return $this->CreateJsonResponse(true, 201, "La lista de espera fue actualizada", $reservation);
         });
     }
@@ -246,12 +245,12 @@ class TableReservationController extends Controller
         return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->delete_waitlist();
 
-            $this->_notification($request->route("microsite_id"), $reservation, "Lista de espera cancelada", "delete", $request->key, "waitList");
+            $this->_notification($request->route("microsite_id"), $reservation, "Lista de espera cancelada", "update", $request->key);
             return $this->CreateJsonResponse(true, 201, "La lista de espera fue cancelada", $reservation);
         });
     }
 
-    private function _notification(Int $microsite_id, $data, String $message, String $action, String $key = null, String $controller = "reservation")
+    private function _notification(Int $microsite_id, $data, String $message, String $action, String $key = null)
     {
         event(new EmitNotification("b-mesas-floor-res",
             array(
@@ -259,8 +258,7 @@ class TableReservationController extends Controller
                 'user_msg'     => $message,
                 'data'         => $data,
                 'action'       => $action,
-                'key'          => $key,
-                "controller"   => $controller,
+                'key'          => $key
             )
         ));
     }

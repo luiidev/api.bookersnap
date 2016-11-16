@@ -125,6 +125,11 @@ class TableReservationService extends Service
             $reservation->tags()->sync($this->req->tags);
         }
 
+        //  Wait List clear tables
+        if ($reservation->wait_list === 1 && $this->req->status_id != 4) {
+            $reservation->tables()->sync([]);
+        }
+
         $data = res_reservation::withRelations()->find($reservation->id);
 
         return $data;
@@ -191,6 +196,11 @@ class TableReservationService extends Service
         }
 
         $reservation->save();
+
+        //  Wait List clear tables
+        if ($reservation->wait_list === 1 && $this->req->status_id != 4) {
+            $reservation->tables()->sync([]);
+        }
 
         if ($this->req->has("tags"))  $reservation->tags()->sync($this->req->tags);
 
@@ -374,9 +384,14 @@ class TableReservationService extends Service
 
         $reservation->save();
 
+        //  Wait List clear tables
+        if ($this->req->status_id != 4) {
+            $reservation->tables()->sync([]);
+        }
+
         $data = res_reservation::withRelations()->find($reservation->id);
 
-        return $data;
+        return array($data);
     }
 
     public function delete_waitList()
@@ -387,8 +402,10 @@ class TableReservationService extends Service
 
         $reservation->save();
 
-        $data = res_reservation::withRelations()->find($reservation->id);
+        $reservation->tables()->sync([]);
 
-        return $data;
+        $data = res_reservation::withRelations()->find($this->req->id);
+
+        return array($data);
     }
 }
