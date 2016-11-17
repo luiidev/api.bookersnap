@@ -37,6 +37,17 @@ class AvailabilityController extends Controller
             });
         }
 
+        // //TEST Disponibilidad
+        // //
+        // $table              = new TimeForTable();
+        // $availabilityTables = $this->service->searchTablesReservation($date, $microsite_id, $zone_id);
+        // $indexHour          = $table->timeToIndex($hour);
+        // $eventId            = 1;
+        // return $this->TryCatch(function () use ($microsite_id, $date, $hour, $num_guests, $zone_id, $indexHour, $timezone, $availabilityTables, $eventId) {
+        //     $availability = $this->service->getAvailabilityBasic($microsite_id, $date, $hour, $num_guests, $zone_id, $indexHour, $timezone, $availabilityTables, $eventId);
+        //     return $this->CreateJsonResponse(true, 200, "", $availability);
+        // });
+
     }
 
     public function getZones(AvailabilityInfoRequest $request)
