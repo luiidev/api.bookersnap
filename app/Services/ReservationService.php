@@ -188,5 +188,21 @@ class ReservationService
     {
         return res_source_type::where("status", 1)->get(array("id", "name", "description"));
     }
+    /**
+    Actualizamos algunos datos de la reserva
+     **/
+    public function patch(array $data, int $microsite_id)
+    {
+        $reservation = new res_reservation();
+
+        $id = $data['id'];
+        unset($data['id']);
+        unset($data['timezone']);
+        unset($data['_bs_user_id']);
+
+        $reservation->where('id', $id)->where('ms_microsite_id', $microsite_id)->update($data);
+
+        return $reservation;
+    }
 
 }

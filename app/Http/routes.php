@@ -142,6 +142,7 @@ function routeMesas()
         Route::get('reservations/{reservation_id}', 'ReservationController@show');
         Route::post('reservations', 'ReservationController@create');
         Route::put('reservations/{reservation_id}', 'ReservationController@update');
+        Route::patch('reservations/{reservation_id}', 'ReservationController@patch');
         Route::delete('reservations/{reservation_id}', 'ReservationController@delete');
         Route::post('reservations/{reservation_id}/send-email', 'ReservationController@sendEmail');
 
