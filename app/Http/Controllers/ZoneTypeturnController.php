@@ -32,7 +32,7 @@ class ZoneTypeturnController extends Controller {
         $result = $this->_ZoneTypeturnService->getListAvailable($zone_id, $id);        
         return response()->json($result);
     }
-
+    
     /**
      * Show the form for creating a new resource.
      *

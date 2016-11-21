@@ -20,7 +20,9 @@ class res_type_turn extends Model{
     public $timestamps = false;
     protected $fillable = ['id', 'name', 'status'];
         
-//    public function turns() {
-//        return $this->hasMany('App\res_turn_zone', 'res_type_turn_zone_id');
-//    }
+    public function turns() {
+        return $this->hasMany('App\res_turn', 'res_type_turn_id');
+    }
+    
+    
 }

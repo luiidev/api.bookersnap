@@ -2,11 +2,47 @@
 
 namespace App;
 
+use App\res_server;
 use Illuminate\Database\Eloquent\Model;
 
 class res_table extends Model
 {
-    protected $table = "res_table";
-    protected $fillable = ['res_zone_id', 'name', 'min_cover', 'price', 'status', 'config_color', 'config_position', 'config_forme', 'config_size', 'config_rotation', 'date_add', 'date_upd', 'user_add', 'user_upd'];
-    protected $hidden = ['res_zone_id', 'user_add', 'user_upd', 'date_add', 'date_upd'];
+    protected $table   = "res_table";
+    public $timestamps = false;
+    protected $hidden  = ['user_add', 'user_upd', 'date_add', 'date_upd', 'pivot'];
+    //public $appends = ['newfield', 'estado'];
+
+    /*-------------
+    // agregar nuevos atributos , virtual
+    --------------*/
+    public function getNewfieldAttribute()
+    {
+        return $this->config_forme * 4;
+    }
+
+    public function getEstadoAttribute()
+    {
+        return $this->status;
+    }
+
+    public function turns()
+    {
+        return $this->hasMany('App\res_turn_table', 'res_table_id');
+    }
+
+    public function blocks()
+    {
+        return $this->belongsToMany('App\Entities\Block', 'res_block_table', 'res_table_id', 'res_block_id');
+    }
+
+    public function reservations()
+    {
+        return $this->belongsToMany('App\Entities\Reservation', 'res_table_reservation', 'res_table_id', 'res_reservation_id')->withPivot('num_people');
+    }
+
+    public function server()
+    {
+        return $this->belongsTo(res_server::class, "res_server_id");
+    }
+
 }
