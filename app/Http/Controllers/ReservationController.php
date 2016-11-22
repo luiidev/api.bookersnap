@@ -137,4 +137,14 @@ class ReservationController extends Controller
         });
     }
 
+    public function patch(Request $request)
+    {
+
+        $service = $this->_ReservationService;
+        return $this->TryCatch(function () use ($request, $service) {
+            $result = $service->patch($request->all(), $request->route('microsite_id'));
+            return response()->json($result);
+        });
+    }
+
 }
