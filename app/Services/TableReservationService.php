@@ -2,12 +2,13 @@
 
 namespace App\Services;
 
+use App\Services\Helpers\TurnsHelper;
 use App\res_guest;
 use App\res_guest_email;
 use App\res_guest_phone;
 use App\res_reservation;
+use App\res_reservation_guestlist;
 use App\res_turn_time;
-use App\Services\Helpers\TurnsHelper;
 use Carbon\Carbon;
 
 class TableReservationService extends Service
@@ -307,6 +308,35 @@ class TableReservationService extends Service
         }
 
         return $reservation;
+    }
+
+    public function updateGuestList()
+    {
+        $guest_list_add = array();
+
+        foreach ($this->req->guest_list as $key => $guest) {
+            res_reservation_guestlist::where("id", $guest["id"])
+                ->where("res_reservation_id", $this->reservation)
+                ->update([
+                        "arrived" => $guest["arrived"],
+                        "type_person"   => $guest["type_person"]
+                    ]);
+        }
+
+        if ($this->req->has("guest_list_add")){
+            $reservation = res_reservation::find($this->reservation);
+            foreach ($this->req->guest_list_add as $key => $guest_add) {
+                $guest = new res_reservation_guestlist();
+                $guest->name = $guest_add["name"];
+                $guest->arrived = $guest_add["arrived"];
+                $guest->type_person   = $guest_add["type_person"];
+                array_push($guest_list_add, $guest);
+            }
+            $reservation->guestList()->saveMany($guest_list_add);
+        }
+
+        $data = res_reservation::withRelations()->find($this->reservation);
+        return array($data);
     }
 
     public function create_waitlist()

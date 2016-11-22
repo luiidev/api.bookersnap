@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\EmitNotification;
 use App\Http\Requests;
+use App\Http\Requests\GuestListRequest;
 use App\Http\Requests\TableReservationRequest;
 use App\Services\TableReservationService as Service;
 use Carbon\Carbon;
@@ -212,6 +213,17 @@ class TableReservationController extends Controller
             } else {
                 return $this->CreateJsonResponse(true, 422, null, null, null, null, "No se enontro la reservacion.");
             }
+        });
+    }
+
+    public function updateGuestList(GuestListRequest $request)
+    {
+        $this->service = Service::make($request);
+        return $this->TryCatchDB(function () use ($request) {
+            $reservations = $this->service->updateGuestList();
+
+            $this->_notification($request->route("microsite_id"), $reservations, "", "update", $request->key);
+            return $this->CreateJsonResponse(true, 200, "", $reservations[0]);
         });
     }
 

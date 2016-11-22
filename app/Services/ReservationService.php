@@ -24,7 +24,7 @@ class ReservationService
         $rows = res_reservation::where('ms_microsite_id', $microsite_id)
             ->where('id', $reservation_id)->with(["tables" => function ($query) {
             return $query->select("res_table.id", "res_zone_id", "name");
-        }, "guest", "server", "source", "status", "typeTurn", "tags"])->first();
+        }, "guest", "server", "source", "status", "typeTurn", "tags", "guestList"])->first();
 
         return $rows;
     }
@@ -34,7 +34,7 @@ class ReservationService
         $reservations = res_reservation::where('ms_microsite_id', $microsite_id)
             ->where('date_reservation', $date)->with(["tables" => function ($query) {
             return $query->select("res_table.id", "res_zone_id", "name");
-        }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "typeTurn", "tags"])->get();
+        }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "typeTurn", "tags", "guestList"])->get();
 
         return $reservations->toArray();
     }
