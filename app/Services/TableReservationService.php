@@ -313,27 +313,72 @@ class TableReservationService extends Service
     public function updateGuestList()
     {
         $guest_list_add = array();
+        $people_1 = 0;
+        $people_2 = 0;
+        $people_3 = 0;
+        $total = 0;
+
+        $sumPeople = function($person) use (&$people_1, &$people_2, &$people_3){
+            if ($person === 1) {
+                $people_1++;
+            } else if ($person === 2) {
+                $people_2 ++;
+            } else if ($person === 3) {
+                $people_3 ++;
+            }
+        };
 
         foreach ($this->req->guest_list as $key => $guest) {
+            $sumPeople($guest["type_person"]);
+            if ($guest["arrived"]) {
+                $total++;
+            }
+
             res_reservation_guestlist::where("id", $guest["id"])
                 ->where("res_reservation_id", $this->reservation)
                 ->update([
                         "arrived" => $guest["arrived"],
-                        "type_person"   => $guest["type_person"]
+                        "type_person"   => $guest["type_person"],
+                        "status"   => $guest["status"]
                     ]);
         }
 
         if ($this->req->has("guest_list_add")){
-            $reservation = res_reservation::find($this->reservation);
             foreach ($this->req->guest_list_add as $key => $guest_add) {
+                $sumPeople($guest_add["type_person"]);
+                if ($guest_add["arrived"]) {
+                    $total++;
+                }
+
                 $guest = new res_reservation_guestlist();
                 $guest->name = $guest_add["name"];
                 $guest->arrived = $guest_add["arrived"];
-                $guest->type_person   = $guest_add["type_person"];
+                $guest->type_person  = $guest_add["type_person"];
                 array_push($guest_list_add, $guest);
             }
-            $reservation->guestList()->saveMany($guest_list_add);
         }
+
+        $reservation = res_reservation::find($this->reservation);
+
+        if ($people_1 > $reservation->num_people_1) {
+            $reservation->num_people_1 = $people_1;
+        }
+
+        if ($people_2 > $reservation->num_people_2) {
+            $reservation->num_people_2 = $people_2;
+        }
+
+        if ($people_3 > $reservation->num_people_2) {
+            $reservation->num_people_3 = $people_3;
+        }
+
+        if ($total > $reservation->num_guest) {
+            $reservation->num_guest = $total;
+        }
+
+        $reservation->save();
+
+        $reservation->guestList()->saveMany($guest_list_add);
 
         $data = res_reservation::withRelations()->find($this->reservation);
         return array($data);
