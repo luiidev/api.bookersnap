@@ -37,6 +37,7 @@ class AvailabilityRequest extends Request
             'num_guests' => 'required|integer',
             'next_day'   => 'required|integer|between:0,1',
             'zone_id'    => 'integer|exists:res_zone,id',
+            'event_id'   => 'integer|exists:ev_event,id',
         ];
 
     }
