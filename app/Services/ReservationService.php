@@ -24,19 +24,26 @@ class ReservationService
         $rows = res_reservation::where('ms_microsite_id', $microsite_id)
             ->where('id', $reservation_id)->with(["tables" => function ($query) {
             return $query->select("res_table.id", "res_zone_id", "name");
-        }, "guest", "server", "source", "status", "typeTurn", "tags"])->first();
+        }, "guest", "server", "source", "status", "typeTurn", "tags", "guestList"])->first();
 
         return $rows;
     }
 
-    public function getList(int $microsite_id, string $date = null)
+    public function getList(int $microsite_id, string $start_date, string $end_date)
     {
-        $reservations = res_reservation::where('ms_microsite_id', $microsite_id)
-            ->where('date_reservation', $date)->with(["tables" => function ($query) {
-            return $query->select("res_table.id", "res_zone_id", "name");
-        }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "typeTurn", "tags"])->get();
+        /*$reservations = res_reservation::where('ms_microsite_id', $microsite_id)
+        ->where('date_reservation', $date)->with(["tables" => function ($query) {
+        return $query->select("res_table.id", "res_zone_id", "name");
+        }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "typeTurn", "tags"])->get();*/
 
-        return $reservations->toArray();
+        $reservations = res_reservation::where('ms_microsite_id', $microsite_id)->with(["tables" => function ($query) {
+            return $query->select("res_table.id", "res_zone_id", "name");
+
+        }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "typeTurn", "tags", "guestList"]);
+
+        $reservations = $reservations->whereBetween("date_reservation", array($start_date, $end_date));
+
+        return $reservations->get()->toArray();
     }
 
     public function create(array $data, int $microsite_id, int $user_id)

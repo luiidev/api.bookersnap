@@ -156,6 +156,7 @@ function routeMesas()
         Route::put('table/reservation/{reservation}/quickedit', 'TableReservationController@quickEdit');
         Route::put('table/reservation/{reservation}/sit', 'TableReservationController@sit');
         Route::post('table/reservation/quickcreate', 'TableReservationController@quickCreate');
+        Route::put('table/reservation/{reservation}/guest-list', 'TableReservationController@updateGuestList');
 
         Route::post('waitlist', 'TableReservationController@createWaitList');
         Route::put('waitlist', 'TableReservationController@updateWaitList');
