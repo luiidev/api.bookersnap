@@ -2,8 +2,6 @@
 
 namespace App;
 
-use App\res_server;
-use App\res_tag_r;
 use Illuminate\Database\Eloquent\Model;
 
 class res_reservation extends Model {
@@ -46,12 +44,17 @@ class res_reservation extends Model {
         return $this->belongsTo('App\res_type_turn', "res_type_turn_id");
     }
 
+    public function guestList()
+    {
+        return $this->hasMany(res_reservation_guestlist::class);
+    }
+
     public function scopeWithRelations($query)
     {
         return $query->with(["tables"=> function($query) {
                         return $query->select("res_table.id", "name");
                     }, "guest" => function ($query) {
                         return $query->select("id", "first_name", "last_name")->with("emails", "phones");
-                    }, "source", "status", "tags", "typeTurn", "server"]);
+                    }, "source", "status", "tags", "typeTurn", "server", "guestList"]);
     }
 }
