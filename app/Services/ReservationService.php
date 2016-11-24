@@ -209,7 +209,9 @@ class ReservationService
 
         $reservation->where('id', $id)->where('ms_microsite_id', $microsite_id)->update($data);
 
-        return $reservation;
+        $res = res_reservation::withRelations()->where('id', $id)->where('ms_microsite_id', $microsite_id)->first();
+
+        return $res;
     }
 
 }
