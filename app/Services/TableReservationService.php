@@ -368,7 +368,7 @@ class TableReservationService extends Service
             $reservation->num_people_2 = $people_2;
         }
 
-        if ($people_3 > $reservation->num_people_2) {
+        if ($people_3 > $reservation->num_people_3) {
             $reservation->num_people_3 = $people_3;
         }
 
