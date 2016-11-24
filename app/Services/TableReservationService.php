@@ -260,13 +260,11 @@ class TableReservationService extends Service
 
             $num_guest = $this->req->guests["men"] + $this->req->guests["women"] + $this->req->guests["children"];
 
-            $reservation->num_people_1 = $this->req->guests["men"];
-            $reservation->num_people_2 = $this->req->guests["women"];
-            $reservation->num_people_3 = $this->req->guests["children"];
-
-            /* if (@$this->req->guests["total"]) {
-            $num_guest = ($num_guest == 0) ? $this->req->guests["total"] : $num_guest;
-            }*/
+            if ($this->req->has("guests")) {
+                $reservation->num_people_1 = $this->req->guests["men"];
+                $reservation->num_people_2 = $this->req->guests["women"];
+                $reservation->num_people_3 = $this->req->guests["children"];
+            }
 
             if ($reservation->datetime_input === null) {
                 $reservation->datetime_input = $now->toDateTimeString();
