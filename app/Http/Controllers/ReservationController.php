@@ -31,7 +31,7 @@ class ReservationController extends Controller
         return $this->TryCatch(function () use ($request, $service) {
             $date       = Carbon::now()->setTimezone($request->timezone);
             $start_date = ($request->input('date')) ? $request->input('date') : $date->format('Y-m-d');
-            $end_date   = ($request->input('date_end') && $request->input('date_end') != 'null') ? $request->input('date_end') : $date->format('Y-m-d');
+            $end_date   = ($request->input('date_end')) ? $request->input('date_end') : $date->format('Y-m-d');
 
             $data = $service->getList($request->route('microsite_id'), $start_date, $end_date);
             return $this->CreateResponse(true, 201, "", $data);
