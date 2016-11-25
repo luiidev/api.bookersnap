@@ -205,11 +205,14 @@ class ReservationService
         $id = $data['id'];
         unset($data['id']);
         unset($data['timezone']);
+        unset($data['key']);
         unset($data['_bs_user_id']);
 
         $reservation->where('id', $id)->where('ms_microsite_id', $microsite_id)->update($data);
 
-        return $reservation;
+        $res = res_reservation::withRelations()->where('id', $id)->where('ms_microsite_id', $microsite_id)->first();
+
+        return $res;
     }
 
 }

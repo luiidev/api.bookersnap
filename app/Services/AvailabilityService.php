@@ -39,47 +39,53 @@ class AvailabilityService
         $this->timeForTable         = $TimeForTable;
     }
 
-    public function getEvents(int $microsite_id, string $date, string $hour, string $timezone, int $next_day, $zone_id)
+    public function getCalendarDays()
     {
-        $zone_id = $zone_id == null ? $this->calendarService->getZones($microsite_id, $date, $date)->pluck('id')->toArray() : (int) $zone_id;
-        $dateC   = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $hour, $timezone)->addDay($next_day);
-        $today   = Carbon::parse($date, $timezone);
-        $enable  = false;
-        if (is_array($zone_id)) {
-            $auxEvents = collect();
+
+    }
+
+    public function getEvents(int $microsite_id, string $date, string $hour, string $timezone, int $next_day, int $zone_id = null)
+    {
+        if ($next_day == 1) {
+            if ($hour > "05:45:00") {
+                abort(500, "Rango incorrecto los ragos correctos para horario de madrugada son de 00:00:00 a 05:45:00");
+            }
+        }
+        $zone_id       = isset($zone_id) ? collect($zone_id) : $this->calendarService->getZones($microsite_id, $date, $date)->pluck('id');
+        $dateTimeQuery = Carbon::parse($date . " " . $hour, $timezone)->addDay($next_day);
+        $today         = Carbon::parse($date, $timezone);
+        if (!$zone_id->isEmpty()) {
             foreach ($zone_id as $id) {
-                $events = $this->searchAllEvent($microsite_id, $date, $hour, $timezone, $next_day, $id);
-                if ($events) {
-                    $auxEvents->push($events);
+                return $events = $this->searchAllEvent($microsite_id, $date, $hour, $timezone, $next_day, $id);
+                if (!$events->isEmpty()) {
+                    break;
                 }
             }
-            if ($auxEvents->isEmpty()) {
-                return abort(500, "No existe eventos disponibles para " . $dateC->formatLocalized('%A %d %B %Y'));
-            }
-            return $auxEvents;
+            return $events->isEmpty() ? abort(500, "No existe eventos disponibles para " . $dateTimeQuery->formatLocalized('%A %d %B %Y')) : $events;
         } else {
-            return $this->searchAllEvent($microsite_id, $date, $hour, $timezone, $next_day, $zone_id);
+            return abort(500, "No existe zonas disponibles para " . $dateTimeQuery->formatLocalized('%A %d %B %Y'));
         }
     }
 
     private function searchAllEvent(int $microsite_id, string $date, string $hour, string $timezone, int $next_day, $zone_id)
     {
-        $availabilityTablesInit = $this->searchTablesReservation($date, $microsite_id, $zone_id);
-        if ($availabilityTablesInit['availability']->count() > 0) {
-            $dateCloseInit = Carbon::createFromFormat('Y-m-d H:i:s', $availabilityTablesInit['dayClose'] . " " . $availabilityTablesInit['hourClose'], $timezone)->addDay($availabilityTablesInit['day']);
-            $event         = $this->checkEventPayment($date, $microsite_id, $hour, $dateCloseInit, $next_day, $timezone);
-        } else {
-            return collect(["event" => null]);
-        }
-        if ($event->get("event") == null) {
-            $eventsFree = $this->checkEventFree($date, $microsite_id, $hour, $dateCloseInit, $next_day, $timezone, null);
-            if ($eventsFree->get("event") == null) {
-                return $promotions = $this->checkEventPromotions($date, $microsite_id, $hour, $dateCloseInit, $next_day, $timezone, null);
-            } else {
-                return $eventsFree;
+        $aTables = $this->searchTablesReservation($date, $microsite_id, $zone_id);
+        if (!$aTables['availability']->isEmpty()) {
+            $dateTimeClose = Carbon::parse($aTables['dayClose'] . " " . $aTables['hourClose'], $timezone)->addDay($aTables['day']);
+            $event         = $this->checkEventPaymentAux($date, $microsite_id, $hour, $dateTimeClose, $next_day, $timezone);
+            if ($event->isEmpty()) {
+                $eventFree    = $this->checkEventFree($date, $microsite_id, $hour, $dateTimeClose, $next_day, $timezone);
+                return $event = $this->checkEventPromo($date, $microsite_id, $hour, $dateTimeClose, $next_day, $timezone)->prepend($eventFree);
+                if ($event->count() == 1) {
+                    return collect();
+                }
+                if ($eventFree->isEmpty()) {
+                    $event->shift();
+                }
             }
-        } else {
             return $event;
+        } else {
+            return collect();
         }
     }
 
@@ -281,9 +287,8 @@ class AvailabilityService
         } else {
             $event = collect(["event" => null, "hourMin" => null, "hourMax" => null]);
         }
-
         if ($event->get("event") !== null) {
-            return collect(["ev_env_id" => $event->get('event')['id']]);
+            return ["ev_event_id" => collect($event->get('event'))->only(['id', 'name', 'description', 'image', 'bs_type_event_id', 'hourMin', 'hourMax', 'day'])];
         } else {
             $searchPromotions = false;
             if ($event->get('hourMax') == null && $event->get('hourMin') == null) {
@@ -314,26 +319,44 @@ class AvailabilityService
                     return "No hay disponibilidad";
                 }
             } else {
-                $searchPromotions               = true;
-                $availabilityTables             = $availabilityTablesInit;
+                $searchPromotions   = true;
+                $availabilityTables = $availabilityTablesInit;
+                $hourNow            = $this->dateMaxFormat(Carbon::now($timezone));
+                $hourInit           = Carbon::parse($date . " " . $availabilityTables['hourIni'], $timezone)->addDay($next_day);
+                $compare            = strcmp($hourNow->toDateTimeString(), $hourInit->toDateTimeString());
+                if ($compare >= 0) {
+                    $availabilityTables['hourIni'] = $hourNow->toTimeString();
+                }
                 $availabilityTables['event_id'] = null;
                 $dateClose                      = $dateCloseInit;
                 $indexClose                     = $this->defineIndexHour($availabilityTables['day'], $dateClose->toTimeString());
             }
-            // return $eventSearchLimit->event;
+
             if (isset($eventId) && isset($eventSearchLimit['event'])) {
-                $searchPromotions               = false;
-                $otherDay                       = $this->otherDay($eventSearchLimit["hourMin"]->toDateString(), $eventSearchLimit["hourMin"]->toTimeString(), $eventSearchLimit["day"], $timezone);
-                $hourNow                        = $this->dateMaxFormat(Carbon::now($timezone));
-                $compareTime                    = strcmp($hourNow->toDateTimeString(), $eventSearchLimit["hourMin"]->toDateTimeString());
-                $secelectHour                   = $compareTime == 1 ? $hourNow->toTimeString() : $eventSearchLimit["hourMin"]->toTimeString();
-                $hours                          = $this->formatActualHour($eventSearchLimit["hourMin"]->toDateString(), $secelectHour, $eventSearchLimit["day"], $timezone, $otherDay, $eventSearchLimit["hourMin"]->toTimeString());
+                $searchPromotions = false;
+                // $test             = Carbon::create(2016, 11, 23, 17, 41, 0, $timezone);
+                // Carbon::setTestNow($test);
+                $otherDay         = $this->otherDay($eventSearchLimit["hourMin"]->toDateString(), $eventSearchLimit["hourMin"]->toTimeString(), $eventSearchLimit["day"], $timezone);
+                $hourNow          = $this->dateMaxFormat(Carbon::now($timezone));
+                $dateTimeC        = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $hour, $timezone)->addDay($next_day);
+                $compareTimeQuery = strcmp($dateTimeC->toDateTimeString(), $eventSearchLimit["hourMin"]->toDateTimeString());
+                $compareTime      = strcmp($hourNow->toDateTimeString(), $eventSearchLimit["hourMin"]->toDateTimeString());
+                $timeAuxIni       = $compareTime == 1 ? $hourNow : $eventSearchLimit["hourMin"];
+                $dayAuxC          = $next_day > $eventSearchLimit["day"] ? $next_day : $eventSearchLimit["day"];
+                if ($compareTimeQuery >= 0) {
+                    $secelectHour = strcmp($dateTimeC->toDateTimeString(), $hourNow->toDateTimeString()) == 1 ? $dateTimeC->toTimeString() : $hourNow->toTimeString();
+                    $dateAuxC     = $dateTimeC->toDateString();
+                } else {
+                    $secelectHour = $compareTime == 1 ? $hourNow->toTimeString() : $eventSearchLimit["hourMin"]->toTimeString();
+                    $dateAuxC     = $eventSearchLimit["hourMin"]->toDateString();
+                }
+                $hours                          = $this->formatActualHour($dateAuxC, $secelectHour, $dayAuxC, $timezone, $otherDay, $eventSearchLimit["hourMin"]->toTimeString(), $timeAuxIni);
                 $availabilityTables['event_id'] = $eventSearchLimit["event"]->first()->id;
                 $dateClose                      = $eventSearchLimit["hourMax"];
                 $indexClose                     = $this->defineIndexHour($eventSearchLimit["day"], $dateClose->toTimeString());
             } else {
                 $otherDay = $this->otherDay($date, $hour, $next_day, $timezone);
-                $hours    = $this->formatActualHour($date, $hour, $next_day, $timezone, $otherDay, $availabilityTables['hourIni']);
+                $hours    = $this->formatActualHour($date, $hour, $next_day, $timezone, $otherDay, $availabilityTables['hourIni'], null);
             }
 
             // return $availabilityTables;
@@ -505,7 +528,7 @@ class AvailabilityService
  * @param  int    $next_day valor de 0 y 1
  * @return array           devuelve un array con la hora de busqueda, hora actual y hora de busqueda superior inicial
  */
-    public function formatActualHour(string $date, string $hourQuery, int $next_day, string $timezone, bool $otherDay, string $hourInitOtherDay)
+    public function formatActualHour(string $date, string $hourQuery, int $next_day, string $timezone, bool $otherDay, string $hourInitOtherDay, $hourAuxLimitIni)
     {
 
         $hourQuery    = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $hourQuery, $timezone)->addDay($next_day);
@@ -514,16 +537,14 @@ class AvailabilityService
         $timeDate = Carbon::parse($date, $timezone);
         $now      = Carbon::now($timezone);
 
-        // return $hourQuery->diffInDays($now);
         if ($otherDay) {
-            $hourAvailability = Carbon::parse($date . " " . $hourInitOtherDay, $timezone);
+            $hourAvailability = isset($hourAuxLimitIni) ? $hourAuxLimitIni : Carbon::parse($date . " " . $hourInitOtherDay, $timezone);
         } else {
             $dateCompare = strcmp($timeDate->toDateString(), $now->toDateString());
             if ($dateCompare == 0) {
-                $hourAvailability = $this->dateMaxFormat(Carbon::now($timezone));
+                $hourAvailability = isset($hourAuxLimitIni) ? $hourAuxLimitIni : $this->dateMaxFormat(Carbon::now($timezone));
             } else if ($dateCompare > 0) {
-                $hourAvailability = $this->dateMaxFormat($hourQuery);
-                // $hourAvailability = $hourQuery;
+                $hourAvailability = isset($hourAuxLimitIni) ? $hourAuxLimitIni : $this->dateMaxFormat($hourQuery);
             }
         }
 
@@ -895,62 +916,98 @@ class AvailabilityService
         }
     }
 
-    private function checkEventPayment(string $date, int $microsite_id, string $hour, Carbon $dateClose, int $next_day, string $timezone)
+    private function checkEventPaymentAux(string $date, int $microsite_id, string $hour, Carbon $dateCloseInit, int $next_day, string $timezone)
     {
-        $dateC = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $hour, $timezone)->addDay($next_day);
+        $dateQuery = Carbon::parse($date . " " . $hour, $timezone)->addDay($next_day);
+        $today     = Carbon::parse($date, $timezone);
+        $event     = ev_event::where('ms_microsite_id', $microsite_id)
+            ->where('status', 1)
+            ->where('bs_type_event_id', $this->id_event_payment)
+            ->where('datetime_event', '>=', $today->toDateTimeString())
+            ->where('datetime_event', '<=', $dateCloseInit->toDateTimeString())
+            ->first();
+        if (isset($event)) {
+            $dateEvent   = $this->dateMinFormat(Carbon::parse($event->datetime_event, $timezone));
+            $compareDate = strcmp($dateCloseInit->toDateString(), $dateEvent->toDateString());
+            $day         = $compareDate == 1 ? 1 : 0;
+            if ($dateEvent->toDateTimeString() <= $dateQuery->toDateTimeString() && $dateQuery->toDateTimeString() <= $dateCloseInit->toDateTimeString()) {
+                // $event->hourMin = $this->getIndexHour($today, $dateEvent, $next_day);
+                // $event->hourMax = $this->getIndexHour($today, $dateCloseInit, $next_day);
+                $event->hourMin = $dateEvent;
+                $event->hourMax = $dateCloseInit;
+                $event->day     = $day;
+                return collect($event)->only(['id', 'name', 'description', 'image', 'bs_type_event_id', 'hourMin', 'hourMax', 'day']);
+            }
+        }
+        return collect();
+    }
 
-        $today = Carbon::parse($date, $timezone);
-        $final = $dateClose;
+    private function checkEventPayment(string $date, int $microsite_id, string $hour, Carbon $dateCloseInit, int $next_day, string $timezone)
+    {
+        $dateQuery = Carbon::parse($date . " " . $hour, $timezone)->addDay($next_day);
+        $today     = Carbon::parse($date, $timezone);
+        // dateCloseInit     = $dateCloseInit;
         $event = ev_event::where('ms_microsite_id', $microsite_id)
             ->where('bs_type_event_id', $this->id_event_payment) //1:eventogratuito 2:eventopaga 3:promocion gratis 4 promocion de paga
             ->where('datetime_event', '>=', $today->toDateTimeString())
-            ->where('datetime_event', '<=', $final->toDateTimeString())
+            ->where('datetime_event', '<=', $dateCloseInit->toDateTimeString())
             ->first();
         if (isset($event)) {
-            $dateEvent = $this->dateMinFormat(Carbon::parse($event->datetime_event, $timezone));
-            if ($dateEvent->toDateTimeString() <= $dateC->toDateTimeString() && $dateC->toDateTimeString() <= $final->toDateTimeString()) {
-                return collect(["event" => $event, "hourMin" => $dateEvent, "hourMax" => $final, "type_event" => $this->id_event_payment]);
+            $dateEvent   = $this->dateMinFormat(Carbon::parse($event->datetime_event, $timezone));
+            $compareDate = strcmp($dateCloseInit->toDateString(), $dateEvent->toDateString());
+            $day         = $compareDate == 1 ? 1 : 0;
+            if ($dateEvent->toDateTimeString() <= $dateQuery->toDateTimeString() && $dateQuery->toDateTimeString() <= $dateCloseInit->toDateTimeString()) {
+                $event->hourMin = $dateEvent;
+                $event->hourMax = $dateCloseInit;
+                $event->day     = $day;
+                return collect(["event" => $event, "hourMin" => $dateEvent, "hourMax" => $dateCloseInit, "type_event" => $this->id_event_payment]);
             } else {
-                return collect(["event" => null, "hourMin" => $dateEvent, "hourMax" => $final, "type_event" => $this->id_event_payment]);
+                return collect(["event" => null, "hourMin" => $dateEvent, "hourMax" => $dateCloseInit, "type_event" => $this->id_event_payment]);
             }
         } else {
             return collect(["event" => null, "hourMin" => null, "hourMax" => null, "type_event" => null]);
         }
     }
 
-    private function checkEventFree(string $date, int $microsite_id, string $hour, Carbon $dateCloseInit, int $next_day, string $timezone, $idEvent)
+    private function checkEventFree(string $date, int $microsite_id, string $hour, Carbon $dateCloseInit, int $next_day, string $timezone, int $idEvent = null)
     {
-        $today = Carbon::parse($date, $timezone)->addDay($next_day);
-        $final = $dateCloseInit;
+        $today = Carbon::parse($date, $timezone);
         if (isset($idEvent)) {
-            $eventsFree = ev_event::with("turn")
+            $events = ev_event::with("turn")
                 ->where('id', $idEvent)
                 ->whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
-                ->first();
+                ->get();
         } else {
-            $eventsFree = ev_event::with("turn")
+            $events = ev_event::with("turn", "turn.zones")
                 ->where([
+                    ['status', 1],
                     ['datetime_event', '>=', $today->toDateTimeString()],
-                    // ['datetime_event', '<=', $dateC->toDateTimeString()],
                     ['datetime_event', '<', $dateCloseInit->toDateTimeString()],
                     ['bs_type_event_id', $this->id_event_free],
                     ['ms_microsite_id', $microsite_id],
                 ])->whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
-                ->first();
+                ->get();
         }
-        if (isset($eventsFree)) {
-            $dateEvent   = $this->dateMinFormat(Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $eventsFree->turn["hours_ini"], $timezone));
-            $compareDate = strcmp($final->toDateString(), $dateEvent->toDateString());
+        if (!$events->isEmpty()) {
+            $dateEvent   = $this->dateMinFormat(Carbon::parse($date . " " . $events->first()->turn["hours_ini"], $timezone));
+            $compareDate = strcmp($dateCloseInit->toDateString(), $dateEvent->toDateString());
             $day         = $compareDate == 1 ? 1 : 0;
-            return isset($idEvent) ? collect(["event" => $eventsFree, "hourMin" => $dateEvent, "hourMax" => $final, "type_event" => $this->id_event_free, "day" => $day]) : collect(["event" => $eventsFree->id, "type_event" => $this->id_event_free]);
+            if (isset($idEvent)) {
+                return collect(["event" => $events, "hourMin" => $dateEvent, "hourMax" => $dateCloseInit, "type_event" => $this->id_event_free, "day" => $day]);
+            } else {
+                $events->first()->hourMin = $dateEvent;
+                $events->first()->hourMax = $dateCloseInit;
+                $events->first()->day     = $day;
+                return collect($events->first())->only(['id', 'name', 'description', 'image', 'bs_type_event_id', 'hourMin', 'hourMax', 'day']);
+            }
         } else {
-            return isset($idEvent) ? collect(["event" => null, "hourMin" => null, "hourMax" => null, "type_event" => null, "day" => $day]) : collect(["event" => null, "type_event" => null]);
+            return isset($idEvent) ? collect(["event" => null, "hourMin" => null, "hourMax" => null, "type_event" => null, "day" => $day]) : $events;
         }
     }
 
-    private function checkEventPromotions(string $date, int $microsite_id, string $hour, Carbon $dateCloseInit, int $next_day, string $timezone, $idEvent)
+    private function checkEventPromo(string $date, int $microsite_id, string $hour, Carbon $dateCloseInit, int $next_day, string $timezone, int $idEvent = null)
     {
-        $dayC = Carbon::parse($date, $timezone)->addDay($next_day);
+        $dayC = Carbon::parse($date, $timezone);
         $day  = $dayC->dayOfWeek;
         if (isset($idEvent)) {
             $promotions = ev_event::where('id', $idEvent)
@@ -962,8 +1019,11 @@ class AvailabilityService
                 }])->get();
         } else {
             $promotions = ev_event::where('date_expire', '>=', $date)
-                ->where('bs_type_event_id', $this->id_promotion)
-                ->where('ms_microsite_id', $microsite_id)
+                ->where([
+                    ['status', 1],
+                    ['bs_type_event_id', $this->id_promotion],
+                    ['ms_microsite_id', $microsite_id],
+                ])
                 ->with(['turns' => function ($query) use ($hour, $microsite_id) {
                     $query->where('bs_type_event_id', $this->id_promotion)
                         ->where('ms_microsite_id', $microsite_id)->get();
@@ -979,10 +1039,22 @@ class AvailabilityService
                     foreach ($promotion->turns as $turn) {
                         if ($turn->days->count() > 0) {
                             foreach ($turn->days as $day) {
-                                $hourMin = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $turn->hours_ini_web, $timezone);
-                                $hourMax = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $turn->hours_end_web, $timezone);
-                                $promoaux->push($promotion);
-                                // break;
+                                if ($turn->hours_ini_web !== null && $turn->hours_end_web !== null) {
+                                    $hourMin            = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $turn->hours_ini_web, $timezone);
+                                    $hourMax            = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $turn->hours_end_web, $timezone);
+                                    $compareDate        = strcmp($hourMax->toDateString(), $hourMin->toDateString());
+                                    $promotion->hourMin = $hourMin;
+                                    $promotion->hourMax = $hourMax;
+                                    $promotion->day     = $compareDate == 1 ? 1 : 0;
+                                } else {
+                                    $hourMin            = Carbon::parse($date, $timezone);
+                                    $hourMax            = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . "05:45:00", $timezone)->addDay();
+                                    $promotion->hourMin = $hourMin;
+                                    $promotion->hourMax = $hourMax;
+                                    $promotion->day     = 1;
+                                }
+                                $promoaux->push(collect($promotion)->only(['id', 'name', 'description', 'image', 'bs_type_event_id', 'hourMin', 'hourMax', 'day']));
+
                             }
                         }
 
@@ -993,10 +1065,24 @@ class AvailabilityService
         }
         if ($promoaux->count() > 0) {
             $compareDate = strcmp($hourMax->toDateString(), $hourMin->toDateString());
-            $day         = $compareDate == 1 ? 1 : 0;
-            return isset($idEvent) ? collect(["event" => $promoaux, "hourMin" => $hourMin, "hourMax" => $hourMax, "type_event" => $this->id_promotion, "day" => $day]) : collect(["event" => $promoaux->pluck('id'), "type_event" => $this->id_promotion]);
+            $dayAux      = $compareDate == 1 ? 1 : 0;
+            if (isset($idEvent)) {
+                return collect(["event" => $promoaux, "hourMin" => $hourMin, "hourMax" => $hourMax, "type_event" => $this->id_promotion, "day" => $dayAux]);
+            } else {
+                return $promoaux;
+            }
         } else {
-            return isset($idEvent) ? collect(["event" => null, "hourMin" => null, "hourMax" => null, "type_event" => null, "day" => $day]) : collect(["event" => null, "type_event" => null]);
+            return isset($idEvent) ? collect(["event" => null, "hourMin" => null, "hourMax" => null, "type_event" => null, "day" => null]) : $promoaux;
+        }
+    }
+
+    private function getIndexHour(Carbon $today, Carbon $date, $next_day)
+    {
+        $compare = strcmp($today->toDateString(), $date->toDateString());
+        if ($compara == 0) {
+            $index = $this->defineIndexHour($next_day, $date->toTimeString());
+        } else {
+            $index = $this->defineIndexHour();
         }
     }
 
@@ -1394,7 +1480,7 @@ class AvailabilityService
                 return $eventFree;
                 break;
             case 3:
-                $promotion = $this->checkEventPromotions($date, $microsite_id, $hour, $dateCloseInit, $next_day, $timezone, $idEvent);
+                $promotion = $this->checkEventPromo($date, $microsite_id, $hour, $dateCloseInit, $next_day, $timezone, $idEvent);
                 return $promotion;
                 break;
             default:

@@ -20,7 +20,7 @@ class ServerController  extends Controller {
         return $this->TryCatch(function () use ($microsite, $server_id, $request) {
             $data = $this->_serverService->delete($microsite, $server_id);
 
-            $this->_notification($microsite, $data->server, "Se elimino el servidor", "delete", $request->key);
+            $this->_notification($microsite, $data->server, "Se elimino un servidor", "delete", $request->key);
 
             return $this->CreateJsonResponse($data->estado, 200, trans($data->mensaje), $data->server);
         });

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EmitNotification;
 use App\Helpers\MailMandrillHelper;
 use App\Http\Controllers\Controller as Controller;
 use App\Http\Requests\ReservationRequest;
@@ -30,7 +31,7 @@ class ReservationController extends Controller
         return $this->TryCatch(function () use ($request, $service) {
             $date       = Carbon::now()->setTimezone($request->timezone);
             $start_date = ($request->input('date')) ? $request->input('date') : $date->format('Y-m-d');
-            $end_date   = ($request->input('date_end') && $request->input('date_end') != 'null') ? $request->input('date_end') : $date->format('Y-m-d');
+            $end_date   = ($request->input('date_end')) ? $request->input('date_end') : $date->format('Y-m-d');
 
             $data = $service->getList($request->route('microsite_id'), $start_date, $end_date);
             return $this->CreateResponse(true, 201, "", $data);
@@ -145,8 +146,24 @@ class ReservationController extends Controller
         $service = $this->_ReservationService;
         return $this->TryCatch(function () use ($request, $service) {
             $result = $service->patch($request->all(), $request->route('microsite_id'));
+
+            $this->_notification($request->route("microsite_id"), $result, "Reservación actualizada", "update", $request->key);
+
             return response()->json($result);
         });
+    }
+
+    private function _notification(Int $microsite_id, $data, String $message, String $action, String $key = null)
+    {
+        event(new EmitNotification("b-mesas-floor-res",
+            array(
+                'microsite_id' => $microsite_id,
+                'user_msg'     => $message,
+                'data'         => $data,
+                'action'       => $action,
+                'key'          => $key,
+            )
+        ));
     }
 
 }
