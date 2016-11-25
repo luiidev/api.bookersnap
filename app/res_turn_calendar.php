@@ -25,6 +25,5 @@ class res_turn_calendar extends Model {
     
     public function turn() {
         return $this->belongsTo('App\res_turn', 'res_turn_id');
-    }
-    
+    }    
 }
