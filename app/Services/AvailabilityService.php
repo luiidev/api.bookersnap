@@ -56,7 +56,7 @@ class AvailabilityService
         $today         = Carbon::parse($date, $timezone);
         if (!$zone_id->isEmpty()) {
             foreach ($zone_id as $id) {
-                return $events = $this->searchAllEvent($microsite_id, $date, $hour, $timezone, $next_day, $id);
+                $events = $this->searchAllEvent($microsite_id, $date, $hour, $timezone, $next_day, $id);
                 if (!$events->isEmpty()) {
                     break;
                 }
@@ -468,7 +468,8 @@ class AvailabilityService
 
                                 //Buscar promociones se tiene $date & $hour
                                 //Servicio para buscar las promociones
-                                $promotionsId = $this->searchPromotions($date, $next_day, $availabilityFree['hour'], $microsite_id, $timezone);
+                                return $availabilityFree['hour'];
+                                return $promotionsId = $this->searchPromotions($date, $next_day, $availabilityFree['hour'], $microsite_id, $timezone);
                                 if ($promotionsId->count()) {
                                     $availabilityFree['ev_event_id'] = $promotionsId;
                                 } else {
