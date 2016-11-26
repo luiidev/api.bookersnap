@@ -8,24 +8,25 @@ class TurnsHelper
 {
     public static function TypeTurnForHour(String $date, String $hour, $microsite_id)
     {
-        $calendar = res_turn_calendar::select("calendar.*")
-                ->from("res_turn_calendar as calendar")
-                ->join("res_turn as turn", "turn.id", "=", "calendar.res_turn_id")
+        $turn_calendar = res_turn_calendar::select("turn_calendar.*")
+                ->from("res_turn_calendar as turn_calendar")
+                ->join("res_turn as turn", "turn.id", "=", "turn_calendar.res_turn_id")
                 ->where(function($query) use ($date){
-                    $query->where("calendar.start_date", ">=", $date)
-                                ->orWhere("calendar.end_date", ">=", $date);
+                    $query->where("turn_calendar.start_date", ">=", $date)
+                                ->orWhere("turn_calendar.end_date", ">=", $date);
                 })
-                ->whereRaw("dayofweek(calendar.start_date) = dayofweek(?)", array($date))
-                ->whereRaw("? between calendar.start_time and calendar.end_time", array($hour))
-                ->where("turn.ms_microsite_id", 1)
-                ->where("turn.status", (int) $microsite_id)
+                ->whereRaw("dayofweek(turn_calendar.start_date) = dayofweek(?)", array($date))
+                ->whereRaw("? between turn_calendar.start_time and turn_calendar.end_time", array($hour))
+                ->where("turn.ms_microsite_id", (int) $microsite_id)
+                ->where("turn.status", 1)
+                ->orderBy("end_time", "desc")
                 ->first();
 
-        if ($calendar !== null) {
-            return $calendar->res_type_turn_id;
+        if ($turn_calendar !== null) {
+            return $turn_calendar->res_turn_id;
         }
         
-        return $calendar;
+        return $turn_calendar;
     }
 
     public static function TypeTurnWithHourForHour(String $date, String $hour, $microsite_id)
@@ -67,7 +68,7 @@ class TurnsHelper
 
         // No hay turno en la hora que desea reservar, No existe turno previo a la hora que se desea reservar
 
-        // 2do caso: Existe un turno posterior a la hora que desea reservar
+        // 3er caso: Existe un turno posterior a la hora que desea reservar
         $case_3 = clone $query;
         $calendar = $case_3->where("calendar.start_time", ">", $hour)->orderBy("start_time", "asc")->first();
 
@@ -75,7 +76,7 @@ class TurnsHelper
 
         // No hay turno en la hora que desea reservar, No existe turno previo a la hora que se desea reservar, No existe un turno posterior
 
-        // 4to caso: devuelve la hora de buesqueda y type_turn_id como nulo
+        // 4to caso: devuelve la hora de busqueda y type_turn_id como nulo
         return $turn_format($hour, null, null);
     }
 }
