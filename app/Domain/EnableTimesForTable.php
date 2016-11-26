@@ -68,8 +68,10 @@ class EnableTimesForTable {
         $end = $this->timeToIntegerRangePosition($endHour->format("H:m:s"));
         
         for ($i = $ini; $i <= $end; $i++) {
-//            $this->availability[$i]['ini'] = $ini;
+//            $this->availability[$i]['ini'] = $startHour->format("H:m:s");
 //            $this->availability[$i]['end'] = $endHour->format("H:m:s");
+//            $this->availability[$i]['reservations'][] = $reservation->id;
+            $this->availability[$i]['reserved'] = true;
             $this->availability[$i]['rule_id'] = 0;
         }
     }
@@ -80,7 +82,8 @@ class EnableTimesForTable {
         
         for ($i = $ini; $i <= $end; $i++) {
 //            $this->availability[$i]['ini'] = $ini;
-//            $this->availability[$i]['end'] = $endHour->format("H:m:s");
+//            $this->availability[$i]['end'] = $end;
+//            $this->availability[$i]['block'][] = $block->id;
             $this->availability[$i]['rule_id'] = 0;
         }
     }
@@ -111,7 +114,15 @@ class EnableTimesForTable {
      */
 
     private function timeToIntegerRangePosition(string $time) {
-        return date("H", strtotime($time)) * 4 + (date("i", strtotime($time))) / 15;
+        $minute = (date("i", strtotime($time)));
+        $r = $minute%15;
+        if($r > 0){
+            $minute -= $r; 
+            if($r > 8){
+                $minute += 15;
+            }
+        }
+        return date("H", strtotime($time)) * 4 + $minute / 15;
     }
 
     private function rangeToTime($index) {
