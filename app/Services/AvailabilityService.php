@@ -74,8 +74,9 @@ class AvailabilityService
             $dateTimeClose = Carbon::parse($aTables['dayClose'] . " " . $aTables['hourClose'], $timezone)->addDay($aTables['day']);
             $event         = $this->checkEventPaymentAux($date, $microsite_id, $hour, $dateTimeClose, $next_day, $timezone);
             if ($event->isEmpty()) {
-                $eventFree    = $this->checkEventFree($date, $microsite_id, $hour, $dateTimeClose, $next_day, $timezone);
-                return $event = $this->checkEventPromo($date, $microsite_id, $hour, $dateTimeClose, $next_day, $timezone)->prepend($eventFree);
+                // return "test";
+                $eventFree = $this->checkEventFree($date, $microsite_id, $hour, $dateTimeClose, $next_day, $timezone);
+                $event     = $this->checkEventPromo($date, $microsite_id, $hour, $dateTimeClose, $next_day, $timezone)->prepend($eventFree);
                 if ($event->count() == 1) {
                     return collect();
                 }
@@ -203,7 +204,7 @@ class AvailabilityService
         $zonesId  = $this->calendarService->getZones($microsite_id, $date, $date)->pluck('id');
         $response = collect();
         foreach ($zonesId as $index => $zoneId) {
-            return $zoneAvailability = $this->searchAvailabilityDay($microsite_id, $date, $hour, $num_guests, $zoneId, $next_day, $timezone, $eventId);
+            $zoneAvailability = $this->searchAvailabilityDay($microsite_id, $date, $hour, $num_guests, $zoneId, $next_day, $timezone, $eventId);
 
             if ($zoneAvailability->count() !== 1) {
                 $auxZone = $zoneAvailability->map(function ($item) use ($zoneId) {
@@ -399,7 +400,6 @@ class AvailabilityService
                     }
                 }
                 if ($next_day == 0) {
-
                     if ($searchPromotions == true) {
                         $availabilitySinPromociones = $this->searchAvailavilityFormat($indexQuery, $indexAvailability, $indexHourInitDown, $indexHourInitUp, $indexAvailability, $indexHourMin, $microsite_id, $date, $hourQuery, $num_guests, $zone_id, $timezone, $availabilityTables['availability'], $availabilityTables['event_id']);
                         $aux                        = collect();
@@ -447,6 +447,7 @@ class AvailabilityService
                     return $aux;
 
                 } else if ($searchPromotions == false) {
+                    // return $availabilityTables['availability'];
                     $availabilityEventsFree = $this->searchAvailavilityFormat($indexQuery, $indexAvailability, $indexHourInitDown, $indexHourInitUp, $indexHourMin, $indexHourMax, $microsite_id, $date, $hourQuery, $num_guests, $zone_id, $timezone, $availabilityTables['availability'], $availabilityTables['event_id']);
                     $aux                    = collect();
                     // return "test";
@@ -468,8 +469,8 @@ class AvailabilityService
 
                                 //Buscar promociones se tiene $date & $hour
                                 //Servicio para buscar las promociones
-                                return $availabilityFree['hour'];
-                                return $promotionsId = $this->searchPromotions($date, $next_day, $availabilityFree['hour'], $microsite_id, $timezone);
+                                // return $availabilityFree['hour'];
+                                $promotionsId = $this->searchPromotions($date, $next_day, $availabilityFree['hour'], $microsite_id, $timezone);
                                 if ($promotionsId->count()) {
                                     $availabilityFree['ev_event_id'] = $promotionsId;
                                 } else {
@@ -973,6 +974,7 @@ class AvailabilityService
     private function checkEventFree(string $date, int $microsite_id, string $hour, Carbon $dateCloseInit, int $next_day, string $timezone, int $idEvent = null)
     {
         $today = Carbon::parse($date, $timezone);
+        // return $dateCloseInit;
         if (isset($idEvent)) {
             $events = ev_event::with("turn")
                 ->where('id', $idEvent)
@@ -1163,7 +1165,7 @@ class AvailabilityService
             ->where('ms_microsite_id', $microsite_id)
             ->whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
             ->get();
-        if ($eventsFree->count() > 0) {
+        if (!$eventsFree->isEmpty()) {
             $indexLimit = collect();
             foreach ($eventsFree as $eventFree) {
                 $dayCloseEvent  = $today->toDateString();
@@ -1233,6 +1235,7 @@ class AvailabilityService
             if (isset($normal)) {
                 $availavilityAux = collect();
                 foreach ($normal['tables'] as $tableNormal) {
+                    // return $tableNormal;
                     $tableEvent = $turnEvent['tables']->where('id', $tableNormal['id'])->first();
                     if (isset($tableEvent)) {
                         $auxN = $tableNormal['availability'];
@@ -1264,6 +1267,8 @@ class AvailabilityService
                         $aux['max_cover']    = $tableNormal['max_cover'];
                         $aux['availability'] = $auxN;
                         $availavilityAux->push($aux);
+                    } else {
+                        return $tableNormal;
                     }
                 }
                 $normalAux1 = $normal;
@@ -1379,7 +1384,6 @@ class AvailabilityService
         $turnEvent['tables'] = $availabilityTablesEvents['availability'];
 
         $turnNewNormal = collect();
-
         foreach ($availabilityTablesNormal['turn'] as $index => $turnNormal) {
             $turnNormal['tables'] = $availabilityTablesNormal['availability'][$index];
             $turnNewNormal->push($turnNormal);
@@ -1488,5 +1492,56 @@ class AvailabilityService
                 return null;
                 break;
         }
+    }
+
+    public function createReservationTemporal(int $user_id, int $microsite_id, string $hour, string $date, int $num_guest, $zone_id, string $timezone, $reservation, $ev_event_id, $tokenAuth, $next_day, $num_guests)
+    {
+        $this->timezone     = $timezone;
+        $this->tokenAuth    = $tokenAuth;
+        $dateExpirePrevious = Carbon::now($this->timezone)->subMinutes($this->timeTolerance)->toDateTimeString();
+        $exists             = res_table_reservation_temp::where('token', $this->tokenAuth)->where('expire', '>=', $dateExpirePrevious)->get();
+        if ($exists->isEmpty()) {
+            if (!isset($zone_id)) {
+                $zone_id = $reservation[2]['zone_id'];
+            }
+            $tables_id = $reservation[2]['tables_id'];
+            // $ev_event_id = $reservation[2]['ev_event_id'];
+
+            $update              = false;
+            $reservationTemporal = [
+                'hour'            => $hour,
+                'date'            => $date,
+                'num_guest'       => $num_guest,
+                'user_id'         => $user_id,
+                'ev_event_id'     => $ev_event_id,
+                'ms_microsite_id' => $microsite_id];
+            return $this->createUpdateTemp($zone_id, $tables_id, $reservationTemporal, $update, $date, $hour, $num_guest, $next_day);
+        } else {
+
+            $reservationTemporal = $exists->first();
+            if ($reservationTemporal->hour == $hour && $reservationTemporal->date == $date && $reservationTemporal->num_guest == $num_guest && $reservationTemporal->zone_id == $zone_id) {
+                return $reservationTemporal;
+            } else {
+                if (isset($zone_id)) {
+                    $availability = $this->availabilityService->searchAvailabilityDay($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $this->timezone);
+                } else {
+                    $availability = $this->availabilityService->searchAvailabilityDayAllZone($microsite_id, $date, $hour, $num_guests, $next_day, $this->timezone);
+                    $zone_id      = $reservation[2]['zone_id'];
+                }
+                $tables_id = $availability[2]['tables_id'];
+                // $ev_event_id = $availability[2]['ev_event_id'];
+
+                $update                               = true;
+                $reservationTemporal->hour            = $hour;
+                $reservationTemporal->date            = $date;
+                $reservationTemporal->num_guest       = $num_guest;
+                $reservationTemporal->user_id         = $user_id;
+                $reservationTemporal->ev_event_id     = $ev_event_id;
+                $reservationTemporal->ms_microsite_id = $microsite_id;
+                return $this->createUpdateTemp($zone_id, $tables_id, $reservationTemporal, $update, $date, $hour, $num_guest, $next_day);
+
+            }
+        }
+
     }
 }
