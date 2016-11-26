@@ -64,6 +64,11 @@ class res_turn extends Model
         return $this->hasMany('App\res_turn_zone', 'res_turn_id');
         //return $this->belongsToMany('App\res_turn_zone', 'res_turn_id');
     }
+    
+    public function turnTable()
+    {
+        return $this->hasMany('App\res_turn_table', 'res_turn_id');
+    }
 
     public function turnTime()
     {
@@ -86,6 +91,11 @@ class res_turn extends Model
     public function calendar()
     {
         return $this->hasMany('App\res_turn_calendar', 'res_turn_id')->where("end_date", ">=", date('Y-m-d'));
+    }
+    
+    public function turnCalendar()
+    {
+        return $this->hasMany('App\res_turn_calendar', 'res_turn_id');
     }
 
     public function events()

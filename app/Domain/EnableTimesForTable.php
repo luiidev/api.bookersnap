@@ -13,6 +13,8 @@ namespace App\Domain;
  *
  * @author USER
  */
+use Carbon\Carbon;
+
 class EnableTimesForTable {
 
     protected $availability = [];
@@ -30,6 +32,60 @@ class EnableTimesForTable {
             $this->availability[$i]['rule_id'] = 1;
         }
         $this->defineRule($turns_table);
+        return $this->availability;
+    }
+
+    public function reservationsTable($reservations, $tableId) {
+        foreach ($reservations as $key => $reservation) {
+            foreach ($reservation->tables as $key => $tables) {
+                if ($tables->id = $tableId) {
+                    $this->reservations($reservation);
+                    break;
+                }
+            }
+        }
+    }
+    
+    public function blocksTable($blocks, $tableId) {
+        foreach ($blocks as $key => $block) {
+            foreach ($block->tables as $key => $tables) {
+                if ($tables->id = $tableId) {
+                    $this->blocks($block);
+                    break;
+                }
+            }
+        }
+    }
+    
+    protected function reservations($reservation) {
+        list($year, $month, $day) = $reservation->date_reservation;
+        list($h, $m, $s) = $reservation->hours_reservation;
+        list($hd, $md, $sd) = $reservation->hours_duration;
+        $startHour                = Carbon::now()->addHours($h)->addMinutes($m)->addSeconds($s);
+        $endHour                  = $startHour->addHours($hd)->addMinutes($md)->addSeconds($sd);
+        
+        $ini = $this->timeToIntegerRangePosition($reservation->hours_reservation);
+        $end = $this->timeToIntegerRangePosition($endHour->format("H:m:s"));
+        
+        for ($i = $ini; $i <= $end; $i++) {
+//            $this->availability[$i]['ini'] = $ini;
+//            $this->availability[$i]['end'] = $endHour->format("H:m:s");
+            $this->availability[$i]['rule_id'] = 0;
+        }
+    }
+    
+    protected function blocks($block) {     
+        $ini = $this->timeToIntegerRangePosition($block->start_time);
+        $end = $this->timeToIntegerRangePosition($block->end_time);
+        
+        for ($i = $ini; $i <= $end; $i++) {
+//            $this->availability[$i]['ini'] = $ini;
+//            $this->availability[$i]['end'] = $endHour->format("H:m:s");
+            $this->availability[$i]['rule_id'] = 0;
+        }
+    }
+
+    public function getAvailability() {
         return $this->availability;
     }
 
@@ -74,7 +130,7 @@ class EnableTimesForTable {
             if ($turn->next_day == 1 && $ini < $end) {
                 $ini = $ini + 96;
                 $end = $end + 96;
-            }else if($end < $ini){
+            } else if ($end < $ini) {
                 $end = $end + 96;
             }
             for ($i = $ini; $i <= $end; $i++) {
