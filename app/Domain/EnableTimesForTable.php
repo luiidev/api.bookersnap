@@ -15,15 +15,18 @@ namespace App\Domain;
  */
 use Carbon\Carbon;
 
-class EnableTimesForTable {
+class EnableTimesForTable
+{
 
     protected $availability = [];
 
-    public function __construct() {
-        
+    public function __construct()
+    {
+
     }
 
-    public function segment($turn, $turns_table) {
+    public function segment($turn, $turns_table)
+    {
         $this->availability = [];
         $this->initAvailability();
         $ini = $this->timeToIntegerRangePosition($turn->hours_ini);
@@ -35,7 +38,8 @@ class EnableTimesForTable {
         return $this->availability;
     }
 
-    public function reservationsTable($reservations, $tableId) {
+    public function reservationsTable($reservations, $tableId)
+    {
         foreach ($reservations as $key => $reservation) {
             foreach ($reservation->tables as $key => $tables) {
                 if ($tables->id = $tableId) {
@@ -45,8 +49,9 @@ class EnableTimesForTable {
             }
         }
     }
-    
-    public function blocksTable($blocks, $tableId) {
+
+    public function blocksTable($blocks, $tableId)
+    {
         foreach ($blocks as $key => $block) {
             foreach ($block->tables as $key => $tables) {
                 if ($tables->id = $tableId) {
@@ -56,54 +61,58 @@ class EnableTimesForTable {
             }
         }
     }
-    
-    protected function reservations($reservation) {
-        list($year, $month, $day) = $reservation->date_reservation;
-        list($h, $m, $s) = $reservation->hours_reservation;
-        list($hd, $md, $sd) = $reservation->hours_duration;
-        $startHour                = Carbon::now()->addHours($h)->addMinutes($m)->addSeconds($s);
-        $endHour                  = $startHour->addHours($hd)->addMinutes($md)->addSeconds($sd);
-        
+
+    private function reservations($reservation)
+    {
+        list($hd, $md, $sd) = explode(":", $reservation->hours_duration);
+        $startHour          = Carbon::parse($reservation->date_reservation . " " . $reservation->hours_reservation);
+        $endHour            = $startHour->copy()->addHours($hd)->addMinutes($md)->addSeconds($sd);
+
         $ini = $this->timeToIntegerRangePosition($reservation->hours_reservation);
         $end = $this->timeToIntegerRangePosition($endHour->format("H:m:s"));
-        
+
         for ($i = $ini; $i <= $end; $i++) {
-//            $this->availability[$i]['ini'] = $startHour->format("H:m:s");
-//            $this->availability[$i]['end'] = $endHour->format("H:m:s");
-//            $this->availability[$i]['reservations'][] = $reservation->id;
-            $this->availability[$i]['reserved'] = true;
-            $this->availability[$i]['rule_id'] = 0;
-        }
-    }
-    
-    protected function blocks($block) {     
-        $ini = $this->timeToIntegerRangePosition($block->start_time);
-        $end = $this->timeToIntegerRangePosition($block->end_time);
-        
-        for ($i = $ini; $i <= $end; $i++) {
-//            $this->availability[$i]['ini'] = $ini;
-//            $this->availability[$i]['end'] = $end;
-//            $this->availability[$i]['block'][] = $block->id;
-            $this->availability[$i]['rule_id'] = 0;
+            /*$this->availability[$i]['ini']            = $startHour;
+            $this->availability[$i]['end']            = $endHour;*/
+            $this->availability[$i]['reservations'][] = $reservation;
+            $this->availability[$i]['reserved']       = true;
+            $this->availability[$i]['rule_id']        = 0;
         }
     }
 
-    public function getAvailability() {
+    private function blocks($block)
+    {
+        $ini = $this->timeToIntegerRangePosition($block->start_time);
+        $end = $this->timeToIntegerRangePosition($block->end_time);
+
+        for ($i = $ini; $i <= $end; $i++) {
+            $this->availability[$i]['ini']      = $ini;
+            $this->availability[$i]['end']      = $end;
+            $this->availability[$i]['blocks'][] = $block;
+            $this->availability[$i]['block']    = true;
+            $this->availability[$i]['rule_id']  = 0;
+        }
+    }
+
+    public function getAvailability()
+    {
         return $this->availability;
     }
 
-    private function initAvailability() {
+    private function initAvailability()
+    {
         for ($i = 0; $i < 120; $i++) {
-            $nextday = ($i < 96) ? 0 : 1;
+            $nextday              = ($i < 96) ? 0 : 1;
             $this->availability[] = array(
-                "time" => $this->rangeToTime($i),
+                "time"    => $this->rangeToTime($i),
                 "rule_id" => -1,
-                "nextday" => $nextday
+                "nextday" => $nextday,
             );
         }
     }
 
-    public function disabled() {
+    public function disabled()
+    {
         $this->availability = [];
         $this->initAvailability();
         return $this->availability;
@@ -113,19 +122,21 @@ class EnableTimesForTable {
      * Retorna el numero de segmento de 15 min de las  120 min = 30 horas.
      */
 
-    private function timeToIntegerRangePosition(string $time) {
+    private function timeToIntegerRangePosition(string $time)
+    {
         $minute = (date("i", strtotime($time)));
-        $r = $minute%15;
-        if($r > 0){
-            $minute -= $r; 
-            if($r > 8){
+        $r      = $minute % 15;
+        if ($r > 0) {
+            $minute -= $r;
+            if ($r > 8) {
                 $minute += 15;
             }
         }
         return date("H", strtotime($time)) * 4 + $minute / 15;
     }
 
-    private function rangeToTime($index) {
+    private function rangeToTime($index)
+    {
         return date("H:i:s", $index * 60 * 15);
     }
 
@@ -133,11 +144,12 @@ class EnableTimesForTable {
      * Funcion recursiva para asignacion de tipo de avilitacion segun su intervalo de tiempo.
      */
 
-    private function defineRule($turns_table, $index = 0) {
+    private function defineRule($turns_table, $index = 0)
+    {
         if (count($turns_table) > 0 && @$turns_table[$index]) {
             $turn = $turns_table[$index];
-            $ini = $this->timeToIntegerRangePosition($turn->start_time);
-            $end = $this->timeToIntegerRangePosition($turn->end_time);
+            $ini  = $this->timeToIntegerRangePosition($turn->start_time);
+            $end  = $this->timeToIntegerRangePosition($turn->end_time);
             if ($turn->next_day == 1 && $ini < $end) {
                 $ini = $ini + 96;
                 $end = $end + 96;
@@ -146,6 +158,7 @@ class EnableTimesForTable {
             }
             for ($i = $ini; $i <= $end; $i++) {
                 $this->availability[$i]['rule_id'] = $turn->res_turn_rule_id;
+                //$this->availability[$i]['rule'][]  = $turn;
             }
             $index++;
             $this->defineRule($turns_table, $index);
