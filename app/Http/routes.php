@@ -103,6 +103,9 @@ function routeMesas()
 
         Route::get('calendar/{turn_id}/{start_time}/{end_time}', 'CalendarController@existConflictTurn');
 
+        //-----------------------------------------------------
+        // MICROSITE::TABLES
+        //-----------------------------------------------------
         Route::get('tables/availability', 'TableController@availability');
 
         //-----------------------------------------------------
