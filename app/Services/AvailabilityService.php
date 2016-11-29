@@ -217,7 +217,9 @@ class AvailabilityService
                     return $item;
                 });
                 foreach ($auxZone as $availability) {
-                    if (!collect($availability["tables_id"])->isEmpty() || !$availability["standing_people"]->isEmpty()) {
+                    if (!collect($availability["tables_id"])->isEmpty()) {
+                        return $auxZone;
+                    } else if (@$availability["standing_people"] && $availability["standing_people"]['availability_standing']) {
                         return $auxZone;
                     }
                 }
@@ -754,10 +756,10 @@ class AvailabilityService
         $listBlock = [];
         $blocks    = BlockTable::whereIn('res_table_id', $tables_id)->with(['block' => function ($query) use ($date, $hourI, $hourF) {
             $query->where('start_date', '=', $date)
-                ->whereRaw("concat(start_date,' ',start_time) <= ?", array($hourI))
-                ->whereRaw("concat(start_date,' ',end_time) >= ?", array($hourI))
-                ->orwhereRaw("concat(start_date,' ',start_time) < ?", array($hourF))
-                ->whereRaw("concat(start_date,' ',end_time) >= ?", array($hourF));
+                ->whereRaw("ADDDATE(concat(start_date,' ',start_time), INTERVAL next_day DAY) <= ?", array($hourI))
+                ->whereRaw("ADDDATE(concat(start_date,' ',end_time),INTERVAL next_day DAY )>= ?", array($hourI))
+                ->orwhereRaw("ADDDATE(concat(start_date,' ',start_time),INTERVAL next_day DAY )< ?", array($hourF))
+                ->whereRaw("ADDDATE(concat(start_date,' ',end_time),INTERVAL next_day DAY )>= ?", array($hourF));
         }])->get();
         // return $blocks;
         $listBlock = $blocks->reject(function ($value, $key) {
@@ -1168,7 +1170,7 @@ class AvailabilityService
         if ($num_guests + $reservations->num_guests_standing <= $this->max_people_standing) {
             return collect(["availability_standing" => true, "num_guest_availability" => $cantGuest, "num_guest_s_max" => $this->max_people_standing]);
         } else {
-            return collect();
+            return collect(["availability_standing" => false, "num_guest_availability" => $cantGuest, "num_guest_s_max" => $this->max_people_standing]);
         }
     }
 
