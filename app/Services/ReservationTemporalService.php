@@ -19,7 +19,7 @@ class ReservationTemporalService
         $this->availabilityService  = $AvailabilityService;
     }
 
-    public function createReservationTemporal(int $user_id, int $microsite_id, string $hour, string $date, int $num_guest, $zone_id, string $timezone, $reservation, $ev_event_id, $tokenAuth, $next_day, $num_guests)
+    public function createReservationTemporal(int $user_id, int $microsite_id, string $hour, string $date, int $num_guest, int $zone_id = null, string $timezone, $reservation, int $ev_event_id = null, string $tokenAuth, int $next_day, int $num_guests)
     {
         // return $reservation;
         // return $ev_event_id;
@@ -27,6 +27,9 @@ class ReservationTemporalService
         // if ($configuration->maxPeople < $num_guests) {
         //     abort(500, "La configuracion del sitio no soporta la esa cantidad de usuario");
         // }
+        // $fakeDate = Carbon::create(2016, 11, 29, 17, null, null, $timezone);
+        // Carbon::setTestNow($fakeDate);
+
         $this->timezone     = $timezone;
         $this->tokenAuth    = $tokenAuth;
         $dateExpirePrevious = Carbon::now($this->timezone)->subMinutes($this->timeTolerance)->toDateTimeString();
@@ -59,13 +62,14 @@ class ReservationTemporalService
                 'ev_event_id'     => $ev_event_id,
                 'ms_microsite_id' => $microsite_id,
                 'standing_people' => $aux_num_standing,
+                'next_day'        => $next_day,
             ];
             // return $reservationTemporal;
-            return $this->createUpdateTemp($zone_id, $tables_id, $reservationTemporal, $update, $date, $hour, $num_guest, $next_day);
+            return $this->createUpdateTemp($zone_id, $tables_id, $reservationTemporal, $update, $date, $hour, $num_guest, $next_day, $dateExpirePrevious);
         } else {
 
             $reservationTemporal = $exists->first();
-            if ($reservationTemporal->hour == $hour && $reservationTemporal->date == $date && $reservationTemporal->num_guest == $num_guest && $reservationTemporal->zone_id == $zone_id) {
+            if ($reservationTemporal->hour == $hour && $reservationTemporal->date == $date && $reservationTemporal->num_guest == $num_guest && $reservationTemporal->zone_id == $zone_id && $reservationTemporal->next_day == $next_day) {
                 return $reservationTemporal;
             } else {
                 // return "test";
@@ -78,7 +82,7 @@ class ReservationTemporalService
                 $tables_id   = $availability[2]['tables_id'];
                 $ev_event_id = $availability[2]['ev_event_id'];
                 // return           = $availability[2];
-                $standing_people = isset($availability[2]['standing_people']) ? $availability[2]['standing_people'] : null;
+                $standing_people = isset($availability[2]['standing_people']) ? $availability[2]['standing_people']['num_guest_availability'] : null;
 
                 $update                               = true;
                 $reservationTemporal->hour            = $hour;
@@ -88,19 +92,21 @@ class ReservationTemporalService
                 $reservationTemporal->ev_event_id     = $ev_event_id;
                 $reservationTemporal->ms_microsite_id = $microsite_id;
                 $reservationTemporal->standing_people = $standing_people;
+                $reservationTemporal->next_day        = $next_day;
 
-                return $this->createUpdateTemp($zone_id, $tables_id, $reservationTemporal, $update, $date, $hour, $num_guest, $next_day);
+                return $this->createUpdateTemp($zone_id, $tables_id, $reservationTemporal, $update, $date, $hour, $num_guest, $next_day, $dateExpirePrevious);
 
             }
         }
 
     }
-    public function createUpdateTemp($zone_id, $tables_id, $reservationTemporal, $update, string $date, string $hour, int $num_guest, int $next_day)
+    public function createUpdateTemp(int $zone_id = null, $tables_id = null, $reservationTemporal, bool $update, string $date, string $hour, int $num_guest, int $next_day, string $dateExpirePrevious)
     {
         // $configuration = $this->configurationService->getConfiguration($microsite_id);
         // if ($configuration->maxPeople < $num_guests) {
         //     abort(500, "La configuracion del sitio no soporta la esa cantidad de usuario");
         // }
+        // return []
         if (isset($zone_id) && isset($tables_id)) {
             // return $configuration = $this->configurationService->getConfiguration($microsite_id);
             $tables_id_aux = null;
@@ -153,9 +159,20 @@ class ReservationTemporalService
                 return $reservationTemporal;
             } else {
 
+                $this->deleteTemporal($dateExpirePrevious, $this->tokenAuth);
                 $dateC = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $hour, $this->timezone)->addDay($next_day);
                 abort(500, "No se encontro ninguna mesa disponible para " . $num_guest . " personas el dia " . $dateC->format('l jS \\of F Y h:i:s A'));
             }
         }
+    }
+
+    public function deleteTemporal(string $dateExpirePrevious, string $token)
+    {
+        res_table_reservation_temp::where('token', $token)->where('expire', '>=', $dateExpirePrevious)->delete();
+    }
+
+    public function getTimeTolerance()
+    {
+        return $this->timeTolerance;
     }
 }

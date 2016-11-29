@@ -24,7 +24,7 @@ class AvailabilityInfoRequest extends Request
      */
     public function rules()
     {
-        $dateMin = Carbon::yesterday($this->timezone)->toDateString();
+        $dateMin = Carbon::yesterday($this->timezone)->subDay()->toDateString();
         return [
             "date"       => "required|date_format: Y-m-d|after:$dateMin",
             "hour"       => "date_format: H:i:s|multiple_hour:15",

@@ -24,7 +24,7 @@ class ReservationTemporalRequest extends Request
      */
     public function rules()
     {
-        $dateMin = Carbon::yesterday('America/Lima')->toDateString();
+        $dateMin = Carbon::yesterday('America/Lima')->subDay()->toDateString();
         return [
             'hour'        => 'required|date_format: H:i:s|multiple_hour:15',
             'date'        => "required|date_format: Y-m-d|after:$dateMin",

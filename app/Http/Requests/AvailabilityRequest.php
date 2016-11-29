@@ -27,7 +27,7 @@ class AvailabilityRequest extends Request
         // $dateMin = Carbon::yesterday($this->timezone)->toDateString();
         // $dateMax = Carbon::tomorrow($this->timezone)->toDateString();
 
-        $dateMin = Carbon::yesterday($this->timezone)->toDateString();
+        $dateMin = Carbon::yesterday($this->timezone)->subDay()->toDateString();
         // $dateMax = Carbon::tomorrow('America/Lima')->toDateString();
 
         return [
