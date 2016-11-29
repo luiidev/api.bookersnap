@@ -102,8 +102,7 @@ function routeMesas()
         Route::put('calendar/change', 'CalendarController@changeCalendar');
 
         Route::get('calendar/{turn_id}/{start_time}/{end_time}', 'CalendarController@existConflictTurn');
-        
-        
+
         Route::get('tables/availability', 'TableController@availability');
 
         //-----------------------------------------------------
@@ -205,6 +204,7 @@ function routeMesas()
             Route::get('zones/', 'AvailabilityController@getZones');
             Route::get('hours/', 'AvailabilityController@getHours');
             Route::get('events/', 'AvailabilityController@getEvents');
+            Route::get('days/', 'AvailabilityController@getDays');
         });
     });
 

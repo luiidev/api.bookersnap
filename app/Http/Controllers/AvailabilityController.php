@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\AvailabilityInfoRequest;
 use App\Http\Requests\AvailabilityRequest;
 use App\Services\AvailabilityService;
+use Illuminate\Http\Request;
 
 class AvailabilityController extends Controller
 {
@@ -74,6 +75,19 @@ class AvailabilityController extends Controller
         return $this->TryCatch(function () use ($microsite_id, $date, $hour, $zone_id, $timezone, $next_day) {
             $events = $this->service->getEvents($microsite_id, $date, $hour, $timezone, $next_day, $zone_id);
             return $this->CreateJsonResponse(true, 200, "", $events);
+        });
+    }
+
+    public function getDays(Request $request)
+    {
+        $microsite_id = $request->route('microsite_id');
+        $date_ini     = $request->date_ini;
+        $date_fin     = $request->date_fin;
+        $timezone     = $request->timezone;
+
+        return $this->TryCatch(function () use ($microsite_id, $date_ini, $date_fin, $timezone) {
+            $days = $this->service->getDays($microsite_id, $date_ini, $date_fin, $timezone);
+            return $this->CreateJsonResponse(true, 200, "", $days);
         });
     }
 }

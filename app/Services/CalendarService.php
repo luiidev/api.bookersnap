@@ -25,7 +25,7 @@ class CalendarService
                 return (object) [
                     'title'      => $item->turn->name,
                     // 'start_time' => $item->turn->hours_ini,
-                    // 'end_time' => $item->turn->hours_end,
+                    // 'end_time'   => $item->turn->hours_end,
                     'start_time' => $item->start_time,
                     'end_time'   => $item->end_time,
                     'color'      => $item->turn->typeTurn->color,
