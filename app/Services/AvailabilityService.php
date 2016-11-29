@@ -94,11 +94,11 @@ class AvailabilityService
 
     public function getHours(int $microsite_id, string $date, $zone_id, string $timezone)
     {
-
         $dateC         = Carbon::parse($date, $timezone);
         $configuration = $this->configurationService->getConfiguration($microsite_id);
 
         $nowC = Carbon::now($timezone)->addMinutes($configuration->time_restriction);
+        $diff = $dateC->toDateString() <=> $nowC->toDateString();
 
         $dateCompare = strcmp($dateC->toDateString(), $nowC->toDateString());
 
@@ -185,6 +185,18 @@ class AvailabilityService
                 $time->push($timeAux);
             }
         });
+
+        if ($diff < 0) {
+            $hour  = $this->dateMaxFormat($nowC);
+            $index = $this->defineIndexHour(1, $hour->toTimeString());
+            $time  = $time->reject(function ($item) use ($index) {
+                if ($item['index'] >= $index) {
+                    return false;
+                } else {
+                    return true;
+                }
+            });
+        }
 
         return $time->isEmpty() ? abort(500, "No existe horarios disponibles hoy") : $time;
     }
@@ -713,7 +725,7 @@ class AvailabilityService
         //Devuelve id de las mesas filtradas que estan reservadas en una fecha y hora
         $listReservations = $this->getTableReservation($availabilityTablesId->toArray(), $date, $startHour->toDateTimeString(), $endHour->toDateTimeString());
 
-        $listReservationsTemp = $this->getReservationTemp($availabilityTablesId->toArray(), $date, $startHour->toDateTimeString(), $timezone, $microsite_id, $next_day);
+        $listReservationsTemp = $this->getReservationTemp($availabilityTablesId->toArray(), $date, $hour, $timezone, $microsite_id, $next_day);
 
         $unavailabilityTablesFilter = collect(array_merge($listBlocks, $listReservations, $listReservationsTemp))->unique();
 
@@ -1436,15 +1448,17 @@ class AvailabilityService
         return $promoaux;
     }
 
-    public function getReservationTemp(array $tables_id, string $date, string $hourI, string $timezone, int $microsite_id, int $next_day)
+    public function getReservationTemp(array $tables_id, string $date, string $hour, string $timezone, int $microsite_id, int $next_day)
     {
-
-        $hour                = Carbon::createFromFormat('Y-m-d H:i:s', $hourI, $timezone);
+        $hour                = Carbon::parse($date . " " . $hour, $timezone);
         $hourActual          = Carbon::now($timezone)->subMinutes(10);
         $listReservationTemp = [];
         $tables              = collect();
-        $reservations        = res_table_reservation_temp::where('date', $date)->where('hour', $hour->toTimeString())->where('ms_microsite_id', $microsite_id)->get();
-        // dd($reservations);
+        $reservations        = res_table_reservation_temp::where('date', $date)
+            ->where('hour', $hour->toTimeString())
+            ->where('ms_microsite_id', $microsite_id)
+            ->where('next_day', $next_day)
+            ->get();
         if ($reservations->count() > 0) {
             $listReservationTemp = $reservations->reject(function ($value) use ($hourActual) {
                 return $value->expire < $hourActual->toDateTimeString();
@@ -1544,9 +1558,7 @@ class AvailabilityService
         $aux             = $calendar->get();
         $dateTimeClose   = collect($aux)->sortBy('date')->where('date', $yesterday->toDateString())->pop();
         $deleteYesterday = false;
-        // return strcmp($dateTimeClose['start_time'], $dateTimeClose['end_time']);
         if (strcmp($dateTimeClose['start_time'], $dateTimeClose['end_time']) > 0) {
-            // $day       = $turn['turn']['hours_ini'] > $turn['turn']['hours_end'] ? 1 : 0;
             $configuration   = $this->configurationService->getConfiguration($microsite_id);
             $now             = Carbon::now()->addMinutes($configuration->time_restriction);
             $dateClose       = Carbon::parse($dateTimeClose['date'] . " " . $dateTimeClose['end_time'])->addDay();
