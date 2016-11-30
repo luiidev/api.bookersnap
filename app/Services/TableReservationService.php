@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Services\Helpers\DateTimesHelper;
 use App\Services\Helpers\TurnsHelper;
 use App\res_guest;
 use App\res_guest_email;
@@ -71,7 +72,19 @@ class TableReservationService extends Service
         }
     }
 
-    private function save_reservation(res_reservation $reservation, $create_or_update)
+    private function update_input_output(&$reservation)
+    {
+        $now = Carbon::now()->setTimezone($this->req->timezone);
+
+        $reservation->datetime_input = $now->toDateTimeString();
+        $reservation->datetime_output = DateTimesHelper::AddTime(
+            $reservation->datetime_input, 
+            $reservation->hours_duration,
+            $this->req->timezone
+        );
+    }
+
+    private function save_reservation(res_reservation $reservation, $action)
     {
         $this->create_guest_case();
 
@@ -105,8 +118,19 @@ class TableReservationService extends Service
         $reservation->ms_microsite_id           = $this->microsite_id;
         $reservation->res_turn_id          = $turn_id;
 
-        if ( $this->req->status_id == 4 ) {
+        if ($this->req->status_id < 4) {
+            if ($action == "create") {
+                $reservation->datetime_input =  trim($this->req->date) .' '. trim($this->req->hour);
+                $reservation->datetime_output = DateTimesHelper::AddTime(
+                    $reservation->datetime_input, 
+                    $this->req->duration, 
+                    $this->req->timezone
+                );
+            }
+        } else if ( $this->req->status_id == 4 ) {
             $reservation->datetime_input = $now->toDateTimeString();
+            $duration = $action == "create" ? $this->req->duration : $reservation->hours_duration;
+            $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $duration, $this->req->timezone);
         } else if ($this->req->status_id == 5 ) {
             $reservation->datetime_output = $now->toDateTimeString();
         }
@@ -118,16 +142,11 @@ class TableReservationService extends Service
             $tables[$value] = array("num_people" => 0);
         }
 
-        if ($create_or_update == "create") {
-            $reservation->tables()->attach($tables);
-            $reservation->tags()->attach($this->req->tags);
-        } else if ($create_or_update == "update") {
-            $reservation->tables()->sync($tables);
-            $reservation->tags()->sync($this->req->tags);
-        }
+        $reservation->tables()->sync($tables);
+        $reservation->tags()->sync($this->req->tags);
 
         //  Wait List clear tables
-        if ($reservation->wait_list === 1 && $this->req->status_id != 4) {
+        if ($reservation->wait_list === 1 && $this->req->status_id != 4 && $this->req->status_id != 5) {
             $reservation->tables()->sync([]);
         }
 
@@ -192,6 +211,7 @@ class TableReservationService extends Service
 
         if ( $this->req->status_id == 4 ) {
             $reservation->datetime_input = $now->toDateTimeString();
+            $this->update_input_output($reservation);
         } else if ($this->req->status_id == 5 ) {
             $reservation->datetime_output = $now->toDateTimeString();
         }
@@ -212,12 +232,16 @@ class TableReservationService extends Service
 
     public function quickCreate()
     {
-        $num_guest = (int) $this->req->guests["men"] + (int) $this->req->guests["women"] + (int) $this->req->guests["children"];
-        if (@$this->req->guests["total"]) {
-            $num_guest = ($num_guest == 0) ? $this->req->guests["total"] : $num_guest;
-        }
+        $now = Carbon::now()->setTimezone($this->req->timezone);
+        $date = $now->toDateString();
+        $time = DateTimesHelper::RoundBeforeTime($now->toTimeString());
 
-        $turn     = TurnsHelper::TypeTurnWithHourForHour($this->req->date, $this->req->hour, $this->microsite_id);
+        $num_guest = $this->req->guests["men"] + $this->req->guests["women"] + $this->req->guests["children"];
+        // if (@$this->req->guests["total"]) {
+        //     $num_guest = ($num_guest == 0) ? $this->req->guests["total"] : $num_guest;
+        // }
+
+        $turn     = TurnsHelper::TypeTurnWithHourForHour($date, $time, $this->microsite_id);
         $duration = res_turn_time::where("res_turn_id", $turn->turn_id)->where("num_guests", $num_guest)->first();
 
         $reservation                            = new res_reservation();
@@ -228,13 +252,19 @@ class TableReservationService extends Service
         $reservation->num_people_1              = $this->req->guests["men"];
         $reservation->num_people_2              = $this->req->guests["women"];
         $reservation->num_people_3              = $this->req->guests["children"];
-        $reservation->date_reservation          = $this->req->date;
-        $reservation->hours_reservation         = $turn->hour;
+        $reservation->date_reservation          = $date;
+        $reservation->hours_reservation         = $time;
         $reservation->hours_duration            = $duration ? $duration->time : "01:30:00";
-        $reservation->datetime_input            = Carbon::now()->setTimezone($this->req->timezone)->toDateTimeString();
         $reservation->user_add                  = $this->req->_bs_user_id;
         $reservation->ms_microsite_id           = $this->microsite_id;
         $reservation->res_turn_id          = $turn->turn_id;
+
+        $reservation->datetime_input =  $date .' '. $time;
+        $reservation->datetime_output = DateTimesHelper::AddTime(
+            $reservation->datetime_input,
+            $reservation->hours_duration,
+            $this->req->timezone
+        );
 
         $reservation->save();
 
@@ -257,20 +287,20 @@ class TableReservationService extends Service
 
             // Actualizar reservacion
             $reservation->res_reservation_status_id = 4;
-
-            $num_guest = $this->req->guests["men"] + $this->req->guests["women"] + $this->req->guests["children"];
+            $this->update_input_output($reservation);
 
             if ($this->req->has("guests")) {
+                // Por consultar actualizacion de  numero de invitados
+                // $num_guest = $this->req->guests["men"] + $this->req->guests["women"] + $this->req->guests["children"];
+                // $reservation->num_guest = $num_guest;
                 $reservation->num_people_1 = $this->req->guests["men"];
                 $reservation->num_people_2 = $this->req->guests["women"];
                 $reservation->num_people_3 = $this->req->guests["children"];
             }
 
-            if ($reservation->datetime_input === null) {
-                $reservation->datetime_input = $now->toDateTimeString();
-            }
             $reservation->save();
 
+            // Actualizar mesa en caso se siente en otra mesa diferente a la de su reservacion
             if ($reservation->tables_count === 0) {
                 $reservation->tables()->sync([$this->req->table_id => ["num_people" => 0]]);
             }
