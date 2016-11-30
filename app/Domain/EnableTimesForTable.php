@@ -107,6 +107,7 @@ class EnableTimesForTable
                 "time"    => $this->rangeToTime($i),
                 "rule_id" => -1,
                 "nextday" => $nextday,
+                "reserva" => false,
             );
         }
     }
