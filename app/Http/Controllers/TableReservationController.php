@@ -163,8 +163,6 @@ class TableReservationController extends Controller
         $yesterday = Carbon::yesterday()->setTimezone($request->timezone)->toDateString();
 
         $rules = [
-            // "date"            => "required|date|after:$yesterday",
-            // "hour"            => "required",
             "table_id"        => "required|exists:res_table,id",
             "guests"          => "required|array",
             "guests.men"      => "required|integer",

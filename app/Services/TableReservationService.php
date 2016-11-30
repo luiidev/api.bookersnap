@@ -259,7 +259,7 @@ class TableReservationService extends Service
         $reservation->ms_microsite_id           = $this->microsite_id;
         $reservation->res_turn_id          = $turn->turn_id;
 
-        $reservation->datetime_input =  $date .' '. $time;
+        $reservation->datetime_input =  $date .' '. $now->toTimeString();
         $reservation->datetime_output = DateTimesHelper::AddTime(
             $reservation->datetime_input,
             $reservation->hours_duration,
