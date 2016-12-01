@@ -47,7 +47,7 @@ class AvailabilityController extends Controller
         $date         = $request->date;
         $timezone     = $request->timezone;
         return $this->TryCatch(function () use ($microsite_id, $date, $timezone) {
-            $zones = $this->service->searchZones($microsite_id, $date);
+            $zones = $this->service->searchZones($microsite_id, $date, $timezone);
             return $this->CreateJsonResponse(true, 200, "", $zones);
         });
     }
