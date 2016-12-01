@@ -18,4 +18,5 @@ class res_table_reservation extends Model
         //return $this->belongsTo('App\res_table','res_table_id');
 
     }
+
 }
