@@ -42,7 +42,7 @@ class DateTimesHelper
         }
 
         $message = "";
-        $validate = (object)array("fail" => false, "message" => "");
+        $validate = (object) array("fail" => false, "message" => "");
         if ($start_point->between($start_time, $end_time, false)) {
             $message = "La hora de inicio genera conflicto con otro turno, no es posible el cambio de turno.";
         } elseif ($end_point->between($start_time, $end_time, false)) {
@@ -61,5 +61,31 @@ class DateTimesHelper
         } else {
             return $validate;
         }
+    }
+
+    /**
+     * Agregar horas, minutos a un datatime
+     * @param String      $datetime (yyyy-mm-dd hh:mm:ss)
+     * @param String      $time     (hh:mm:ss)
+     * @param String|null $zone     timezone
+     * @return String datetime (yyyy-mm-dd hh:mm:ss)
+     */
+    public static function AddTime(String $datetime, String $time, String $zone = null)
+    {
+        $eval = Carbon::parse($datetime, $zone);
+        list($hour, $minute) = explode(":", $time);
+        $eval->addHours($hour)->addMinutes($minute);
+        return $eval->toDateTimeString();
+    }
+
+    public static function RoundBeforeTime(String $time)
+    {
+        list($hour,$minute) = explode(":", $time);
+
+        $residuo =  fmod($minute, 15);
+        $minute = $residuo== 0  ? $minute : $minute - $residuo;
+        $minute = $minute == 0 ? '00' : $minute;
+
+        return $hour.':'.$minute.':00';
     }
 }

@@ -29,21 +29,28 @@ class ReservationService
         return $rows;
     }
 
-    public function getList(int $microsite_id, string $start_date, string $end_date)
+    public function getList(int $microsite_id, string $start_date, string $end_date, int $page_size, string $search_text)
     {
-        /*$reservations = res_reservation::where('ms_microsite_id', $microsite_id)
-        ->where('date_reservation', $date)->with(["tables" => function ($query) {
-        return $query->select("res_table.id", "res_zone_id", "name");
-        }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "typeTurn", "tags"])->get();*/
 
-        $reservations = res_reservation::where('ms_microsite_id', $microsite_id)->with(["tables" => function ($query) {
-            return $query->select("res_table.id", "res_zone_id", "name");
+        $reservations = res_reservation::select("res.*")->with([
+            "tables" => function ($query) {
+                return $query->select("res_table.id", "res_zone_id", "name");
 
-        }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "typeTurn", "tags", "guestList"]);
+            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "typeTurn", "tags", "guestList"])->from("res_reservation as res");
 
-        $reservations = $reservations->whereBetween("date_reservation", array($start_date, $end_date));
+        if ($search_text !== "") {
+            $reservations = $reservations->join("res_guest as guest", "guest.id", "=", "res.res_guest_id");
+            $reservations = $reservations->where("guest.first_name", "LIKE", "%" . $search_text . "%");
+        }
 
-        return $reservations->get()->toArray();
+        $reservations = $reservations->whereBetween("res.date_reservation", array($start_date, $end_date));
+
+        if ($page_size !== 0) {
+            $reservations        = $reservations->where("res.wait_list", 0);
+            return $reservations = $reservations->paginate($page_size);
+        }
+
+        return $reservations->get();
     }
 
     public function create(array $data, int $microsite_id, int $user_id)

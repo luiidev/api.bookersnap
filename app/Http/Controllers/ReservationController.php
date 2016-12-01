@@ -29,11 +29,13 @@ class ReservationController extends Controller
         $service = $this->_ReservationService;
 
         return $this->TryCatch(function () use ($request, $service) {
-            $date       = Carbon::now()->setTimezone($request->timezone);
-            $start_date = ($request->input('date')) ? $request->input('date') : $date->format('Y-m-d');
-            $end_date   = ($request->input('date_end')) ? $request->input('date_end') : $date->format('Y-m-d');
+            $date        = Carbon::now()->setTimezone($request->timezone);
+            $start_date  = ($request->input('date')) ? $request->input('date') : $date->format('Y-m-d');
+            $end_date    = ($request->input('date_end')) ? $request->input('date_end') : $date->format('Y-m-d');
+            $page_size   = ($request->input('page_size')) ? $request->input('page_size') : 0;
+            $search_text = ($request->input('search_text')) ? $request->input('search_text') : "";
 
-            $data = $service->getList($request->route('microsite_id'), $start_date, $end_date);
+            $data = $service->getList($request->route('microsite_id'), $start_date, $end_date, $page_size, $search_text);
             return $this->CreateResponse(true, 201, "", $data);
         });
     }
