@@ -188,7 +188,7 @@ class BlockService
         DB::beginTransaction();
 
         try {
-
+            $data = Block::with("tables")->find($block_id);
             $block = Block::find($block_id);
             if ($block == null) {
                 throw new Exception('messages.block_not_exist_turn');
@@ -205,6 +205,7 @@ class BlockService
             DB::commit();
             $response["mensaje"] = "messages.block_delete_success";
             $response["estado"]  = true;
+            $response["block"] = $data;
 
         } catch (\Exception $e) {
 
