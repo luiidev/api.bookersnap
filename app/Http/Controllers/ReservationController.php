@@ -29,16 +29,36 @@ class ReservationController extends Controller
         $service = $this->_ReservationService;
 
         return $this->TryCatch(function () use ($request, $service) {
-            $date        = Carbon::now()->setTimezone($request->timezone);
-            $start_date  = ($request->input('date')) ? $request->input('date') : $date->format('Y-m-d');
-            $end_date    = ($request->input('date_end')) ? $request->input('date_end') : $date->format('Y-m-d');
-            $page_size   = ($request->input('page_size')) ? $request->input('page_size') : 0;
-            $search_text = ($request->input('search_text')) ? $request->input('search_text') : "";
+            $date       = Carbon::now()->setTimezone($request->timezone);
+            $start_date = ($request->input('date')) ? $request->input('date') : $date->format('Y-m-d');
+            $end_date   = ($request->input('date_end')) ? $request->input('date_end') : $date->format('Y-m-d');
 
-            $data = $service->getList($request->route('microsite_id'), $start_date, $end_date, $page_size, $search_text);
+            $data = $service->getList($request->route('microsite_id'), $start_date, $end_date);
             return $this->CreateResponse(true, 201, "", $data);
         });
     }
+
+    public function search(Request $request)
+    {
+        $service = $this->_ReservationService;
+
+        return $this->TryCatch(function () use ($request, $service) {
+            $date = Carbon::now()->setTimezone($request->timezone);
+
+            $params                = $request->all();
+            $params['date']        = ($request->input('date')) ? $request->input('date') : $date->format('Y-m-d');
+            $params['date_end']    = ($request->input('date_end')) ? $request->input('date_end') : $params['date'];
+            $params['page_size']   = ($request->input('page_size')) ? $request->input('page_size') : 0;
+            $params['search_text'] = ($request->input('search_text')) ? $request->input('search_text') : "";
+            $params['turns']       = ($request->input('turns')) ? explode(",", $request->input('turns')) : [];
+            $params['sources']     = ($request->input('sources')) ? explode(",", $request->input('sources')) : [];
+            $params['zones']       = ($request->input('zones')) ? explode(",", $request->input('zones')) : [];
+
+            $data = $service->getListSearch($params);
+            return $this->CreateResponse(true, 201, "", $data);
+        });
+    }
+
     public function show(Request $request)
     {
         $service = $this->_ReservationService;
