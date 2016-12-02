@@ -29,15 +29,12 @@ class ConfigurationService
 
     public function getConfiguration(int $microsite_id)
     {
-        // $date = Carbon::now('America/Lima');
         return res_configuration::where("ms_microsite_id", $microsite_id)->first();
     }
 
     public function createDefaultConfiguration(int $microsite_id)
     {
         try {
-
-            $date = Carbon::now('America/Lima');
 
             $config                       = new res_configuration();
             $config->ms_microsite_id      = $microsite_id;
@@ -49,8 +46,6 @@ class ConfigurationService
             $config->res_code_status      = 1;
             $config->res_privilege_status = "test";
             $config->messenger_status     = 1;
-            $config->date_add             = $date;
-            $config->date_upd             = $date;
             $config->user_add             = 1;
             $config->user_upd             = 1;
             $config->reserve_portal       = 1;
@@ -74,11 +69,9 @@ class ConfigurationService
     {
         $config = res_configuration::where('ms_microsite_id', $microsite_id)->first();
         if ($config != null) {
-            $date           = Carbon::now('America/Lima');
             $confingRequest = $input;
             unset($confingRequest["_bs_user_id"]);
             unset($confingRequest["timezone"]);
-            $confingRequest["date_upd"] = $date->toDateTimeString();
             // return $confingRequest;
             $config->where('ms_microsite_id', $microsite_id)->update($confingRequest);
             $configUpdate = res_configuration::where('ms_microsite_id', $microsite_id)->first();
@@ -94,8 +87,6 @@ class ConfigurationService
         $data   = $helper->editConfiguration($input);
         $config = res_configuration::where('ms_microsite_id', $microsite_id)->first();
         if ($config != null) {
-            $date             = Carbon::now('America/Lima');
-            $data["date_upd"] = $date;
             $config->where('ms_microsite_id', $microsite_id)->update($data);
             $configUpdate = res_configuration::where('ms_microsite_id', $microsite_id)->first();
             return $configUpdate;

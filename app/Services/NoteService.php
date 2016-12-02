@@ -7,11 +7,11 @@ use Carbon\Carbon;
 
 class NoteService
 {
-    public function saveNote(array $data, $microsite_id)
+    public function saveNote(array $data, $microsite_id, $date)
     {
         $response = null;
-        if (isset($data['id']) && $this->exists($microsite_id, $data['date_add'], $data['res_type_turn_id'])) {
-            $response = $this->updateNote($data, $microsite_id);
+        if (isset($data['id']) && $this->exists($microsite_id, $date, $data['res_type_turn_id'])) {
+            $response = $this->updateNote($data, $microsite_id, $date);
         } else {
             $response = $this->createNote($data, $microsite_id);
         }
@@ -32,11 +32,11 @@ class NoteService
         return $note;
     }
 
-    public function updateNote(array $data, int $microsite_id)
+    public function updateNote(array $data, int $microsite_id, $date)
     {
         $note = res_note::where('ms_microsite_id', $microsite_id)
             ->where("res_type_turn_id", $data['res_type_turn_id'])
-            ->where("date_add", $data['date_add'])
+            ->where("date_add", $date)
             ->first();
 
         $note->texto = $data['texto'];

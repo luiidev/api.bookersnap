@@ -4,26 +4,30 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class res_reservation extends Model {
+class res_reservation extends Model
+{
 
     const CREATED_AT = "date_add";
     const UPDATED_AT = "date_upd";
 
-    protected $table = "res_reservation";
+    protected $table  = "res_reservation";
     protected $hidden = ["ev_event_id", "ms_microsite_id", "bs_user_id", "date_add", "date_upd", "user_add"];
-    
-    public function status() {
+
+    public function status()
+    {
         return $this->belongsTo('App\res_reservation_status', 'res_reservation_status_id');
     }
 
-    public function guest() {
+    public function guest()
+    {
         return $this->belongsTo('App\res_guest', 'res_guest_id');
     }
-    
-    public function tables() {
+
+    public function tables()
+    {
         return $this->belongsToMany('App\res_table', 'res_table_reservation', 'res_reservation_id', 'res_table_id');
     }
-    
+
     public function tags()
     {
         return $this->belongsToMany(res_tag_r::class, "res_reservation_tag_r", "res_reservation_id");

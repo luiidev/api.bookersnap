@@ -57,10 +57,10 @@ class CalendarController extends Controller
         $microsite_id = $request->route("microsite_id");
         $res_turn_id  = $request->route("res_turn_id");
 
-        $now  = Carbon::now($request->timezone);
+        $now  = Carbon::now();
         $date = $request->input('date', $now);
 
-        $val_date = Carbon::createFromFormat('Y-m-d', $date, $request->timezone);
+        $val_date = Carbon::createFromFormat('Y-m-d', $date);
 
         return $this->TryCatchDB(function () use ($res_turn_id, $date, $microsite_id, $val_date, $now) {
             if ($val_date->lt($now)) {
@@ -125,7 +125,7 @@ class CalendarController extends Controller
 
         return $this->TryCatch(function () use ($request, $service) {
             $date     = $request->route("date");
-            $dateNow  = Carbon::now($request->timezone)->toDateString();
+            $dateNow  = Carbon::now()->toDateString();
             $date_end = $request->input("end", $dateNow);
 
             if (Validator::make(["date" => $date], ["date" => "date"])->fails()) {
