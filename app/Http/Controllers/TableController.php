@@ -23,10 +23,9 @@ class TableController extends Controller {
     function availability(Request $request) {
         $service = $this->_TableService;
         return $this->TryCatch(function () use ($request, $service) {
-                    $date = Carbon::now()->setTimezone($request->timezone);
-                    $date = $request->input('date', $date->format('Y-m-d'));
+                    $now = Carbon::now();
+                    $date = $request->input('date', $now->toDateString());
                     $data = $service->availability($request->route('microsite_id'), $date);
-//            $this->_notification($microsite, $data->server, "Se elimino un servidor", "delete", $request->key);
                     return $this->CreateJsonResponse(true, 200, "disponibilidad de mesas", $data);
                 });
     }

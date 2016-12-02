@@ -77,6 +77,14 @@ class DateTimesHelper
         $eval->addHours($hour)->addMinutes($minute);
         return $eval->toDateTimeString();
     }
+    
+    public static function DiffTime(String $datetime, String $time, String $zone = null)
+    {
+        $eval = Carbon::parse($datetime, $zone);
+        list($hour, $minute) = explode(":", $time);
+        $eval->addHours(-$hour)->addMinutes(-$minute);
+        return $eval->toDateTimeString();
+    }
 
     public static function RoundBeforeTime(String $time)
     {
