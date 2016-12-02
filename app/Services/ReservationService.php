@@ -24,7 +24,7 @@ class ReservationService
         $rows = res_reservation::where('ms_microsite_id', $microsite_id)
             ->where('id', $reservation_id)->with(["tables" => function ($query) {
             return $query->select("res_table.id", "res_zone_id", "name");
-        }, "guest", "server", "source", "status", "typeTurn", "tags", "guestList"])->first();
+        }, "guest", "server", "source", "status", "turn.typeTurn", "tags", "guestList"])->first();
 
         return $rows;
     }
@@ -35,7 +35,7 @@ class ReservationService
             "tables" => function ($query) {
                 return $query->select("res_table.id", "res_zone_id", "name");
 
-            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "typeTurn", "tags", "guestList"])->from("res_reservation as res")->where("res.wait_list", 0);
+            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList"])->from("res_reservation as res")->where("res.wait_list", 0);
 
         if ($params['search_text'] !== "") {
             $reservations = $reservations->join("res_guest as guest", "guest.id", "=", "res.res_guest_id");
@@ -78,7 +78,7 @@ class ReservationService
             "tables" => function ($query) {
                 return $query->select("res_table.id", "res_zone_id", "name");
 
-            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "typeTurn", "tags", "guestList"])->from("res_reservation as res");
+            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList"])->from("res_reservation as res");
 
         $reservations = $reservations->whereBetween("res.date_reservation", array($start_date, $end_date));
 
