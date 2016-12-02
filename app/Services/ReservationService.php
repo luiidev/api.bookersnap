@@ -6,6 +6,7 @@ use App\res_guest;
 use App\res_reservation;
 use App\res_reservation_status;
 use App\res_source_type;
+use App\Services\Helpers\TurnsHelper;
 use DB;
 use Exception;
 
@@ -13,10 +14,12 @@ class ReservationService
 {
 
     protected $_ZoneTableService;
+    protected $_TurnsHelper;
 
     public function __construct(GuestService $GuestService)
     {
         $this->_GuestService = $GuestService;
+        $this->_TurnsHelper  = new TurnsHelper();
     }
 
     public function get(int $microsite_id, int $reservation_id)
@@ -24,7 +27,7 @@ class ReservationService
         $rows = res_reservation::where('ms_microsite_id', $microsite_id)
             ->where('id', $reservation_id)->with(["tables" => function ($query) {
             return $query->select("res_table.id", "res_zone_id", "name");
-        }, "guest", "server", "source", "status", "typeTurn", "tags", "guestList"])->first();
+        }, "guest", "server", "source", "status", "turn.typeTurn", "tags", "guestList"])->first();
 
         return $rows;
     }
@@ -35,7 +38,7 @@ class ReservationService
             "tables" => function ($query) {
                 return $query->select("res_table.id", "res_zone_id", "name");
 
-            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "typeTurn", "tags", "guestList"])->from("res_reservation as res")->where("res.wait_list", 0);
+            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList"])->from("res_reservation as res")->where("res.wait_list", 0);
 
         if ($params['search_text'] !== "") {
             $reservations = $reservations->join("res_guest as guest", "guest.id", "=", "res.res_guest_id");
@@ -45,7 +48,17 @@ class ReservationService
         $reservations = $reservations->whereBetween("res.date_reservation", array($params['date'], $params['date_end']));
 
         if (count($params['turns']) > 0) {
-            $reservations = $reservations->whereIn('res.res_turn_id', $params['turns']);
+
+            $typeTurns = $this->_TurnsHelper->getTypeTurnIdOfTurns($params['microsite_id'], $params['turns']);
+
+            $reservations = $reservations->join('res_turn', function ($join) {
+                $join->on('res_turn.id', '=', 'res.res_turn_id');
+            });
+
+            $reservations = $reservations->join('res_type_turn', function ($join) use ($typeTurns) {
+                $join->on('res_type_turn.id', '=', 'res_turn.res_type_turn_id')
+                    ->whereIn('res_type_turn.id', $typeTurns);
+            });
         }
 
         if (count($params['sources']) > 0) {
@@ -78,7 +91,7 @@ class ReservationService
             "tables" => function ($query) {
                 return $query->select("res_table.id", "res_zone_id", "name");
 
-            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "typeTurn", "tags", "guestList"])->from("res_reservation as res");
+            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList"])->from("res_reservation as res");
 
         $reservations = $reservations->whereBetween("res.date_reservation", array($start_date, $end_date));
 
