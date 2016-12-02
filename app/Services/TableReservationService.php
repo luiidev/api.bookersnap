@@ -425,7 +425,7 @@ class TableReservationService extends Service
         $datetime_reservation  = DateTimesHelper::AddTime($now->toDateTimeString(), $this->req->quote);
         $date = \Carbon\Carbon::parse($datetime_reservation);
         $hours_reservation = DateTimesHelper::RoundBeforeTime($date->toTimeString());
-        $datetime_input = $date->toDateTimeString();
+        $datetime_input = \Carbon\Carbon::parse($date_reservation." ".$hours_reservation)->toDateTimeString();
         
         $turn     = TurnsHelper::TypeTurnWithHourForHour($date_reservation, $hours_reservation, $this->microsite_id);
         $duration = res_turn_time::where("res_turn_id", $turn->turn_id)->where("num_guests", $this->req->covers)->first();
