@@ -38,7 +38,7 @@ class ReservationService
             "tables" => function ($query) {
                 return $query->select("res_table.id", "res_zone_id", "name");
 
-            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList"])->from("res_reservation as res")->where("res.wait_list", 0);
+            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList", "emails"])->from("res_reservation as res")->where("res.wait_list", 0);
 
         if ($params['search_text'] !== "") {
             $reservations = $reservations->join("res_guest as guest", "guest.id", "=", "res.res_guest_id");

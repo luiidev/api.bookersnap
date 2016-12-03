@@ -53,6 +53,11 @@ class res_reservation extends Model
         return $this->hasMany(res_reservation_guestlist::class);
     }
 
+    public function emails()
+    {
+        return $this->hasMany('App\res_reservation_email', "res_reservation_id");
+    }
+
     public function scopeWithRelations($query)
     {
 
