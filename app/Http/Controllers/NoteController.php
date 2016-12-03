@@ -21,7 +21,7 @@ class NoteController extends Controller
     {
         return $this->TryCatchDB(function () use ($request) {
 
-            $date = Carbon::now($request->timezone);
+            $date = Carbon::now();
             $now  = $date->format('Y-m-d');
             $date = ($request->has('date')) ? $request->input('date') : $now;
 
@@ -35,8 +35,11 @@ class NoteController extends Controller
     {
         $service = $this->_NoteService;
         return $this->TryCatchDB(function () use ($request, $service) {
-
-            $note = $service->saveNote($request->all(), $request->route('microsite_id'));
+            
+            $now = Carbon::now();
+            $date = ($request->has('date_add')) ? $request->input('date_add') : $now->toDateString();
+            
+            $note = $service->saveNote($request->all(), $request->route('microsite_id'), $date);
 
             event(new EmitNotification("b-mesas-floor-notes",
                 array(

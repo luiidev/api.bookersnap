@@ -29,9 +29,9 @@ class ReservationController extends Controller
         $service = $this->_ReservationService;
 
         return $this->TryCatch(function () use ($request, $service) {
-            $date       = Carbon::now()->setTimezone($request->timezone);
-            $start_date = ($request->input('date')) ? $request->input('date') : $date->format('Y-m-d');
-            $end_date   = ($request->input('date_end')) ? $request->input('date_end') : $date->format('Y-m-d');
+            $date       = Carbon::now();
+            $start_date = ($request->input('date')) ? $request->input('date') : $date->toDateString();
+            $end_date   = ($request->input('date_end')) ? $request->input('date_end') : $date->toDateString();
 
             $data = $service->getList($request->route('microsite_id'), $start_date, $end_date);
             return $this->CreateResponse(true, 201, "", $data);
@@ -43,16 +43,16 @@ class ReservationController extends Controller
         $service = $this->_ReservationService;
 
         return $this->TryCatch(function () use ($request, $service) {
-            $date = Carbon::now()->setTimezone($request->timezone);
-
-            $params                = $request->all();
-            $params['date']        = ($request->input('date')) ? $request->input('date') : $date->format('Y-m-d');
-            $params['date_end']    = ($request->input('date_end')) ? $request->input('date_end') : $params['date'];
-            $params['page_size']   = ($request->input('page_size')) ? $request->input('page_size') : 0;
-            $params['search_text'] = ($request->input('search_text')) ? $request->input('search_text') : "";
-            $params['turns']       = ($request->input('turns')) ? explode(",", $request->input('turns')) : [];
-            $params['sources']     = ($request->input('sources')) ? explode(",", $request->input('sources')) : [];
-            $params['zones']       = ($request->input('zones')) ? explode(",", $request->input('zones')) : [];
+            $date                   = Carbon::now();
+            $params                 = $request->all();
+            $params['date']         = ($request->input('date')) ? $request->input('date') : $date->format('Y-m-d');
+            $params['date_end']     = ($request->input('date_end')) ? $request->input('date_end') : $params['date'];
+            $params['page_size']    = ($request->input('page_size')) ? $request->input('page_size') : 0;
+            $params['search_text']  = ($request->input('search_text')) ? $request->input('search_text') : "";
+            $params['turns']        = ($request->input('turns')) ? explode(",", $request->input('turns')) : [];
+            $params['sources']      = ($request->input('sources')) ? explode(",", $request->input('sources')) : [];
+            $params['zones']        = ($request->input('zones')) ? explode(",", $request->input('zones')) : [];
+            $params['microsite_id'] = $request->route('microsite_id');
 
             $data = $service->getListSearch($params);
             return $this->CreateResponse(true, 201, "", $data);
@@ -117,9 +117,8 @@ class ReservationController extends Controller
     public function sendEmail(Request $request)
     {
         $service = $this->_ReservationService;
-        $date    = Carbon::now()->setTimezone($request->timezone);
-        $date    = $date->format('Y-m-d');
-        return $this->TryCatch(function () use ($request, $service, $date) {
+
+        return $this->TryCatch(function () use ($request, $service) {
 
             $messageData['from_email'] = "user@bookersnap.com";
             $messageData['from_name']  = "bookersnap.com";
@@ -142,7 +141,6 @@ class ReservationController extends Controller
 
             $messageData['res_reservation_id'] = $reservation->id;
             $messageData['user_add']           = $request->_bs_user_id;
-            $messageData['date_add']           = $date;
             $this->_ReservationEmailService->create($messageData);
 
             return $this->CreateResponse(true, 200, "Mensaje enviado", $response);
