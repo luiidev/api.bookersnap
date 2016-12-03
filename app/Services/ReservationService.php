@@ -6,6 +6,7 @@ use App\res_guest;
 use App\res_reservation;
 use App\res_reservation_status;
 use App\res_source_type;
+use App\Services\Helpers\TurnsHelper;
 use DB;
 use Exception;
 
@@ -13,10 +14,12 @@ class ReservationService
 {
 
     protected $_ZoneTableService;
+    protected $_TurnsHelper;
 
     public function __construct(GuestService $GuestService)
     {
         $this->_GuestService = $GuestService;
+        $this->_TurnsHelper  = new TurnsHelper();
     }
 
     public function get(int $microsite_id, int $reservation_id)
@@ -45,7 +48,17 @@ class ReservationService
         $reservations = $reservations->whereBetween("res.date_reservation", array($params['date'], $params['date_end']));
 
         if (count($params['turns']) > 0) {
-            $reservations = $reservations->whereIn('res.res_turn_id', $params['turns']);
+
+            $typeTurns = $this->_TurnsHelper->getTypeTurnIdOfTurns($params['microsite_id'], $params['turns']);
+
+            $reservations = $reservations->join('res_turn', function ($join) {
+                $join->on('res_turn.id', '=', 'res.res_turn_id');
+            });
+
+            $reservations = $reservations->join('res_type_turn', function ($join) use ($typeTurns) {
+                $join->on('res_type_turn.id', '=', 'res_turn.res_type_turn_id')
+                    ->whereIn('res_type_turn.id', $typeTurns);
+            });
         }
 
         if (count($params['sources']) > 0) {
