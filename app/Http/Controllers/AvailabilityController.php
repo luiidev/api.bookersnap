@@ -92,4 +92,37 @@ class AvailabilityController extends Controller
             return $this->CreateJsonResponse(true, 200, "", $days);
         });
     }
+
+    public function getDaysDisabled(Request $request)
+    {
+        $microsite_id = $request->route('microsite_id');
+        $date_ini     = $request->date_ini;
+        $date_fin     = $request->date_fin;
+        $timezone     = $request->timezone;
+
+        return $this->TryCatch(function () use ($microsite_id, $date_ini, $date_fin, $timezone) {
+            $daysDisabled = $this->service->getDaysDisabled($microsite_id, $date_ini, $date_fin, $timezone);
+            return $this->CreateJsonResponse(true, 200, "", $daysDisabled);
+        });
+    }
+
+    public function getPeople(Request $request)
+    {
+        $microsite_id = $request->route('microsite_id');
+
+        return $this->TryCatch(function () use ($microsite_id) {
+            $people = $this->service->getPeople($microsite_id);
+            return $this->CreateJsonResponse(true, 200, "", $people);
+        });
+    }
+
+    public function getFormatAvailability(Request $request)
+    {
+        $microsite_id = $request->route('microsite_id');
+
+        return $this->TryCatch(function () use ($microsite_id) {
+            $people = $this->service->formatAvailability($microsite_id);
+            return $this->CreateJsonResponse(true, 200, "", $people);
+        });
+    }
 }
