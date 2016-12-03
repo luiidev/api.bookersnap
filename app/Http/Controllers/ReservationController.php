@@ -127,11 +127,9 @@ class ReservationController extends Controller
 
             if (!$reservation) {
                 abort(401, "No existe reservación");
-            } else if ($reservation->email == null) {
-                abort(401, "La reservación no tiene email");
             }
 
-            $messageData['to_email'] = $reservation->email;
+            $messageData['to_email'] = $request->input("email");
             $messageData['to_name']  = $reservation->guest->first_name . " " . $reservation->guest->last_name;
 
             $messageData['subject'] = $request->input("subject");
