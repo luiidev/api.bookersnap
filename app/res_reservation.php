@@ -11,7 +11,7 @@ class res_reservation extends Model
     const UPDATED_AT = "date_upd";
 
     protected $table  = "res_reservation";
-    protected $hidden = ["ev_event_id", "ms_microsite_id", "bs_user_id", "date_add", "date_upd", "user_add"];
+    protected $hidden = ["ev_event_id", "ms_microsite_id", "bs_user_id", "date_upd", "user_add"];
 
     public function status()
     {

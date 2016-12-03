@@ -95,7 +95,7 @@ class TableReservationService extends Service
         }
 
         $now     = Carbon::now();
-        $turn_id = TurnsHelper::TypeTurnForHour($this->req->date, $this->req->hour, $this->microsite_id);
+        $turn = TurnsHelper::TypeTurnWithHourForHour($this->req->date, $this->req->hour, $this->microsite_id);
 
         $reservation->res_guest_id              = $guest_id;
         $reservation->res_source_type_id        = 1;
@@ -111,7 +111,7 @@ class TableReservationService extends Service
         $reservation->email                     = $email;
         $reservation->user_add                  = $this->req->_bs_user_id;
         $reservation->ms_microsite_id           = $this->microsite_id;
-        $reservation->res_turn_id               = $turn_id;
+        $reservation->res_turn_id               = $turn->turn_id;
 
         if ($this->req->status_id < 4) {
             if ($action == "create") {
@@ -489,7 +489,7 @@ class TableReservationService extends Service
         $reservation->ms_microsite_id           = $this->microsite_id;
         
         $datetime_reservation = $reservation->date_reservation. " ". $reservation->hours_reservation;
-        $datetime_reservation  = DateTimesHelper::DiffTime($datetime_reservation, $reservation->quote);
+        $datetime_reservation  = DateTimesHelper::DiffTime($reservation->date_add, $reservation->quote);
         $datetime_reservation  = DateTimesHelper::AddTime($datetime_reservation, $this->req->quote);
         $date = \Carbon\Carbon::parse($datetime_reservation);
         
