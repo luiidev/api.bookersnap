@@ -8,6 +8,8 @@
 
 namespace App\Domain;
 
+use Carbon\Carbon;
+
 /**
  * Description of TimeForTable
  *
@@ -25,6 +27,8 @@ class TimeForTable
 
     public static function indexToTime($index)
     {
-        return date("H:i:s", $index * 60 * 15);
+        return Carbon::today()->addMinutes(15*$index)->toTimeString();
+        // return $index * 60 * 15;
+        // return date("H:i:s", $index * 60 * 15);
     }
 }
