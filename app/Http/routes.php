@@ -178,6 +178,9 @@ function routeMesas()
         //-----------------------------------------------------
         Route::patch("configuration/reservations", "ConfigurationController@edit");
         Route::resource("configuration/reservations", "ConfigurationController", ["only" => ["index", "update"]]);
+        Route::post("configuration/reservations/forms/", "ConfigurationController@addFormConfiguration");
+        Route::delete("configuration/reservations/forms/", "ConfigurationController@removeFormConfiguration");
+        Route::get("configuration/reservations/forms/", "ConfigurationController@getForm");
 
         //-----------------------------------------------------
         // MICROSITE:: PERCENTAGE (table res_percentage)

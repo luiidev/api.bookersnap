@@ -23,7 +23,7 @@ class ConfigurationController extends Controller
     public function index(Request $request)
     {
         $microsite_id = $request->route("microsite_id");
-        $configs      = $this->service->getConfiguration($microsite_id);
+        $configs      = $this->service->getConfiguration($microsite_id,$request);
         if ($configs != null) {
             return $this->CreateJsonResponse(true, 200, "", $configs);
         } else {
@@ -117,5 +117,32 @@ class ConfigurationController extends Controller
                 'user_msg'     => 'Hay una actualización en la configuración.',
             )
         ));
+    }
+
+    public function addFormConfiguration(Request $request){
+        $microsite_id = $request->route('microsite_id');
+        $idForm = $request->input('id');
+        return $this->TrycatchDB(function() use($microsite_id,$idForm){
+            $response = $this->service->addFormConfiguration($microsite_id,$idForm);
+            $this->_notification($microsite_id);
+            return $this->CreateJsonResponse(true,200,"Se agrego las campos de formulario correctamente",$response);
+        });
+    }
+
+    public function removeFormConfiguration(Request $request){
+        $microsite_id = $request->route('microsite_id');
+        $idForm = $request->input('id');
+        return $this->TrycatchDB(function() use($microsite_id,$idForm){
+            $response = $this->service->deleteFormConfiguration($microsite_id,$idForm);
+            $this->_notification($microsite_id);
+            return $this->CreateJsonResponse(true,200,"Se elimino las campos de formulario correctamente",$response);
+        });
+    }
+
+    public function getForm(){
+        return $this->TrycatchDB(function() {
+            $response = $this->service->getForm();
+            return $this->CreateJsonResponse(true,200,"Lista de campos de formularios",$response);
+        });
     }
 }

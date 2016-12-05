@@ -1851,24 +1851,35 @@ class AvailabilityService
         return $auxPeople->all();
     }
 
-    public function formatAvailability(int $microsite_id)
+    public function formatAvailability(int $microsite_id) : Array
     {
         //Function Date Actual
-        $date     = Carbon::today();
+        $date     = $this->selectDay();
         $timezone =  $date->timezoneName;
+
         $dateIni = $date->copy()->firstOfMonth()->subDays(7);
         $dateFin =$date->copy()->lastOfMonth()->addDays(14);
         $next_day = 0;
 
         $zones        = $this->searchZones($microsite_id, $date->toDateString(), $timezone);
         $hours        = $this->getHours($microsite_id, $date->toDateString(), null, $timezone);
-        $events       = $this->getEvents($microsite_id, $date->toDateString(), $date->toTimeString(), $timezone, $next_day, null);
+        try
+        {
+            $events       = $this->getEvents($microsite_id, $date->toDateString(), $date->toTimeString(), $timezone, $next_day, null);
+        }catch(\Exception $e){
+            $events = null;
+        }
+
         $daysDisabled = $this->getDaysDisabled($microsite_id, $dateIni->toDateString(), $dateFin->toDateString(), $timezone);
         $people       = $this->getPeople($microsite_id);
 
         return ["people" => $people, "daysDisabled" => $daysDisabled, "events" => $events, "zones" => $zones];
     }
 
+
+    public function selectDay() : Carbon {
+        return  Carbon::today();
+    }
     // public function defineDayOpenLocal($dateTime,$microsite_id){
 
     // }
