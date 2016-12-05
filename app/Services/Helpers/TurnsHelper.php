@@ -86,6 +86,7 @@ class TurnsHelper
         // 4to caso: devuelve la hora de busqueda y type_turn_id como nulo
         return $turn_format($hour, null, null);
     }
+    
     //Obtener el tipo de turno (id) de los turnos
     public function getTypeTurnIdOfTurns(int $microsite_id, array $turns)
     {
