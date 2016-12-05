@@ -4,9 +4,7 @@ namespace App\Services;
 
 use App\Entities\res_configuration;
 use App\Entities\res_form;
-use App\Entities\res_form_configuration;
 use App\Services\Helpers\ConfigurationHelper;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ConfigurationService
@@ -30,10 +28,10 @@ class ConfigurationService
     //     return new static($request);
     // }
 
-    public function getConfiguration(int $microsite_id,Request $request)
+    public function getConfiguration(int $microsite_id)
     {
-        return res_configuration::where("ms_microsite_id", $microsite_id)->with(['forms' => function($query){
-            $query->where('status',1);
+        return res_configuration::where("ms_microsite_id", $microsite_id)->with(['forms' => function ($query) {
+            $query->where('status', 1);
         }])->first();
     }
 
@@ -100,34 +98,44 @@ class ConfigurationService
         }
     }
 
-    public function addFormConfiguration(int $microsite_id,array $input)
+    public function addFormConfiguration(int $microsite_id, array $input)
     {
-        $config = res_configuration::where('ms_microsite_id',$microsite_id)->with(['forms' => function($query){
-            return $query->where('status',1);
+        $config = res_configuration::where('ms_microsite_id', $microsite_id)->with(['forms' => function ($query) {
+            return $query->where('status', 1);
         }])->first();
-        if(isset($config)){
-            return $config->forms()->attach($input);
-        }else{
+        if (isset($config)) {
+            $config->forms()->attach($input);
+            $aux = res_configuration::where('ms_microsite_id', $microsite_id)->with(['forms' => function ($query) {
+                return $query->where('status', 1);
+            }])->first();
+            return $aux->forms->pluck('id');
+        } else {
             abort(500, "No existe configuracion para ese microsite");
         }
     }
 
-    public function deleteFormConfiguration(int $microsite_id,array $input)
+    public function deleteFormConfiguration(int $microsite_id, array $input)
     {
-        $config = res_configuration::where('ms_microsite_id',$microsite_id)->with(['forms' => function($query){
-            return $query->where('status',1);
+        $config = res_configuration::where('ms_microsite_id', $microsite_id)->with(['forms' => function ($query) {
+            return $query->where('status', 1);
         }])->first();
-        if(isset($config)){
-            return $config->forms()->detach($input);
-        }else{
+        if (isset($config)) {
+            $config->forms()->detach($input);
+            $aux = res_configuration::where('ms_microsite_id', $microsite_id)->with(['forms' => function ($query) {
+                return $query->where('status', 1);
+            }])->first();
+            return $aux->forms->pluck('id');
+        } else {
             abort(500, "No existe configuracion para ese microsite");
         }
     }
 
-    public function getForm(){
-        return res_form::where('status',1)->get();
+    public function getForm(int $microsite_id)
+    {
+        return $config = res_form::where('status', 1)->whereHas('configurations',function($query) use($microsite_id){
+            $query->where('ms_microsite_id',3);
+        })->get();
+        return res_form::where('status', 1)->get();
     }
-
-
 
 }
