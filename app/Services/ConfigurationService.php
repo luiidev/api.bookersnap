@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Entities\res_configuration;
 use App\Entities\res_form;
 use App\Services\Helpers\ConfigurationHelper;
-use Illuminate\Http\Request;
 
 class ConfigurationService
 {
@@ -132,10 +131,22 @@ class ConfigurationService
 
     public function getForm(int $microsite_id)
     {
-        return $config = res_form::where('status', 1)->whereHas('configurations',function($query) use($microsite_id){
-            $query->where('ms_microsite_id',3);
-        })->get();
-        return res_form::where('status', 1)->get();
+        $config = res_form::where('status', 1)->with('configurations')->get();
+        $form = res_form::where('status', 1)->get();
+        return $config->map(function($item) use ($microsite_id){
+            if(!$item->configurations->where('ms_microsite_id',$microsite_id)->isEmpty()){
+                $item['status'] = 1; 
+                unset($item['configurations']);
+            }else{
+                $item['status'] = 0;
+                unset($item['configurations']);
+            }
+            return $item;
+
+        });
+
+
+        return $form;
     }
 
 }
