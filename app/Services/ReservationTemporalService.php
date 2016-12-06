@@ -80,7 +80,7 @@ class ReservationTemporalService
                     $zone_id      = $reservation[2]['zone_id'];
                 }
                 $tables_id   = $availability[2]['tables_id'];
-                $ev_event_id = $availability[2]['ev_event_id'];
+                $ev_event_id = @$availability[2]['ev_event_id'];
                 // return           = $availability[2];
                 $standing_people = isset($availability[2]['standing_people']) ? $availability[2]['standing_people']['num_guest_availability'] : null;
 
@@ -174,5 +174,10 @@ class ReservationTemporalService
     public function getTimeTolerance()
     {
         return $this->timeTolerance;
+    }
+
+    public function getTempReservation(String $token)
+    {
+        return res_table_reservation_temp::where("token", $token)->whereRaw(" now() <= expire  + interval 5 minute")->first();
     }
 }

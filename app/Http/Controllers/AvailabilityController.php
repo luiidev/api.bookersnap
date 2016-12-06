@@ -67,6 +67,8 @@ class AvailabilityController extends Controller
 
     public function getEvents(AvailabilityInfoRequest $request)
     {
+    //     return phpinfo();
+        $hour = \Carbon\Carbon::now()->toTimeString();
         $microsite_id = $request->route('microsite_id');
         $date         = $request->date;
         $zone_id      = $request->zone_id;
