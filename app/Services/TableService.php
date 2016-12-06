@@ -88,6 +88,7 @@ class TableService
         $newTables           = [];
         $tempTable           = null;
         $EnableTimesForTable = new EnableTimesForTable();
+
         foreach ($tables as $key => $table) {
             $tempTable = (object) [
                 "id"          => $table->id,
