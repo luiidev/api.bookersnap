@@ -125,7 +125,7 @@ class CalendarController extends Controller
 
         return $this->TryCatch(function () use ($request, $service) {
             $date     = $request->route("date");
-            $dateNow  = Carbon::now()->toDateString();
+            $dateNow  = Carbon::parse($date. " 00:00:00")->toDateString();
             $date_end = $request->input("end", $dateNow);
 
             if (Validator::make(["date" => $date], ["date" => "date"])->fails()) {

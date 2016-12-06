@@ -12,6 +12,7 @@ use App\res_table;
 use App\res_table_reservation;
 use App\res_turn_calendar;
 use App\Services\CalendarService;
+use App\Services\Helpers\CalendarHelper;
 use Carbon\Carbon;
 
 class AvailabilityService
@@ -1851,25 +1852,39 @@ class AvailabilityService
         return $auxPeople->all();
     }
 
-    public function formatAvailability(int $microsite_id)
+    public function formatAvailability(int $microsite_id): array
     {
         //Function Date Actual
-        $date     = Carbon::today();
-        $timezone =  $date->timezoneName;
-        $dateIni = $date->copy()->firstOfMonth()->subDays(7);
-        $dateFin =$date->copy()->lastOfMonth()->addDays(14);
-        $next_day = 0;
+        $date     = CalendarHelper::realDate($microsite_id);
+        $timezone = $date->timezoneName;
 
-        $zones        = $this->searchZones($microsite_id, $date->toDateString(), $timezone);
-        $hours        = $this->getHours($microsite_id, $date->toDateString(), null, $timezone);
-        $events       = $this->getEvents($microsite_id, $date->toDateString(), $date->toTimeString(), $timezone, $next_day, null);
+        $dateIni  = $date->copy()->firstOfMonth()->subDays(7);
+        $dateFin  = $date->copy()->lastOfMonth()->addDays(14);
+        $next_day = 0;
+        try
+        {
+            $zones = $this->searchZones($microsite_id, $date->toDateString(), $timezone);
+
+        } catch (\Exception $e) {
+            $zones = [];
+        }
+        try
+        {
+            $hours = $this->getHours($microsite_id, $date->toDateString(), null, $timezone);
+        } catch (\Exception $e) {
+            $hours = [];
+        }
+        try
+        {
+            $events = $this->getEvents($microsite_id, $date->toDateString(), $date->toTimeString(), $timezone, $next_day, null);
+        } catch (\Exception $e) {
+            $events = null;
+        }
+
         $daysDisabled = $this->getDaysDisabled($microsite_id, $dateIni->toDateString(), $dateFin->toDateString(), $timezone);
         $people       = $this->getPeople($microsite_id);
 
-        return ["people" => $people, "daysDisabled" => $daysDisabled, "events" => $events, "zones" => $zones];
+        return ["date" => $date->toDateString(), "people" => $people, "daysDisabled" => $daysDisabled, "events" => $events, "zones" => $zones, "hours" => $hours];
     }
 
-    // public function defineDayOpenLocal($dateTime,$microsite_id){
-
-    // }
 }
