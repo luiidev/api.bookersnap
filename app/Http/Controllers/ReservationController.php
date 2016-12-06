@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller as Controller;
 use App\Http\Requests\ReservationRequest;
 use App\Services\ReservationEmailService;
 use App\Services\ReservationService;
+use App\Services\CalendarService;
+use App\Services\Helpers\CalendarHelper;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -27,13 +29,13 @@ class ReservationController extends Controller
     public function index(Request $request)
     {
         $service = $this->_ReservationService;
-
-        return $this->TryCatch(function () use ($request, $service) {
-            $date       = Carbon::now();
-            $start_date = ($request->input('date')) ? $request->input('date') : $date->toDateString();
+        return $this->TryCatch(function () use ($request, $service) {      
+            $microsite_id = $request->route('microsite_id');
+            $date       =  CalendarHelper::realDate($microsite_id); 
+            $start_date = ($request->input('date')) ? $request->input('date') : $date->toDateString();            
             $end_date   = ($request->input('date_end')) ? $request->input('date_end') : $date->toDateString();
-
-            $data = $service->getList($request->route('microsite_id'), $start_date, $end_date);
+            
+            $data = $service->getList($microsite_id, $start_date, $end_date);
             return $this->CreateResponse(true, 201, "", $data);
         });
     }

@@ -12,6 +12,8 @@ use App\res_table;
 use App\res_table_reservation;
 use App\res_turn_calendar;
 use App\Services\CalendarService;
+use App\Services\Helpers\CalendarHelper;
+
 use Carbon\Carbon;
 
 class AvailabilityService
@@ -1854,7 +1856,7 @@ class AvailabilityService
     public function formatAvailability(int $microsite_id)
     {
         //Function Date Actual
-        $date     = Carbon::today();
+        $date     =  CalendarHelper::realDate($microsite_id);;
         $timezone =  $date->timezoneName;
         $dateIni = $date->copy()->firstOfMonth()->subDays(7);
         $dateFin =$date->copy()->lastOfMonth()->addDays(14);
@@ -1869,7 +1871,4 @@ class AvailabilityService
         return ["people" => $people, "daysDisabled" => $daysDisabled, "events" => $events, "zones" => $zones];
     }
 
-    // public function defineDayOpenLocal($dateTime,$microsite_id){
-
-    // }
 }

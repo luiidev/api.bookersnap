@@ -13,7 +13,7 @@ use DB;
 
 class CalendarService
 {
-
+    
     public function getList(int $microsite_id, int $year, int $month, int $day = null)
     {
         $calendar = new Calendar($year, $month, $day);
@@ -287,7 +287,6 @@ class CalendarService
      */
     public function getZones(Int $microsite, String $date, String $date_end)
     {
-        $now   = Carbon::now();
         $turns = res_turn_calendar::where(function ($query) use ($date, $date_end) {
 
             $query->whereBetween("start_date", array($date, $date_end));
