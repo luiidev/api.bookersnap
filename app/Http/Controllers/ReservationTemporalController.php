@@ -93,9 +93,12 @@ class ReservationTemporalController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($lang, $microsite_id, $token)
     {
-        //
+        return $this->TryCatch(function () use ($token) {
+            $reservationTemporal = $this->service->getTempReservation($token);
+            return $this->CreateJsonResponse(true, 200, "", $reservationTemporal);
+        });
     }
 
     /**

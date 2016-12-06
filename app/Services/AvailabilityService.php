@@ -56,7 +56,7 @@ class AvailabilityService
         $today         = Carbon::parse($date, $timezone);
         if (!$zone_id->isEmpty()) {
             foreach ($zone_id as $id) {
-                $events = $this->searchAllEvent($microsite_id, $date, $hour, $timezone, $next_day, $id);
+               $events = $this->searchAllEvent($microsite_id, $date, $hour, $timezone, $next_day, $id);
                 if (!$events->isEmpty()) {
                     break;
                 }
