@@ -47,8 +47,7 @@ class CalendarHelper {
             if($inDate == 0 && $inDateTime != -1){
                 return $now->copy()->yesterday();
             }
-        }
-        
+        }        
         return $now;
     }
     
@@ -81,11 +80,12 @@ class CalendarHelper {
             }
         }
         
-//        return $now->dayOfWeek + 1;
+        //return $now->dayOfWeek + 1;
         
         return $turns = res_turn_calendar::select(array(
                             "res_turn.id",
                             "res_turn_calendar.res_type_turn_id",
+                            DB::raw("dayofweek(start_date) AS dayofweek"),
                             "res_turn.hours_ini",
                             "res_turn.hours_end",
                             "start_date",
