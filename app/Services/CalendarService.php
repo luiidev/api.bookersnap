@@ -18,7 +18,9 @@ class CalendarService
     {
         $calendar = new Calendar($year, $month, $day);
 
-        $turns = res_turn_calendar::with("turn")
+        $turns = res_turn_calendar::with(["turn.zones" => function($query) {
+            return $query->select("id");
+        }])
             ->whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
             ->get()
             ->map(function ($item) {
