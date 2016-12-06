@@ -105,6 +105,7 @@ class EnableTimesForTable
             $nextday              = ($i < 96) ? 0 : 1;
             $this->availability[] = array(
                 "time"    => $this->rangeToTime($i),
+                "index"   => $i,
                 "rule_id" => -1,
                 "nextday" => $nextday,
                 "reserva" => false,
@@ -114,7 +115,7 @@ class EnableTimesForTable
 
     public function disabled()
     {
-        $this->availability = [];
+        unset($this->availability);
         $this->initAvailability();
         return $this->availability;
     }
@@ -136,9 +137,14 @@ class EnableTimesForTable
         return date("H", strtotime($time)) * 4 + $minute / 15;
     }
 
-    private function rangeToTime($index)
+    private function rangeToTime(int $index)
     {
-        return date("H:i:s", $index * 60 * 15);
+        if ($index >= 96) {
+            $index = $index - 96;
+        }
+        $hora    = str_pad((int) ($index / 4), 2, "0=", STR_PAD_LEFT);
+        $minutos = str_pad(($index % 4) * 15, 2, "0=", STR_PAD_LEFT);
+        return $hora . ":" . $minutos . ":00";
     }
 
     /*
