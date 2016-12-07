@@ -53,6 +53,7 @@ class ReservationController extends Controller
             $params['turns']        = ($request->input('turns')) ? explode(",", $request->input('turns')) : [];
             $params['sources']      = ($request->input('sources')) ? explode(",", $request->input('sources')) : [];
             $params['zones']        = ($request->input('zones')) ? explode(",", $request->input('zones')) : [];
+            $params['sort']         = ($request->input('sort')) ? $request->input('sort') : 'time';
             $params['microsite_id'] = $request->route('microsite_id');
 
             $data = $service->getListSearch($params);
