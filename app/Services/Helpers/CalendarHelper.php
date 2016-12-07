@@ -47,8 +47,74 @@ class CalendarHelper {
             if($inDate == 0 && $inDateTime != -1){
                 return $now->copy()->yesterday();
             }
+        }        
+        return $now;
+    }
+    
+    static function searchDate(int $microsite_id, $date) {
+        
+        $dateIn = Carbon::parse($date);
+        $now = Carbon::now();
+        $esUnaFechaMayor = (($dateIn->toDateString() <=> $now->toDateString()) === 1);
+        if($esUnaFechaMayor){
+            $now = $dateIn;
         }
         
+        $yesterday = $now->copy()->yesterday();
+        $dayOfWeek = $yesterday->dayOfWeek + 1;
+                
+        $turns = res_turn_calendar::select(array(
+                            "res_turn.id",
+                            "res_turn_calendar.res_type_turn_id",
+                            "res_turn.hours_ini",
+                            "res_turn.hours_end",
+                            DB::raw("CONCAT('" . $yesterday->toDateString() . "',' ',start_time) AS start_datetime"),
+                            DB::raw("IF(end_time > start_time, CONCAT('" . $yesterday->toDateString() . "',' ',end_time), CONCAT('" . $now->toDateString() . "',' ',end_time)) AS end_datetime")
+                        ))
+                        ->join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
+                        ->where(DB::raw("dayofweek(start_date)"), $dayOfWeek)
+                        ->where("res_turn.ms_microsite_id", $microsite_id)
+                        ->where("start_date", "<=", $yesterday->toDateString())
+                        ->where("end_date", ">=", $yesterday->toDateString())
+                        ->orderBy("end_datetime", 'DESC')->limit(1)->first();
+        
+        if ($turns) {
+            $endDatetime = Carbon::parse($turns->end_datetime);
+            $inDate = $endDatetime->toDateString() <=> $now->toDateString();
+            $inDateTime = $endDatetime->toDateTimeString() <=> $now->toDateTimeString();
+            if($inDate == 0 && $inDateTime != -1){
+                return $now->copy()->yesterday();
+            }
+        }
+        
+        
+        $date = $now->toDateString();
+        $dayofweek = $now->dayOfWeek + 1;
+        
+        $turns = res_turn_calendar::select(array(
+                            "res_turn.id",
+                            "res_turn_calendar.res_type_turn_id",
+                            DB::raw("dayofweek(start_date) AS dayofweek"),
+                            DB::raw("IF(start_date < '$date', "
+                                    . "ADDDATE('$date', INTERVAL IF(dayofweek(start_date) >= $dayofweek, (dayofweek(start_date) - $dayofweek), 7 + (dayofweek(start_date)-$dayofweek)) DAY), "
+                                    . "start_date) AS date_ini"),
+                            "res_turn.hours_ini",
+                            "res_turn.hours_end",
+                            "start_date",
+                            "end_date"
+                        ))
+                        ->join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
+                        ->where("res_turn.ms_microsite_id", $microsite_id)
+                        ->where(function($query) use ($now){
+                            return $query->where("start_date", "<=", $now->toDateString())
+                                    ->where("end_date", ">=", $now->toDateString())
+                                ->orWhere("start_date", ">=", $now->toDateString());
+                        })->orderBy("date_ini")->limit(1)->first();
+                        
+        if($turns){
+            return Carbon::parse($turns->date_ini. " 00:00:00");
+        }
+                
         return $now;
     }
     

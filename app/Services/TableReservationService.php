@@ -15,6 +15,10 @@ use Carbon\Carbon;
 class TableReservationService extends Service
 {
     private $guest;
+    protected $_ID_SOURCE_RESERVATION_HOSTESS = 1;
+    protected $_ID_STATUS_RESERVATION_RESERVED = 1;
+    protected $_ID_STATUS_RESERVATION_SEATED = 4;
+    protected $_ID_STATUS_RESERVATION_RELEASED = 5;
 
     public function find_guest()
     {
@@ -98,7 +102,7 @@ class TableReservationService extends Service
         $turn = TurnsHelper::TypeTurnWithHourForHour($this->req->date, $this->req->hour, $this->microsite_id);
 
         $reservation->res_guest_id              = $guest_id;
-        $reservation->res_source_type_id        = 1;
+        $reservation->res_source_type_id        = $this->_ID_SOURCE_RESERVATION_HOSTESS;
         $reservation->res_reservation_status_id = $this->req->status_id;
         $reservation->status_released           = 0;
         $reservation->num_guest                 = $this->req->covers;
@@ -113,16 +117,16 @@ class TableReservationService extends Service
         $reservation->ms_microsite_id           = $this->microsite_id;
         $reservation->res_turn_id               = $turn->turn_id;
 
-        if ($this->req->status_id < 4) {
+        if ($this->req->status_id < $this->_ID_STATUS_RESERVATION_SEATED || $this->req->status_id > $this->_ID_STATUS_RESERVATION_RELEASED) {
             if ($action == "create") {
                 $reservation->datetime_input  = trim($this->req->date) . ' ' . trim($this->req->hour);
                 $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input,$this->req->duration);
             }
-        } else if ($this->req->status_id == 4) {
+        } else if ($this->req->status_id == $this->_ID_STATUS_RESERVATION_SEATED) {
             $reservation->datetime_input  = $now->toDateTimeString();
             $duration                     = $action == "create" ? $this->req->duration : $reservation->hours_duration;
             $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $duration);
-        } else if ($this->req->status_id == 5) {
+        } else if ($this->req->status_id == $this->_ID_STATUS_RESERVATION_RELEASED) {
             $reservation->datetime_output = $now->toDateTimeString();
         }
 
@@ -140,7 +144,7 @@ class TableReservationService extends Service
         }
 
         //  Wait List clear tables
-        if ($reservation->wait_list === 1 && $this->req->status_id != 4 && $this->req->status_id != 5) {
+        if ($reservation->wait_list === 1 && $this->req->status_id != $this->_ID_STATUS_RESERVATION_SEATED && $this->req->status_id != $this->_ID_STATUS_RESERVATION_RELEASED) {
             $reservation->tables()->sync([]);
         }
 
@@ -202,9 +206,9 @@ class TableReservationService extends Service
         $reservation->num_people_3              = $this->req->guests["children"];
         $reservation->res_reservation_status_id = $this->req->status_id;
 
-        if ($this->req->status_id == 4) {
+        if ($this->req->status_id == $this->_ID_STATUS_RESERVATION_SEATED) {
             $this->update_input_output($reservation);
-        } else if ($this->req->status_id == 5) {
+        } else if ($this->req->status_id == $this->_ID_STATUS_RESERVATION_RELEASED) {
             $now = Carbon::now();
             $reservation->datetime_output = $now->toDateTimeString();
         }
@@ -212,7 +216,7 @@ class TableReservationService extends Service
         $reservation->save();
 
         //  Wait List clear tables
-        if ($reservation->wait_list === 1 && $this->req->status_id != 4) {
+        if ($reservation->wait_list === 1 && $this->req->status_id != $this->_ID_STATUS_RESERVATION_SEATED) {
             $reservation->tables()->sync([]);
         }
 
@@ -241,8 +245,8 @@ class TableReservationService extends Service
         $duration = res_turn_time::where("res_turn_id", $turn->turn_id)->where("num_guests", $num_guest)->first();
 
         $reservation                            = new res_reservation();
-        $reservation->res_source_type_id        = 1;
-        $reservation->res_reservation_status_id = 4;
+        $reservation->res_source_type_id        = $this->_ID_SOURCE_RESERVATION_HOSTESS;
+        $reservation->res_reservation_status_id = $this->_ID_STATUS_RESERVATION_SEATED;
         $reservation->status_released           = 0;
         $reservation->num_guest                 = $num_guest;
         $reservation->num_people_1              = $this->req->guests["men"];
@@ -278,7 +282,7 @@ class TableReservationService extends Service
         if ($reservation !== null) {
 
             // Actualizar reservacion
-            $reservation->res_reservation_status_id = 4;
+            $reservation->res_reservation_status_id = $this->_ID_STATUS_RESERVATION_SEATED;
             $this->update_input_output($reservation);
 
             if ($this->req->has("guests")) {
@@ -303,7 +307,7 @@ class TableReservationService extends Service
                 $query->where('res_table_id', $this->req->table_id);
             }])->where("id", "<>", $this->reservation)
                 ->where("date_reservation", $now->toDateString())
-                ->where("res_reservation_status_id", "=", 4)
+                ->where("res_reservation_status_id", "=", $this->_ID_STATUS_RESERVATION_SEATED)
                 ->where("ms_microsite_id", $this->microsite_id)
                 ->get();
 
@@ -314,7 +318,7 @@ class TableReservationService extends Service
             if ($others_reservation->count()) {
                 res_reservation::whereIn("id", $filtered->pluck("id"))
                     ->update([
-                        "res_reservation_status_id" => 5,
+                        "res_reservation_status_id" => $this->_ID_STATUS_RESERVATION_RELEASED,
                         "datetime_output"           => $now->toDateTimeString(),
                     ]);
             }
@@ -477,8 +481,8 @@ class TableReservationService extends Service
         
         $reservation                            = res_reservation::where('id', $this->req->id)->first();
         $reservation->res_guest_id              = $guest_id;
-        $reservation->res_source_type_id        = 1;
-        $reservation->res_reservation_status_id = 1;
+        $reservation->res_source_type_id        = $this->_ID_SOURCE_RESERVATION_HOSTESS;
+        $reservation->res_reservation_status_id = $this->_ID_STATUS_RESERVATION_RESERVED;
         $reservation->status_released           = 0;
         $reservation->wait_list                 = 1;              
         $reservation->num_guest                 = $this->req->covers;        

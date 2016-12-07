@@ -1852,39 +1852,58 @@ class AvailabilityService
         return $auxPeople->all();
     }
 
-    public function formatAvailability(int $microsite_id): array
+    public function formatAvailability(int $microsite_id, $date)
     {
         //Function Date Actual
-        $date     = CalendarHelper::realDate($microsite_id);
+        $date     = CalendarHelper::searchDate($microsite_id, $date);
         $timezone = $date->timezoneName;
 
         $dateIni  = $date->copy()->firstOfMonth()->subDays(7);
         $dateFin  = $date->copy()->lastOfMonth()->addDays(14);
         $next_day = 0;
+        
+        try
+        {
+            $events = $this->getEvents($microsite_id, $date->toDateString(), $date->toTimeString(), $timezone, $next_day, null);
+            $eventsIds = $events->pluck('id');
+            $events = ev_event::whereIn('id', $eventsIds)->with('type')->get(array('id', 'name', 'description', 'image', 'image_map', 'bs_type_event_id', 'item'));
+            $eventsFree = collect($events->where('bs_type_event_id', $this->id_event_free)->values());
+            $promotions = collect($events->where('bs_type_event_id', $this->id_promotion)->values());
+        } catch (\Exception $e) {
+            $promotions = collect();
+            $eventsFree = collect();
+        }
+        
         try
         {
             $zones = $this->searchZones($microsite_id, $date->toDateString(), $timezone);
-
         } catch (\Exception $e) {
             $zones = [];
         }
         try
         {
             $hours = $this->getHours($microsite_id, $date->toDateString(), null, $timezone);
+            $hours = $hours->map(function($item) use ($promotions, $eventsFree){                
+                if($item['event'] != null && $eventsFree->count() > 0){
+                    $item['events'] = $eventsFree->where('id', $item['event'])->all();
+                }else if(is_array($item['promotions']) && @$promotions){
+                    $item['events'] = $promotions->whereIn('id', $item['promotions'])->all();
+                }
+
+                unset($item['event']);
+                unset($item['promotions']);
+
+                return $item;
+            });
         } catch (\Exception $e) {
             $hours = [];
         }
-        try
-        {
-            $events = $this->getEvents($microsite_id, $date->toDateString(), $date->toTimeString(), $timezone, $next_day, null);
-        } catch (\Exception $e) {
-            $events = null;
-        }
+        
 
         $daysDisabled = $this->getDaysDisabled($microsite_id, $dateIni->toDateString(), $dateFin->toDateString(), $timezone);
         $people       = $this->getPeople($microsite_id);
 
-        return ["date" => $date->toDateString(), "people" => $people, "daysDisabled" => $daysDisabled, "events" => $events, "zones" => $zones, "hours" => $hours];
+        return ["date" => $date->toDateString(), "people" => $people, "daysDisabled" => $daysDisabled, "hours" => $hours, "zones" => $zones, 'events' => $events];
     }
 
 }
