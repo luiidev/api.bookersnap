@@ -120,10 +120,10 @@ class AvailabilityController extends Controller
 
     public function getFormatAvailability(Request $request)
     {
-        $microsite_id = $request->route('microsite_id');
-
-        return $this->TryCatch(function () use ($microsite_id) {
-            $people = $this->service->formatAvailability($microsite_id);
+        return $this->TryCatch(function () use ($request) {
+            $microsite_id = $request->route('microsite_id');
+            $date = $request->input('date', \Carbon\Carbon::now()->toDateString());
+            $people = $this->service->formatAvailability($microsite_id, $date);
             return $this->CreateJsonResponse(true, 200, "", $people);
         });
     }

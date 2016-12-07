@@ -1852,10 +1852,10 @@ class AvailabilityService
         return $auxPeople->all();
     }
 
-    public function formatAvailability(int $microsite_id)
+    public function formatAvailability(int $microsite_id, $date)
     {
         //Function Date Actual
-        $date     = CalendarHelper::realDate($microsite_id);
+        $date     = CalendarHelper::searchDate($microsite_id, $date);
         $timezone = $date->timezoneName;
 
         $dateIni  = $date->copy()->firstOfMonth()->subDays(7);
@@ -1867,8 +1867,8 @@ class AvailabilityService
             $events = $this->getEvents($microsite_id, $date->toDateString(), $date->toTimeString(), $timezone, $next_day, null);
             $eventsIds = $events->pluck('id');
             $events = ev_event::whereIn('id', $eventsIds)->with('type')->get(array('id', 'name', 'description', 'image', 'image_map', 'bs_type_event_id', 'item'));
-            $eventsFree = $events->where('bs_type_event_id', $this->id_event_free);
-            $promotions = $events->where('bs_type_event_id', $this->id_promotion);
+            $eventsFree = collect($events->where('bs_type_event_id', $this->id_event_free)->values());
+            $promotions = collect($events->where('bs_type_event_id', $this->id_promotion)->values());
         } catch (\Exception $e) {
             $promotions = collect();
             $eventsFree = collect();
@@ -1883,17 +1883,16 @@ class AvailabilityService
         try
         {
             $hours = $this->getHours($microsite_id, $date->toDateString(), null, $timezone);
-           
-            $hours = $hours->map(function($item) use ($promotions, $eventsFree){
+            $hours = $hours->map(function($item) use ($promotions, $eventsFree){                
                 if($item['event'] != null && $eventsFree->count() > 0){
-                    $item['events'] = $eventsFree->whereIn('id', $item['event'])->all();
+                    $item['events'] = $eventsFree->where('id', $item['event'])->all();
                 }else if(is_array($item['promotions']) && @$promotions){
                     $item['events'] = $promotions->whereIn('id', $item['promotions'])->all();
                 }
-                
+
                 unset($item['event']);
                 unset($item['promotions']);
-                
+
                 return $item;
             });
         } catch (\Exception $e) {
