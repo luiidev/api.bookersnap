@@ -107,6 +107,7 @@ function routeMesas()
         // MICROSITE::TABLES
         //-----------------------------------------------------
         Route::get('tables/availability', 'TableController@availability');
+        Route::get('tables/searchAvailability', 'TableController@searchAvailability');
 
         //-----------------------------------------------------
         // MICROSITE:: HUESPEDES

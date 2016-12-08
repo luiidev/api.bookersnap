@@ -25,16 +25,19 @@ class EnableTimesForTable
 
     }
 
-    public function segment($turn, $turns_table)
+    public function segment($turn, $turns_table = null)
     {
         $this->availability = [];
         $this->initAvailability();
         $ini = $this->timeToIntegerRangePosition($turn->hours_ini);
         $end = $this->timeToIntegerRangePosition($turn->hours_end);
+        
         for ($i = $ini; $i <= $end; $i++) {
             $this->availability[$i]['rule_id'] = 1;
         }
-        $this->defineRule($turns_table);
+        if($turns_table){
+            $this->defineRule($turns_table);
+        }
         return $this->availability;
     }
 
@@ -42,7 +45,7 @@ class EnableTimesForTable
     {
         foreach ($reservations as $key => $reservation) {
             foreach ($reservation->tables as $key => $tables) {
-                if ($tables->id = $tableId) {
+                if ($tables->id == $tableId) {
                     $this->reservations($reservation);
                     break;
                 }
@@ -54,7 +57,7 @@ class EnableTimesForTable
     {
         foreach ($blocks as $key => $block) {
             foreach ($block->tables as $key => $tables) {
-                if ($tables->id = $tableId) {
+                if ($tables->id == $tableId) {
                     $this->blocks($block);
                     break;
                 }
@@ -62,28 +65,50 @@ class EnableTimesForTable
         }
     }
 
+    /*
+     * Retorna el numero de segmento de 15 min de las  120 min = 30 horas.
+     */
+
+    private function defineIndex(string $date, string $datetime)
+    {
+        list($dateIni, $hoursIni) = explode(" ", $datetime);
+        list($hours, $minute) = explode(":", $hoursIni);
+        
+        $r      = $minute % 15;
+        if ($r > 0) {
+            $minute -= $r;
+            if ($r > 8) {
+                $minute += 15;
+            }
+        }
+        $index = (int)$hours * 4 + (int)$minute / 15;
+        if(($dateIni <=> $date) == 1){
+            $index +=96;
+        }
+        return $index;
+    }
+    
     private function reservations($reservation)
     {
-        list($hd, $md, $sd) = explode(":", $reservation->hours_duration);
-        $startHour          = Carbon::parse($reservation->date_reservation . " " . $reservation->hours_reservation);
-        $endHour            = $startHour->copy()->addHours($hd)->addMinutes($md)->addSeconds($sd);
-
-        $ini = $this->timeToIntegerRangePosition($reservation->hours_reservation);
-        $end = $this->timeToIntegerRangePosition($endHour->format("H:m:s"));
-
-        for ($i = $ini; $i <= $end; $i++) {
+        $ini = $this->defineIndex($reservation->date_reservation, $reservation->datetime_input);
+        $end = $this->defineIndex($reservation->date_reservation, $reservation->datetime_output);
+        
+        for ($i = $ini; $i < $end; $i++) {
             /*$this->availability[$i]['ini']            = $startHour;
             $this->availability[$i]['end']            = $endHour;*/
-            $this->availability[$i]['reservations'][] = $reservation;
-            $this->availability[$i]['reserved']       = true;
+            $this->availability[$i]['reservations'][] = ["id" =>$reservation->id];
+            $this->availability[$i]['reserva']       = true;
             $this->availability[$i]['rule_id']        = 0;
         }
     }
 
     private function blocks($block)
     {
-        $ini = $this->timeToIntegerRangePosition($block->start_time);
-        $end = $this->timeToIntegerRangePosition($block->end_time);
+//        if(($block->start_time <=> $block->start_time) == 1){
+//            
+//        }
+        $ini = $this->defineIndex($block->start_date);
+        $end = $this->defineIndex($block->start_date);
 
         for ($i = $ini; $i <= $end; $i++) {
             $this->availability[$i]['ini']      = $ini;
@@ -126,7 +151,18 @@ class EnableTimesForTable
 
     private function timeToIntegerRangePosition(string $time)
     {
-        $minute = (date("i", strtotime($time)));
+//        $minute = (date("i", strtotime($time)));
+//        $r      = $minute % 15;
+//        if ($r > 0) {
+//            $minute -= $r;
+//            if ($r > 8) {
+//                $minute += 15;
+//            }
+//        }
+//        return date("H", strtotime($time)) * 4 + $minute / 15;
+        
+        list($hours, $minute) = explode(":", $time);
+        
         $r      = $minute % 15;
         if ($r > 0) {
             $minute -= $r;
@@ -134,7 +170,10 @@ class EnableTimesForTable
                 $minute += 15;
             }
         }
-        return date("H", strtotime($time)) * 4 + $minute / 15;
+        $index = (int)$hours * 4 + (int)$minute / 15;
+        
+        return $index;
+        
     }
 
     private function rangeToTime(int $index)

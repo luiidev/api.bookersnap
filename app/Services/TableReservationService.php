@@ -118,10 +118,10 @@ class TableReservationService extends Service
         $reservation->res_turn_id               = $turn->turn_id;
 
         if ($this->req->status_id < $this->_ID_STATUS_RESERVATION_SEATED || $this->req->status_id > $this->_ID_STATUS_RESERVATION_RELEASED) {
-            if ($action == "create") {
+//            if ($action == "create") {
                 $reservation->datetime_input  = trim($this->req->date) . ' ' . trim($this->req->hour);
                 $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input,$this->req->duration);
-            }
+//            }
         } else if ($this->req->status_id == $this->_ID_STATUS_RESERVATION_SEATED) {
             $reservation->datetime_input  = $now->toDateTimeString();
             $duration                     = $action == "create" ? $this->req->duration : $reservation->hours_duration;
