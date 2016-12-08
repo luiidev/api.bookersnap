@@ -1446,7 +1446,7 @@ class AvailabilityService
             $indexLimit = collect();
             foreach ($turnsFilter as $turn) {
                 $indexHourInit = $hourIni <=> $turn['turn']['hours_ini'];
-                $dayClose      = $turn['end_date'];
+                $dayClose      = $turn['date']; /* CRISTOFER cambio $turn['date'] por $turn['date_end'] */
                 $hourIni       = $indexHourInit == 1 ? $turn['turn']['hours_ini'] : $hourIni;
 
                 $hourClose = $turn['turn']['hours_end'];
