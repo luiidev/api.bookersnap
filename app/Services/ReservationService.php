@@ -6,6 +6,7 @@ use App\res_guest;
 use App\res_reservation;
 use App\res_reservation_status;
 use App\res_source_type;
+use App\Services\Helpers\ReservationHelper;
 use App\Services\Helpers\TurnsHelper;
 use DB;
 use Exception;
@@ -15,11 +16,13 @@ class ReservationService
 
     protected $_ZoneTableService;
     protected $_TurnsHelper;
+    protected $_ReservationHelper;
 
     public function __construct(GuestService $GuestService)
     {
-        $this->_GuestService = $GuestService;
-        $this->_TurnsHelper  = new TurnsHelper();
+        $this->_GuestService      = $GuestService;
+        $this->_TurnsHelper       = new TurnsHelper();
+        $this->_ReservationHelper = new ReservationHelper();
     }
 
     public function get(int $microsite_id, int $reservation_id)
@@ -40,8 +43,19 @@ class ReservationService
 
             }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList", "emails"])->from("res_reservation as res")->where("res.wait_list", 0);
 
-        if ($params['search_text'] !== "") {
+        if ($params['search_text'] !== "" || $params['sort'] == "guest") {
             $reservations = $reservations->join("res_guest as guest", "guest.id", "=", "res.res_guest_id");
+        }
+
+        if ($params['sort'] == "table") {
+
+            $reservations = $reservations->join("res_table_reservation as table_res", "table_res.res_reservation_id", "=", "res.id");
+
+            $reservations = $reservations->join("res_table as table", "table.id", "=", "table_res.res_table_id");
+        }
+
+        if ($params['search_text'] !== "") {
+
             $reservations = $reservations->where("guest.first_name", "LIKE", "%" . $params['search_text'] . "%");
         }
 
@@ -75,6 +89,9 @@ class ReservationService
                     ->whereIn('res_table.res_zone_id', $params['zones']);
             });
         }
+
+        $sortBy       = $this->_ReservationHelper->getNameSort($params['sort']);
+        $reservations = $reservations->orderBy($sortBy);
 
         if ($params['page_size'] !== 0) {
             return $reservations = $reservations->paginate($params['page_size']);

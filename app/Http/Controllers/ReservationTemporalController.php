@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ReservationTemporalRequest;
 use App\Services\AvailabilityService;
 use App\Services\ConfigurationService;
+use App\Services\FormService;
 use App\Services\ReservationTemporalService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -15,11 +16,12 @@ class ReservationTemporalController extends Controller
     private $availabilityService;
     private $configurationService;
 
-    public function __construct(ReservationTemporalService $ReservationTemporalService, AvailabilityService $AvailabilityService, ConfigurationService $ConfigurationService)
+    public function __construct(ReservationTemporalService $ReservationTemporalService, AvailabilityService $AvailabilityService, ConfigurationService $ConfigurationService, FormService  $FormService)
     {
         $this->service              = $ReservationTemporalService;
         $this->availabilityService  = $AvailabilityService;
         $this->configurationService = $ConfigurationService;
+        $this->formService = $FormService;
     }
 
     /**
@@ -95,9 +97,17 @@ class ReservationTemporalController extends Controller
      */
     public function show($lang, $microsite_id, $token)
     {
-        return $this->TryCatch(function () use ($token) {
+        return $this->TryCatch(function () use ($microsite_id, $token) {
+
             $reservationTemporal = $this->service->getTempReservation($token);
-            return $this->CreateJsonResponse(true, 200, "", $reservationTemporal);
+
+            if ($reservationTemporal === null) {
+                return $this->CreateJsonResponse(true, 200, "", null);
+            }
+
+            $forms = $this->formService->getFormsByMicrosite($microsite_id);
+
+            return $this->CreateJsonResponse(true, 200, "", ["reservation" => $reservationTemporal, "forms" => $forms]);
         });
     }
 

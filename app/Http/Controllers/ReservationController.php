@@ -6,10 +6,9 @@ use App\Events\EmitNotification;
 use App\Helpers\MailMandrillHelper;
 use App\Http\Controllers\Controller as Controller;
 use App\Http\Requests\ReservationRequest;
+use App\Services\Helpers\CalendarHelper;
 use App\Services\ReservationEmailService;
 use App\Services\ReservationService;
-use App\Services\CalendarService;
-use App\Services\Helpers\CalendarHelper;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -29,12 +28,12 @@ class ReservationController extends Controller
     public function index(Request $request)
     {
         $service = $this->_ReservationService;
-        return $this->TryCatch(function () use ($request, $service) {      
+        return $this->TryCatch(function () use ($request, $service) {
             $microsite_id = $request->route('microsite_id');
-            $date       =  CalendarHelper::realDate($microsite_id); 
-            $start_date = ($request->input('date')) ? $request->input('date') : $date->toDateString();            
-            $end_date   = ($request->input('date_end')) ? $request->input('date_end') : $date->toDateString();
-            
+            $date         = CalendarHelper::realDate($microsite_id);
+            $start_date   = ($request->input('date')) ? $request->input('date') : $date->toDateString();
+            $end_date     = ($request->input('date_end')) ? $request->input('date_end') : $date->toDateString();
+
             $data = $service->getList($microsite_id, $start_date, $end_date);
             return $this->CreateResponse(true, 201, "", $data);
         });
@@ -54,6 +53,7 @@ class ReservationController extends Controller
             $params['turns']        = ($request->input('turns')) ? explode(",", $request->input('turns')) : [];
             $params['sources']      = ($request->input('sources')) ? explode(",", $request->input('sources')) : [];
             $params['zones']        = ($request->input('zones')) ? explode(",", $request->input('zones')) : [];
+            $params['sort']         = ($request->input('sort')) ? $request->input('sort') : 'time';
             $params['microsite_id'] = $request->route('microsite_id');
 
             $data = $service->getListSearch($params);
@@ -167,7 +167,7 @@ class ReservationController extends Controller
         return $this->TryCatch(function () use ($request, $service) {
             $result = $service->patch($request->all(), $request->route('microsite_id'));
 
-            $this->_notification($request->route("microsite_id"), $result, "Reservación actualizada", "update", $request->key);
+            $this->_notification($request->route("microsite_id"), [$result], "Reservación actualizada", "update", $request->key);
 
             return response()->json($result);
         });
