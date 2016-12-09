@@ -203,7 +203,7 @@ function routeMesas()
         // MICROSITE:: Reservation Temporal
         //-----------------------------------------------------
         Route::resource("reservationtemporal/", "ReservationTemporalController", ["only" => ["index", "destroy", "store"]]);
-        Route::get("reservationtemporal/{key}", "ReservationTemporalController@show");
+        Route::get("reservationtemporal/{token}", "ReservationTemporalController@show");
 
         //-----------------------------------------------------
         // MICROSITE:: Availability

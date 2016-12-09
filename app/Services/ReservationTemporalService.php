@@ -178,6 +178,12 @@ class ReservationTemporalService
 
     public function getTempReservation(String $token)
     {
-        return res_table_reservation_temp::where("token", $token)->whereRaw(" now() <= expire  + interval 5 minute")->first();
+        $diff = null;
+        $now = Carbon::now();
+        $reservationtemporal = res_table_reservation_temp::where("token", $token)->where("expire", ">", $now)->orderBy("id", "desc")->first();
+        if ($reservationtemporal !== null) {
+            $diff = $now->diffInSeconds(Carbon::parse($reservationtemporal->expire), false) * 1000;
+        }
+        return array("reservation" => $reservationtemporal, "time" => $diff,);
     }
 }
