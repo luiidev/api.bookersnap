@@ -20,13 +20,12 @@ class NoteController extends Controller
     public function index(Request $request)
     {
         return $this->TryCatchDB(function () use ($request) {
-
-            $date = Carbon::now();
-            $now  = $date->format('Y-m-d');
-            $date = ($request->has('date')) ? $request->input('date') : $now;
-
-            //return $date;
-            $note = $this->_NoteService->getList($request->route('microsite_id'), $date);
+          
+            $date = $request->input('date');
+            $microsite_id = $request->route('microsite_id');
+            $realDate = \App\Services\Helpers\CalendarHelper::realDate($microsite_id, $date)->toDateString();
+            
+            $note = $this->_NoteService->getList($request->route('microsite_id'), $realDate);
             return $this->CreateJsonResponse(true, 201, "Listado de notas", $note);
         });
     }
@@ -36,10 +35,11 @@ class NoteController extends Controller
         $service = $this->_NoteService;
         return $this->TryCatchDB(function () use ($request, $service) {
             
-            $now = Carbon::now();
-            $date = ($request->has('date_add')) ? $request->input('date_add') : $now->toDateString();
+            $date = $request->input('date_add');
+            $microsite_id = $request->route('microsite_id');
+            $realDate = \App\Services\Helpers\CalendarHelper::realDate($microsite_id, $date)->toDateString();
             
-            $note = $service->saveNote($request->all(), $request->route('microsite_id'), $date);
+            $note = $service->saveNote($request->all(), $microsite_id, $realDate);
 
             event(new EmitNotification("b-mesas-floor-notes",
                 array(

@@ -19,8 +19,8 @@ use Illuminate\Support\Facades\DB;
 
 class CalendarHelper {
     
-    static function realDate(int $microsite_id) {
-        $now = Carbon::now();
+    static function realDate(int $microsite_id, $date = null) {
+        $now = ($date) ? $now = Carbon::parse($date):Carbon::now();
         $yesterday = $now->copy()->yesterday();
         $dayOfWeek = $yesterday->dayOfWeek + 1;
                 

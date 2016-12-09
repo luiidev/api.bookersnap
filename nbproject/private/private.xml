@@ -5,10 +5,13 @@
         <group>
             <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Services/AvailabilityService.php</file>
             <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Services/ReservationService.php</file>
+            <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/res_turn.php</file>
             <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Http/Controllers/TableController.php</file>
             <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Domain/EnableTimesForTable.php</file>
             <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Services/TableService.php</file>
             <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Http/routes.php</file>
+            <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Http/Controllers/ZoneController.php</file>
+            <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Services/ZoneService.php</file>
             <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Entities/ev_event.php</file>
             <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Services/Helpers/CalendarHelper.php</file>
             <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/res_reservation.php</file>
