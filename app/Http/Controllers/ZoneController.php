@@ -28,7 +28,29 @@ class ZoneController extends Controller
         });
 
     }
+    
+    public function getListActives(Request $request)
+    {
+        $service = $this->_ZoneService;
 
+        return $this->TryCatch(function () use ($request, $service) {
+            $data = $service->getListActives($request->route('microsite_id'), $request->input('with'), $request->input('date'));
+            return $this->CreateResponse(true, 200, "", $data);
+        });
+
+    }
+    
+    public function getListActivesByDate(Request $request)
+    {
+        $service = $this->_ZoneService;
+
+        return $this->TryCatch(function () use ($request, $service) {
+            $data = $service->getListActivesByDate($request->route('microsite_id'), $request->input('with'), $request->input('date'));
+            return $this->CreateResponse(true, 200, "", $data);
+        });
+
+    }
+    
     public function show(Request $request)
     {
         $service = $this->_ZoneService;

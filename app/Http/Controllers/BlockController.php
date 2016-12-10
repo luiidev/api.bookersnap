@@ -24,8 +24,7 @@ class BlockController extends Controller
     public function index(BlockListRequest $request)
     {
         return $this->TryCatch(function () use ($request) {
-            $dateNow = Carbon::now();
-            $date    = $request->input('date', $dateNow->format('Y-m-d'));
+            $date    = $request->input('date');
             $data    = $this->_blockService->listado($request->route('microsite_id'), $date);
             return $this->CreateJsonResponse(true, 201, "messages.block_list", $data);
         });
@@ -33,7 +32,6 @@ class BlockController extends Controller
 
     public function delete(Request $request)
     {
-
         return $this->TryCatch(function () use ($request) {
             $data = $this->_blockService->delete($request->route('microsite_id'), $request->route('block_id'));
 

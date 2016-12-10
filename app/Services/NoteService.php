@@ -4,13 +4,16 @@ namespace App\Services;
 
 use App\res_note;
 use Carbon\Carbon;
+use App\Services\Helpers\CalendarHelper;
 
 class NoteService
 {
-    public function saveNote(array $data, int $microsite_id, string $date)
+    public function saveNote(array $data, int $microsite_id, string $date = null)
     {
         $response = null;
-        $data['date_add'] = $date;
+        if(is_null($date)){
+            $date = CalendarHelper::realDate($microsite_id);
+        }
         if ($this->exists($microsite_id, $date, $data['res_type_turn_id'])) {
             $response = $this->updateNote($data, $microsite_id, $date);
         } else {
@@ -46,8 +49,11 @@ class NoteService
         return $note;
     }
 
-    public function getList(int $microsite_id, string $date)
+    public function getList(int $microsite_id, string $date = null)
     {
+        if(is_null($date)){
+            $date = CalendarHelper::realDate($microsite_id);
+        }
         $rows = res_note::where('ms_microsite_id', $microsite_id)->where("date_add", $date)->get();
         return $rows;
     }

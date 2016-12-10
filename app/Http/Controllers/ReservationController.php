@@ -29,12 +29,13 @@ class ReservationController extends Controller
     {
         $service = $this->_ReservationService;
         return $this->TryCatch(function () use ($request, $service) {
-            $microsite_id = $request->route('microsite_id');
-            $date         = CalendarHelper::realDate($microsite_id);
-            $start_date   = ($request->input('date')) ? $request->input('date') : $date->toDateString();
-            $end_date     = ($request->input('date_end')) ? $request->input('date_end') : $date->toDateString();
-
+            
+            $microsite_id = $request->route('microsite_id');            
+            $start_date   = $request->input('date');
+            $end_date     = $request->input('date_end');
+            
             $data = $service->getList($microsite_id, $start_date, $end_date);
+            
             return $this->CreateResponse(true, 201, "", $data);
         });
     }

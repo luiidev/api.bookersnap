@@ -48,7 +48,9 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE::ZONAS
         //-----------------------------------------------------
-        Route::get('zones', ['uses' => 'ZoneController@index']);
+        Route::get('zones', ['uses' => 'ZoneController@index']); /* Lista de todas las zonas */
+        Route::get('zones/actives', ['uses' => 'ZoneController@getListActives']); /* Lista de zonas activas en alguna fehca en adelante*/
+        Route::get('zones/activesByDate', ['uses' => 'ZoneController@getListActivesByDate']); /* Lista de zonas activas en una fecha determinada */
         Route::get('zones/{zone_id}', 'ZoneController@show');
         Route::get('zones/{zone_id}/tables', 'ZoneController@listTable');
         Route::post('zones', 'ZoneController@create');
@@ -58,12 +60,13 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE::BLOQUEO
         //-----------------------------------------------------
-        Route::delete('blocks/{block_id}', 'BlockController@delete');
-        Route::post('blocks', 'BlockController@insert');
         Route::get('blocks', 'BlockController@index');
         Route::get('blocks/tables', 'BlockController@getTables');
         Route::get('blocks/{block_id}', 'BlockController@getBlock');
+        Route::delete('blocks/{block_id}', 'BlockController@delete');
+        Route::post('blocks', 'BlockController@insert');
         Route::put('blocks/{block_id}', 'BlockController@update');
+        
 
         //-----------------------------------------------------
         // MICROSITE::SERVERS
@@ -76,8 +79,9 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE::TURNOS
         //-----------------------------------------------------
-        Route::get('turns/', 'TurnController@index');
-        Route::get('turns/search/', 'TurnController@search');
+        Route::get('turns', 'TurnController@index');
+        Route::get('turns/calendar', 'TurnController@calendar'); /* lista de turnos de una fecha de calnedario */
+        Route::get('turns/search', 'TurnController@search');
         //Route::get('turns/{turn_id}/availability', 'TurnController@tableAvailability');
         //Notas del turno
         Route::get('turns/notes', 'NoteController@index');
@@ -92,7 +96,7 @@ function routeMesas()
 
         //-----------------------------------------------------
         // MICROSITE::CALENDAR
-        //-----------------------------------------------------
+        //-----------------------------------------------------        
         Route::get('calendar/{date}', 'CalendarController@index');
         Route::get('calendar/{date}/zones', 'CalendarController@getZones');
         Route::get('calendar/{date}/shifts', 'CalendarController@listShift');

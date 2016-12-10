@@ -58,6 +58,55 @@ class TurnService {
         return $rows->get();
     }
 
+    public function calendar(int $microsite_id, string $with = null, string $type_turn = null, string $date = null) {
+
+        if (is_null($date)) {
+            $date = Helpers\CalendarHelper::realDate($microsite_id);
+        }
+        $fecha = Carbon::parse($date);
+        $nextDay = $fecha->copy()->addDay();
+        $dayOfWeek = $fecha->dayOfWeek + 1;
+
+        /* Obtener Los Ids de los turnos Habilitados para la fecha */
+        $turnsIds = \App\res_turn_calendar::join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
+                ->where(DB::raw("dayofweek(start_date)"), $dayOfWeek)
+                ->where("res_turn.ms_microsite_id", $microsite_id)
+                ->where("start_date", "<=", $fecha->toDateString())
+                ->where("end_date", ">=", $fecha->toDateString())
+                ->pluck('id');
+
+        $rows = res_turn::select(array(
+                    'id',
+                    'name',
+                    'res_type_turn_id',
+                    'hours_ini',
+                    'hours_end',
+//                    DB::raw("'" . $fecha->toDateString() . "' AS date_ini"),
+//                    DB::raw("IF(hours_end > hours_ini, '" . $fecha->toDateString() . "', '" . $nextDay->toDateString() . "') AS date_end"),
+//                    DB::raw("CONCAT('" . $fecha->toDateString() . "',' ',hours_ini) AS start_datetime"),
+//                    DB::raw("IF(hours_end > hours_ini, CONCAT('" . $fecha->toDateString() . "',' ',hours_end), CONCAT('" . $nextDay->toDateString() . "',' ',hours_end)) AS end_datetime")
+                ))->where('ms_microsite_id', $microsite_id)->whereIn('id', $turnsIds);
+        
+        $rows = isset($type_turn) ? $rows->whereIn('res_type_turn_id', explode(",", $type_turn)) : $rows;
+
+        if (isset($with)) {
+            $data = explode('|', $with);
+            $rows = (in_array("type_turn", $data)) ? $rows->with('typeTurn') : $rows;
+            $rows = (in_array("turn_time", $data)) ? $rows->with('turnTime') : $rows;
+            $rows = (in_array("turn_zone", $data)) ? $rows->with('turnZone') : $rows;
+            $rows = (in_array("turn_zone.zone", $data)) ? $rows->with('turnZone.zone') : $rows;
+            $rows = (in_array("turn_zone.zone.turns", $data)) ? $rows->with('turnZone.zone.turns') : $rows;
+            $rows = (in_array("turn_zone.zone.tables", $data)) ? $rows->with('turnZone.zone.tables') : $rows;
+            $rows = (in_array("turn_zone.rule", $data)) ? $rows->with('turnZone.rule') : $rows;
+            $rows = (in_array("zones", $data)) ? $rows->with('zones') : $rows;
+            $rows = (in_array("zones.tables", $data)) ? $rows->with('zones.tables') : $rows;
+            $rows = (in_array("zones.turns", $data)) ? $rows->with('zones.turns') : $rows;
+            $rows = (in_array("calendar", $data)) ? $rows->with('calendar') : $rows;
+        }
+
+        return $rows->get();
+    }
+
     public function get(int $microsite_id, int $turn_id, $with) {
         try {
             $query = res_turn::where('id', $turn_id)->where('ms_microsite_id', $microsite_id)->with("weekDays");
@@ -319,11 +368,11 @@ class TurnService {
 //            $turn_zones[$value['res_zone_id']] = array('res_turn_rule_id' => $value['res_turn_rule_id']);
         }
 //        $turn->zones()->sync($turn_zones);
-        $turn_times = [];        
+        $turn_times = [];
         DB::table('res_turn_time')->where('res_turn_id', $turn->id)->delete();
         foreach ($request->turn_time as $value) {
-            array_push($turn_times, array('res_turn_id' => $turn->id, 'num_guests' => $value['num_guests'], 'time' => $value['time']));            
-        }        
+            array_push($turn_times, array('res_turn_id' => $turn->id, 'num_guests' => $value['num_guests'], 'time' => $value['time']));
+        }
         DB::table('res_turn_time')->insert($turn_times);
 
         return $turn;
