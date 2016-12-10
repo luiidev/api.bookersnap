@@ -168,6 +168,7 @@ function routeMesas()
         Route::put('table/reservation/{reservation}/sit', 'TableReservationController@sit');
         Route::post('table/reservation/quickcreate', 'TableReservationController@quickCreate');
         Route::put('table/reservation/{reservation}/guest-list', 'TableReservationController@updateGuestList');
+        Route::post('table/reservation/w', 'TableReservationController@storeFromWeb');
 
         Route::post('waitlist', 'TableReservationController@createWaitList');
         Route::put('waitlist', 'TableReservationController@updateWaitList');
@@ -207,7 +208,7 @@ function routeMesas()
         // MICROSITE:: Reservation Temporal
         //-----------------------------------------------------
         Route::resource("reservationtemporal/", "ReservationTemporalController", ["only" => ["index", "destroy", "store"]]);
-        Route::get("reservationtemporal/{key}", "ReservationTemporalController@show");
+        Route::get("reservationtemporal/{token}", "ReservationTemporalController@show");
 
         //-----------------------------------------------------
         // MICROSITE:: Availability

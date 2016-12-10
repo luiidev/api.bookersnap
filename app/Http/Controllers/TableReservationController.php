@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\EmitNotification;
 use App\Http\Requests;
 use App\Http\Requests\GuestListRequest;
+use App\Http\Requests\ReservationFromWebRequest;
 use App\Http\Requests\TableReservationRequest;
 use App\Services\TableReservationService as Service;
 use Carbon\Carbon;
@@ -182,9 +183,12 @@ class TableReservationController extends Controller
         return $this->TryCatchDB(function () use ($request) {
 
             $reservation = $this->service->quickCreate();
-
             $this->_notification($request->route("microsite_id"), $reservation, "Se ha creado nueva reservación rápida", "create", $request->key);
-
+            $reservations = $this->service->releasedReservations($request->route("microsite_id"), $reservation->id, $request->table_id);
+            
+            if($reservations){
+                $this->_notification($request->route("microsite_id"), $reservations, "Se han liberado reservaciónciones", "update", null);
+            }
             return $this->CreateJsonResponse(true, 200, "La reservacion fue registrada.", $reservation);
         });
     }
@@ -223,6 +227,16 @@ class TableReservationController extends Controller
             $this->_notification($request->route("microsite_id"), $reservations, "", "update", $request->key);
             return $this->CreateJsonResponse(true, 200, "", $reservations[0]);
         });
+    }
+
+    public function storeFromWeb(ReservationFromWebRequest $request) {
+            $this->service = Service::make($request);
+            return $this->TryCatchDB(function () use ($request) {
+                $reservation = $this->service->storeFromWeb();
+
+                $this->_notification($request->route("microsite_id"), $reservation, "", "create", $request->key);
+                return $this->CreateJsonResponse(true, 200, "", $reservation);
+            });
     }
 
     public function createWaitList(Request $request)
