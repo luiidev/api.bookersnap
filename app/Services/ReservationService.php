@@ -53,11 +53,11 @@ class ReservationService
 
             }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList", "emails"])->from("res_reservation as res")->where("res.wait_list", 0);
 
-        if ($params['search_text'] !== "" || $params['sort'] == "guest") {
+        if ($params['search_text'] !== "" || $params['sort'] == "guest.asc" || $params['sort'] == "guest.desc" || $params['sort'] === "guest") {
             $reservations = $reservations->join("res_guest as guest", "guest.id", "=", "res.res_guest_id");
         }
 
-        if ($params['sort'] == "table") {
+        if ($params['sort'] == "table.asc" || $params['sort'] == "table.desc") {
 
             $reservations = $reservations->join("res_table_reservation as table_res", "table_res.res_reservation_id", "=", "res.id");
 
@@ -103,7 +103,7 @@ class ReservationService
         }
 
         $sortBy       = $this->_ReservationHelper->getNameSort($params['sort']);
-        $reservations = $reservations->orderBy($sortBy);
+        $reservations = $reservations->orderBy($sortBy->value, $sortBy->type);
 
         if ($params['page_size'] !== 0) {
             return $reservations = $reservations->paginate($params['page_size']);

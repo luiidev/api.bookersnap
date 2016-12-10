@@ -469,11 +469,6 @@ class TableReservationService extends Service
         $temporal = res_table_reservation_temp::where("token", $this->req->token)->where("expire", ">", $now)->orderBy("id", "desc")->first();
 
         if ($temporal === null) {
-            // abort(422 ,   ["error" => [
-            //     "user_msg" => "La reservacion no existe o expiro el tiempo de reservacion.",
-            //     "internal_msg" => null,
-            //     "errors" => null
-            // ]]);      
             abort(422 ,  "La reservacion no existe o expiro el tiempo de reservacion.");
         }
 
