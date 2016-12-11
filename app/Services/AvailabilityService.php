@@ -1864,12 +1864,16 @@ class AvailabilityService
         
         try
         {
+            
             $events = $this->getEvents($microsite_id, $date->toDateString(), $date->toTimeString(), $timezone, $next_day, null);
-            $eventsIds = $events->pluck('id');
-            $events = ev_event::whereIn('id', $eventsIds)->with('type')->get(array('id', 'name', 'description', 'image', 'image_map', 'bs_type_event_id', 'item'));
-            $eventsFree = collect($events->where('bs_type_event_id', $this->id_event_free)->values());
-            $promotions = collect($events->where('bs_type_event_id', $this->id_promotion)->values());
+            if($events){
+                $eventsIds = $events->pluck('id');
+                $events = ev_event::whereIn('id', $eventsIds)->with('type')->get(array('id', 'name', 'description', 'image', 'image_map', 'bs_type_event_id', 'item'));
+                $eventsFree = collect($events->where('bs_type_event_id', $this->id_event_free)->values());
+                $promotions = collect($events->where('bs_type_event_id', $this->id_promotion)->values());
+            }
         } catch (\Exception $e) {
+            $events = [];
             $promotions = collect();
             $eventsFree = collect();
         }

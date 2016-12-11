@@ -34,7 +34,13 @@ class CalendarController extends Controller
     {
         $service = $this->_CalendarService;
         return $this->TryCatch(function () use ($request, $service) {
-            $data = $service->getListShift($request->route('microsite_id'), $request->route('date'));
+            
+            $microsite_id = $request->route('microsite_id');
+            $date = $request->route('date');
+            
+            $realDate = \App\Services\Helpers\CalendarHelper::realDate($microsite_id, $date)->toDateString();
+            $data = $service->getListShift($microsite_id, $realDate);
+            
             return $this->CreateResponse(true, 201, "", $data);
         });
     }
@@ -124,15 +130,18 @@ class CalendarController extends Controller
         $service = $this->_CalendarService;
 
         return $this->TryCatch(function () use ($request, $service) {
+            
             $date     = $request->route("date");
-            $dateNow  = Carbon::parse($date. " 00:00:00")->toDateString();
+            $dateNow  = Carbon::parse($date. " 00:00:00")->toDateString();                        
             $date_end = $request->input("end", $dateNow);
 
             if (Validator::make(["date" => $date], ["date" => "date"])->fails()) {
                 abort(406, "La fecha de consulta no es valida");
             }
+            $microsite_id = $request->route("microsite_id");
+            $date_ini = \App\Services\Helpers\CalendarHelper::realDate($microsite_id, $date)->toDateString();
 
-            $zones = $service->getZones($request->route("microsite_id"), $date, $date_end);
+            $zones = $service->getZones($microsite_id, $date_ini, $date_end);
 
             return $this->CreateResponse(true, 200, "", $zones);
         });
