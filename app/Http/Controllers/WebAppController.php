@@ -78,7 +78,12 @@ class WebAppController extends Controller
             $reservation_id = $request->route('reservation_id');
                         
             $reservation = $this->reservation($microsite_id, $reservation_id);
-            $date = ($reservation)?$reservation->date_reservation : CalendarHelper::realDate($microsite_id, $request->input('date'));
+            if ($request->has("date")) {
+                $date = CalendarHelper::realDate($microsite_id, $request->input('date'));
+            } else {
+                $date =  ($reservation)?$reservation->date_reservation : CalendarHelper::realDate($microsite_id);
+            }
+
             
             $turnsIds = $this->turnsIdsByDate($microsite_id, $date);
             $zones = $this->zonesIdsByTurnsIds($turnsIds);
@@ -116,7 +121,13 @@ class WebAppController extends Controller
             $block_id = $request->route('block_id');
             
             $block = $this->block($microsite_id, $block_id);
-            $date = ($block) ? $block->start_date: CalendarHelper::realDate($microsite_id, $request->input('date'));
+
+            if ($request->has("date")) {
+                $date = CalendarHelper::realDate($microsite_id, $request->input('date'));
+            } else {
+                $date = ($block) ? $block->start_date: CalendarHelper::realDate($microsite_id);
+            }
+            
             $turnsIds = $this->turnsIdsByDate($microsite_id, $date);
             $zones = $this->zonesIdsByTurnsIds($turnsIds);
             $notes = $this->notes($microsite_id, $date);
