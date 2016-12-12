@@ -34,7 +34,11 @@ class CalendarController extends Controller
     {
         $service = $this->_CalendarService;
         return $this->TryCatch(function () use ($request, $service) {
-            $data = $service->getListShift($request->route('microsite_id'), $request->route('date'));
+            
+            $microsite_id = $request->route('microsite_id');
+            $date = $request->route('date');                
+            $data = $service->getListShift($microsite_id, $date);
+            
             return $this->CreateResponse(true, 201, "", $data);
         });
     }
@@ -57,10 +61,10 @@ class CalendarController extends Controller
         $microsite_id = $request->route("microsite_id");
         $res_turn_id  = $request->route("res_turn_id");
 
-        $now  = Carbon::now($request->timezone);
+        $now  = Carbon::now();
         $date = $request->input('date', $now);
 
-        $val_date = Carbon::createFromFormat('Y-m-d', $date, $request->timezone);
+        $val_date = Carbon::createFromFormat('Y-m-d', $date);
 
         return $this->TryCatchDB(function () use ($res_turn_id, $date, $microsite_id, $val_date, $now) {
             if ($val_date->lt($now)) {
@@ -124,16 +128,18 @@ class CalendarController extends Controller
         $service = $this->_CalendarService;
 
         return $this->TryCatch(function () use ($request, $service) {
-            $date     = $request->route("date");
-            $dateNow  = Carbon::now($request->timezone)->toDateString();
-            $date_end = $request->input("end", $dateNow);
-
-            if (Validator::make(["date" => $date], ["date" => "date"])->fails()) {
+            
+            $microsite_id = $request->route("microsite_id");
+            
+            $date_ini = $request->route("date");
+            $date_end = $request->input("end");
+            
+            if (Validator::make(["date" => $date_ini], ["date" => "date"])->fails()) {
                 abort(406, "La fecha de consulta no es valida");
             }
-
-            $zones = $service->getZones($request->route("microsite_id"), $date, $date_end);
-
+            
+            $zones = $service->getZones($microsite_id, $date_ini, $date_end);
+            
             return $this->CreateResponse(true, 200, "", $zones);
         });
     }

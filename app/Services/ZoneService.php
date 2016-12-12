@@ -10,14 +10,14 @@ use App\res_table;
 use App\res_zone;
 use App\Services\ZoneTableService;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use App\Services\Helpers\CalendarHelper;
 
-class ZoneService
-{
+class ZoneService {
 
     protected $_ZoneTableService;
 
-    public function __construct(ZoneTableService $ZoneTableService)
-    {
+    public function __construct(ZoneTableService $ZoneTableService) {
         $this->_ZoneTableService = $ZoneTableService;
     }
 
@@ -27,14 +27,91 @@ class ZoneService
      * @param   string  $with  ['turns'] obtener los turnos que puede usar una zona.
      * @return  array   Lista de Estructura de zonas
      */
-    public function getList(int $microsite_id, $with)
-    {
+    public function getList(int $microsite_id, $with) {
 
         $rows = res_zone::where('ms_microsite_id', $microsite_id)->with('tables')->where("status", "<>", 2);
         if (isset($with)) {
             $split = explode('|', $with);
-            $rows  = (in_array("turns", $split)) ? $rows->with('turns') : $rows;
-            $rows  = (in_array("turns.type_turn", $split)) ? $rows->with('turns.typeTurn') : $rows;
+            $rows = (in_array("turns", $split)) ? $rows->with('turns') : $rows;
+            $rows = (in_array("turns.type_turn", $split)) ? $rows->with('turns.typeTurn') : $rows;
+        }
+        return $rows->get();
+    }
+
+    /**
+     * lista de todas las zonas activas de un micrositio.
+     * @param   int     $microsite_id  Identificador del micrositio.
+     * @param   string  $with  ['turns'] obtener los turnos que puede usar una zona.
+     * @return  array   Lista de Estructura de zonas
+     */
+    public function getListActives(int $microsite_id, $with = null, $date = null) {
+        
+        if (is_null($date)) {
+            $date = Helpers\CalendarHelper::realDate($microsite_id);
+        }else if(strcmp($date, Carbon::now()->toDateString())==0){
+            $date = Helpers\CalendarHelper::realDate($microsite_id, $date);
+        }
+        
+        $fecha = Carbon::parse($date);
+        $nextDay = $fecha->copy()->addDay();
+        $dayOfWeek = $fecha->dayOfWeek + 1;
+
+        /* Obtener Los Ids de los turnos Habilitados para la fecha */
+        $turnsIds = \App\res_turn_calendar::join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
+                        ->where("res_turn.ms_microsite_id", $microsite_id)
+                        ->where(function($query)use($fecha) {
+                            return $query->where("start_date", "<=", $fecha->toDateString())
+                                    ->where("end_date", ">=", $fecha->toDateString())
+                                    ->orWhere("end_date", ">=", $fecha->toDateString())
+                                    ->where("start_date", ">=", $fecha->toDateString());
+                        })->groupBy('res_turn_id')
+                ->pluck('res_turn_id');
+
+        /* Obtener Los Ids de las zonas Habbilitadas por los turnos habiles */
+        $turnZoneIds = \App\res_turn_zone::whereIn('res_turn_id', $turnsIds)->groupBy('res_zone_id')->pluck('res_zone_id');
+
+        $rows = res_zone::whereIn('id', $turnZoneIds)->with('tables')->where("status",1);
+        if (isset($with)) {
+            $split = explode('|', $with);
+            $rows = (in_array("turns", $split)) ? $rows->with('turns') : $rows;
+            $rows = (in_array("turns.type_turn", $split)) ? $rows->with('turns.typeTurn') : $rows;
+        }
+        return $rows->get();
+    }
+
+    /**
+     * lista de todas las zonas de un micrositio.
+     * @param   int     $microsite_id  Identificador del micrositio.
+     * @param   string  $with  ['turns'] obtener los turnos que puede usar una zona.
+     * @return  array   Lista de Estructura de zonas
+     */
+    public function getListActivesByDate(int $microsite_id, $with = null, $date = null) {
+        if (is_null($date)) {
+            $date = Helpers\CalendarHelper::realDate($microsite_id);
+        }else if(strcmp($date, Carbon::now()->toDateString())==0){
+            $date = Helpers\CalendarHelper::realDate($microsite_id, $date);
+        }
+        $fecha = Carbon::parse($date);
+        $nextDay = $fecha->copy()->addDay();
+        $dayOfWeek = $fecha->dayOfWeek + 1;
+
+        /* Obtener Los Ids de los turnos Habilitados para la fecha */
+        $turnsIds = \App\res_turn_calendar::join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
+                ->where(DB::raw("dayofweek(start_date)"), $dayOfWeek)
+                ->where("res_turn.ms_microsite_id", $microsite_id)
+                ->where("start_date", "<=", $fecha->toDateString())
+                ->where("end_date", ">=", $fecha->toDateString())
+                ->pluck('id');
+
+        /* Obtener Los Ids de las zonas Habbilitadas por los turnos habiles */
+        $turnZoneIds = \App\res_turn_zone::whereIn('res_turn_id', $turnsIds)->groupBy('res_zone_id')->pluck('res_zone_id');
+
+
+        $rows = res_zone::whereIn('id', $turnZoneIds)->with('tables')->where("status", "<>", 2);
+        if (isset($with)) {
+            $split = explode('|', $with);
+            $rows = (in_array("turns", $split)) ? $rows->with('turns') : $rows;
+            $rows = (in_array("turns.type_turn", $split)) ? $rows->with('turns.typeTurn') : $rows;
         }
         return $rows->get();
     }
@@ -46,14 +123,13 @@ class ZoneService
      * @param   string  $with  ['turns'] obtener los turnos que puede usar una zona.
      * @return  array   Lista de Estructura de zonas
      */
-    public function get(int $microsite_id, int $zone_id, $with)
-    {
+    public function get(int $microsite_id, int $zone_id, $with) {
 
         $rows = res_zone::where('id', $zone_id)->where('ms_microsite_id', $microsite_id)->with('tables');
         if (isset($with)) {
             $split = explode('|', $with);
-            $rows  = (in_array("turns", $split)) ? $rows->with('turns') : $rows;
-            $rows  = (in_array("turns.type_turn", $split)) ? $rows->with('turns.typeTurn') : $rows;
+            $rows = (in_array("turns", $split)) ? $rows->with('turns') : $rows;
+            $rows = (in_array("turns.type_turn", $split)) ? $rows->with('turns.typeTurn') : $rows;
         }
         return $rows->first();
     }
@@ -65,22 +141,21 @@ class ZoneService
      * @param   int     $user_id  Identificador del usuario que va ha registrar la zona.
      * @return  array   Lista de Estructura de zonas
      */
-    public function create(array $data, int $microsite_id, int $user_id)
-    {
+    public function create(array $data, int $microsite_id, int $user_id) {
         try {
-            $date_now              = \Carbon\Carbon::now();
-            $zone                  = new res_zone();
+            $date_now = \Carbon\Carbon::now();
+            $zone = new res_zone();
             $zone->ms_microsite_id = $microsite_id;
-            $zone->name            = $data['name'];
-            $zone->sketch          = isset($data['sketch']) ? $data['sketch'] : null;
-            $zone->type_zone       = isset($data['type_zone']) ? $data['type_zone'] : 0;
-            $zone->join_table      = isset($data['join_table']) ? $data['join_table'] : 0;
-            $zone->status_smoker   = isset($data['status_smoker']) ? $data['status_smoker'] : 0;
+            $zone->name = $data['name'];
+            $zone->sketch = isset($data['sketch']) ? $data['sketch'] : null;
+            $zone->type_zone = isset($data['type_zone']) ? $data['type_zone'] : 0;
+            $zone->join_table = isset($data['join_table']) ? $data['join_table'] : 0;
+            $zone->status_smoker = isset($data['status_smoker']) ? $data['status_smoker'] : 0;
             $zone->people_standing = isset($data['people_standing']) ? $data['people_standing'] : 0;
-            $zone->user_add        = $user_id;
-            $zone->user_upd        = $user_id;
-            $zone->date_add        = $date_now;
-            $zone->date_upd        = $date_now;
+            $zone->user_add = $user_id;
+            $zone->user_upd = $user_id;
+            $zone->date_add = $date_now;
+            $zone->date_upd = $date_now;
             DB::BeginTransaction();
             $zone->save();
             foreach ($data['tables'] as $value) {
@@ -101,20 +176,19 @@ class ZoneService
      * @param   int     $user_id  Identificador del usuario que va ha editar la zona.
      * @return  boolean [true|false]
      */
-    public function update(array $data, int $zone_id, int $user_id)
-    {
+    public function update(array $data, int $zone_id, int $user_id) {
 
         try {
-            $date_now              = \Carbon\Carbon::now();
-            $zone                  = res_zone::where('id', $zone_id)->first();
-            $zone->name            = isset($data['name']) ? $data['name'] : $zone->name;
-            $zone->sketch          = isset($data['sketch']) ? $data['sketch'] : $zone->sketch;
-            $zone->type_zone       = isset($data['type_zone']) ? $data['type_zone'] : $zone->type_zone;
-            $zone->join_table      = isset($data['join_table']) ? $data['join_table'] : $zone->join_table;
-            $zone->status_smoker   = isset($data['status_smoker']) ? $data['status_smoker'] : $zone->status_smoker;
+            $date_now = \Carbon\Carbon::now();
+            $zone = res_zone::where('id', $zone_id)->first();
+            $zone->name = isset($data['name']) ? $data['name'] : $zone->name;
+            $zone->sketch = isset($data['sketch']) ? $data['sketch'] : $zone->sketch;
+            $zone->type_zone = isset($data['type_zone']) ? $data['type_zone'] : $zone->type_zone;
+            $zone->join_table = isset($data['join_table']) ? $data['join_table'] : $zone->join_table;
+            $zone->status_smoker = isset($data['status_smoker']) ? $data['status_smoker'] : $zone->status_smoker;
             $zone->people_standing = isset($data['people_standing']) ? $data['people_standing'] : $zone->people_standing;
-            $zone->user_upd        = $user_id;
-            $zone->date_upd        = $date_now;
+            $zone->user_upd = $user_id;
+            $zone->date_upd = $date_now;
 
             DB::BeginTransaction();
             $zone->save();
@@ -140,8 +214,7 @@ class ZoneService
      * @param   int     $zone_id        Identificador de la zona.
      * @return  boolean [true|false]
      */
-    public function delete(int $microsite_id, int $zone_id)
-    {
+    public function delete(int $microsite_id, int $zone_id) {
         try {
             $zone = new res_zone();
             DB::BeginTransaction();
@@ -154,11 +227,10 @@ class ZoneService
         }
     }
 
-    public function getListTable(int $microsite_id, int $zone_id)
-    {
+    public function getListTable(int $microsite_id, int $zone_id) {
         $EnableTimesForTable = new \App\Domain\EnableTimesForTable();
-        $disablet            = $EnableTimesForTable->disabled();
-        $tables              = res_table::where('res_zone_id', $zone_id)->where('status', 1)->get(array('id', 'name', 'min_cover', 'max_cover'))->map(function ($item) use ($disablet) {
+        $disablet = $EnableTimesForTable->disabled();
+        $tables = res_table::where('res_zone_id', $zone_id)->where('status', 1)->get(array('id', 'name', 'min_cover', 'max_cover'))->map(function ($item) use ($disablet) {
             $item->availability = $disablet;
             return $item;
         });
@@ -171,16 +243,15 @@ class ZoneService
      * @param id int        Identificador del turno de una zona.
      * @return array        Estructura turno
      */
-    public function availableDaysForTypeturn(int $zone_id, int $type_turn_id)
-    {
+    public function availableDaysForTypeturn(int $zone_id, int $type_turn_id) {
         try {
             $turnos = \App\res_turn_zone::where('res_type_turn_zone_id', $type_turn_id)->where('res_zone_id', $zone_id)->get()->map(function ($item, $key) {
-                return $item->id;
-            })->toArray();
+                        return $item->id;
+                    })->toArray();
 
             $dias = res_day_turn_zone::whereIn('res_turn_zone_id', $turnos)
-                ->distinct()
-                ->get();
+                    ->distinct()
+                    ->get();
 
             $turnDomain = new TurnDomain();
             return $turnDomain->availableDays($dias);

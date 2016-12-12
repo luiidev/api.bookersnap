@@ -29,6 +29,16 @@ class res_table extends Model
     {
         return $this->hasMany('App\res_turn_table', 'res_table_id');
     }
+    
+    public function zone()
+    {
+        return $this->belongsTo('App\res_zone', 'res_zone_id');
+    }
+    
+//    public function turnsZone()
+//    {
+//        return $this->belongsToMany('App\res_turn', 'res_turn_zone', 'res_zone_id', 'res_turn_id');
+//    }
 
     public function blocks()
     {

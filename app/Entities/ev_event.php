@@ -9,7 +9,7 @@ class ev_event extends Model
     protected $table = "ev_event";
     public function type()
     {
-        return $this->belongsTo('App\Entities\bs_type_event');
+        return $this->belongsTo('App\Entities\bs_type_event', 'bs_type_event_id');
     }
 
     public function turn()

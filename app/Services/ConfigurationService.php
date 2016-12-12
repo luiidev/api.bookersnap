@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Entities\res_configuration;
+use App\Entities\res_form;
 use App\Services\Helpers\ConfigurationHelper;
-use Carbon\Carbon;
 
 class ConfigurationService
 {
@@ -29,15 +29,14 @@ class ConfigurationService
 
     public function getConfiguration(int $microsite_id)
     {
-        // $date = Carbon::now('America/Lima');
-        return res_configuration::where("ms_microsite_id", $microsite_id)->first();
+        return res_configuration::where("ms_microsite_id", $microsite_id)->with(['forms' => function ($query) {
+            $query->where('status', 1);
+        }])->first();
     }
 
     public function createDefaultConfiguration(int $microsite_id)
     {
         try {
-
-            $date = Carbon::now('America/Lima');
 
             $config                       = new res_configuration();
             $config->ms_microsite_id      = $microsite_id;
@@ -49,8 +48,6 @@ class ConfigurationService
             $config->res_code_status      = 1;
             $config->res_privilege_status = "test";
             $config->messenger_status     = 1;
-            $config->date_add             = $date;
-            $config->date_upd             = $date;
             $config->user_add             = 1;
             $config->user_upd             = 1;
             $config->reserve_portal       = 1;
@@ -74,11 +71,9 @@ class ConfigurationService
     {
         $config = res_configuration::where('ms_microsite_id', $microsite_id)->first();
         if ($config != null) {
-            $date           = Carbon::now('America/Lima');
             $confingRequest = $input;
             unset($confingRequest["_bs_user_id"]);
             unset($confingRequest["timezone"]);
-            $confingRequest["date_upd"] = $date->toDateTimeString();
             // return $confingRequest;
             $config->where('ms_microsite_id', $microsite_id)->update($confingRequest);
             $configUpdate = res_configuration::where('ms_microsite_id', $microsite_id)->first();
@@ -94,14 +89,64 @@ class ConfigurationService
         $data   = $helper->editConfiguration($input);
         $config = res_configuration::where('ms_microsite_id', $microsite_id)->first();
         if ($config != null) {
-            $date             = Carbon::now('America/Lima');
-            $data["date_upd"] = $date;
             $config->where('ms_microsite_id', $microsite_id)->update($data);
             $configUpdate = res_configuration::where('ms_microsite_id', $microsite_id)->first();
             return $configUpdate;
         } else {
             abort(500, "No existe configuracion para ese microsite");
         }
+    }
+
+    public function addFormConfiguration(int $microsite_id, array $input)
+    {
+        $config = res_configuration::where('ms_microsite_id', $microsite_id)->with(['forms' => function ($query) {
+            return $query->where('status', 1);
+        }])->first();
+        if (isset($config)) {
+            $config->forms()->attach($input);
+            $aux = res_configuration::where('ms_microsite_id', $microsite_id)->with(['forms' => function ($query) {
+                return $query->where('status', 1);
+            }])->first();
+            return $aux->forms->pluck('id');
+        } else {
+            abort(500, "No existe configuracion para ese microsite");
+        }
+    }
+
+    public function deleteFormConfiguration(int $microsite_id, array $input)
+    {
+        $config = res_configuration::where('ms_microsite_id', $microsite_id)->with(['forms' => function ($query) {
+            return $query->where('status', 1);
+        }])->first();
+        if (isset($config)) {
+            $config->forms()->detach($input);
+            $aux = res_configuration::where('ms_microsite_id', $microsite_id)->with(['forms' => function ($query) {
+                return $query->where('status', 1);
+            }])->first();
+            return $aux->forms->pluck('id');
+        } else {
+            abort(500, "No existe configuracion para ese microsite");
+        }
+    }
+
+    public function getForm(int $microsite_id)
+    {
+        $config = res_form::where('status', 1)->with('configurations')->get();
+        $form = res_form::where('status', 1)->get();
+        return $config->map(function($item) use ($microsite_id){
+            if(!$item->configurations->where('ms_microsite_id',$microsite_id)->isEmpty()){
+                $item['status'] = 1; 
+                unset($item['configurations']);
+            }else{
+                $item['status'] = 0;
+                unset($item['configurations']);
+            }
+            return $item;
+
+        });
+
+
+        return $form;
     }
 
 }

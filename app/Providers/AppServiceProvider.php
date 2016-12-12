@@ -22,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
                 return false;
             }
         }, "Los minutos no es compatible con multiplo determinado en la validación");
+
         Validator::extend('multiple_hour', function ($attribute, $value, $parameters) {
             list($y, $m, $d) = explode(":", $value);
             $resto           = fmod((int) $m, $parameters[0]);

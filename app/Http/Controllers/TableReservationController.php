@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Events\EmitNotification;
 use App\Http\Requests;
+use App\Http\Requests\GuestListRequest;
+use App\Http\Requests\ReservationFromWebRequest;
 use App\Http\Requests\TableReservationRequest;
 use App\Services\TableReservationService as Service;
 use Carbon\Carbon;
@@ -159,11 +161,9 @@ class TableReservationController extends Controller
 
     public function quickCreate(Request $request)
     {
-        $yesterday = Carbon::yesterday()->setTimezone($request->timezone)->toDateString();
+        $yesterday = Carbon::yesterday()->toDateString();
 
         $rules = [
-            "date"            => "required|date|after:$yesterday",
-            "hour"            => "required",
             "table_id"        => "required|exists:res_table,id",
             "guests"          => "required|array",
             "guests.men"      => "required|integer",
@@ -183,9 +183,12 @@ class TableReservationController extends Controller
         return $this->TryCatchDB(function () use ($request) {
 
             $reservation = $this->service->quickCreate();
-
             $this->_notification($request->route("microsite_id"), $reservation, "Se ha creado nueva reservación rápida", "create", $request->key);
-
+            $reservations = $this->service->releasedReservations($request->route("microsite_id"), $reservation->id, $request->table_id);
+            
+            if($reservations){
+                $this->_notification($request->route("microsite_id"), $reservations, "Se han liberado reservaciónciones", "update", null);
+            }
             return $this->CreateJsonResponse(true, 200, "La reservacion fue registrada.", $reservation);
         });
     }
@@ -215,6 +218,27 @@ class TableReservationController extends Controller
         });
     }
 
+    public function updateGuestList(GuestListRequest $request)
+    {
+        $this->service = Service::make($request);
+        return $this->TryCatchDB(function () use ($request) {
+            $reservations = $this->service->updateGuestList();
+
+            $this->_notification($request->route("microsite_id"), $reservations, "", "update", $request->key);
+            return $this->CreateJsonResponse(true, 200, "", $reservations[0]);
+        });
+    }
+
+    public function storeFromWeb(ReservationFromWebRequest $request) {
+            $this->service = Service::make($request);
+            return $this->TryCatchDB(function () use ($request) {
+                $reservation = $this->service->storeFromWeb();
+
+                $this->_notification($request->route("microsite_id"), $reservation, "", "create", $request->key);
+                return $this->CreateJsonResponse(true, 200, "", $reservation);
+            });
+    }
+
     public function createWaitList(Request $request)
     {
         $this->service = Service::make($request);
@@ -222,7 +246,7 @@ class TableReservationController extends Controller
         return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->create_waitlist();
 
-            $this->_notification($request->route("microsite_id"), $reservation, "Nueva Lista de espera", "create", $request->key, "waitList");
+            $this->_notification($request->route("microsite_id"), $reservation, "Nueva Lista de espera", "create", $request->key);
             return $this->CreateJsonResponse(true, 201, "La lista de espera fue registrada", $reservation);
         });
     }
@@ -234,8 +258,7 @@ class TableReservationController extends Controller
         return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->update_waitlist();
 
-            $this->_notification($request->route("microsite_id"), $reservation, "Lista de espera actualizada", "update", $request->key,
-                "waitList");
+            $this->_notification($request->route("microsite_id"), $reservation, "Lista de espera actualizada", "update", $request->key);
             return $this->CreateJsonResponse(true, 201, "La lista de espera fue actualizada", $reservation);
         });
     }
@@ -246,12 +269,12 @@ class TableReservationController extends Controller
         return $this->TryCatchDB(function () use ($request) {
             $reservation = $this->service->delete_waitlist();
 
-            $this->_notification($request->route("microsite_id"), $reservation, "Lista de espera cancelada", "delete", $request->key, "waitList");
+            $this->_notification($request->route("microsite_id"), $reservation, "Lista de espera cancelada", "update", $request->key);
             return $this->CreateJsonResponse(true, 201, "La lista de espera fue cancelada", $reservation);
         });
     }
 
-    private function _notification(Int $microsite_id, $data, String $message, String $action, String $key = null, String $controller = "reservation")
+    private function _notification(Int $microsite_id, $data, String $message, String $action, String $key = null)
     {
         event(new EmitNotification("b-mesas-floor-res",
             array(
@@ -259,8 +282,7 @@ class TableReservationController extends Controller
                 'user_msg'     => $message,
                 'data'         => $data,
                 'action'       => $action,
-                'key'          => $key,
-                "controller"   => $controller,
+                'key'          => $key
             )
         ));
     }

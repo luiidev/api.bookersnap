@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EmitNotification;
 use App\Helpers\MailMandrillHelper;
 use App\Http\Controllers\Controller as Controller;
 use App\Http\Requests\ReservationRequest;
+use App\Services\Helpers\CalendarHelper;
 use App\Services\ReservationEmailService;
 use App\Services\ReservationService;
 use Carbon\Carbon;
@@ -26,14 +28,42 @@ class ReservationController extends Controller
     public function index(Request $request)
     {
         $service = $this->_ReservationService;
-
         return $this->TryCatch(function () use ($request, $service) {
-            $date = Carbon::now($request->timezone);
-            $date = ($request->input('date')) ? $request->input('date') : $date->format('Y-m-d');
-            $data = $service->getList($request->route('microsite_id'), $date);
+            
+            $microsite_id = $request->route('microsite_id');            
+            $start_date   = $request->input('date');
+            $end_date     = $request->input('date_end');
+            
+            $data = $service->getList($microsite_id, $start_date, $end_date);
+            
             return $this->CreateResponse(true, 201, "", $data);
         });
     }
+
+    public function search(Request $request)
+    {
+        $service = $this->_ReservationService;
+
+        return $this->TryCatch(function () use ($request, $service) {
+
+            $date                   = Carbon::now();
+            $params                 = $request->all();
+            $params['date']         = ($request->input('date')) ? $request->input('date') : $date->format('Y-m-d');
+            $params['date_end']     = ($request->input('date_end')) ? $request->input('date_end') : $params['date'];
+            $params['page_size']    = ($request->input('page_size')) ? $request->input('page_size') : 0;
+            $params['search_text']  = ($request->input('search_text')) ? $request->input('search_text') : "";
+            $params['turns']        = ($request->input('turns')) ? explode(",", $request->input('turns')) : [];
+            $params['sources']      = ($request->input('sources')) ? explode(",", $request->input('sources')) : [];
+            $params['zones']        = ($request->input('zones')) ? explode(",", $request->input('zones')) : [];
+            $params['sort']         = ($request->input('sort')) ? $request->input('sort') : 'time.asc';
+            $params['microsite_id'] = $request->route('microsite_id');
+
+            $data = $service->getListSearch($params);
+
+            return $this->CreateResponse(true, 201, "", $data);
+        });
+    }
+
     public function show(Request $request)
     {
         $service = $this->_ReservationService;
@@ -92,10 +122,9 @@ class ReservationController extends Controller
     public function sendEmail(Request $request)
     {
         $service = $this->_ReservationService;
-        $date    = Carbon::now($request->timezone);
-        $date    = $date->format('Y-m-d');
-        return $this->TryCatch(function () use ($request, $service, $date) {
 
+        return $this->TryCatch(function () use ($request, $service) {
+            
             $messageData['from_email'] = "user@bookersnap.com";
             $messageData['from_name']  = "bookersnap.com";
 
@@ -103,11 +132,9 @@ class ReservationController extends Controller
 
             if (!$reservation) {
                 abort(401, "No existe reservación");
-            } else if ($reservation->email == null) {
-                abort(401, "La reservación no tiene email");
             }
 
-            $messageData['to_email'] = $reservation->email;
+            $messageData['to_email'] = $request->input("email");
             $messageData['to_name']  = $reservation->guest->first_name . " " . $reservation->guest->last_name;
 
             $messageData['subject'] = $request->input("subject");
@@ -117,7 +144,6 @@ class ReservationController extends Controller
 
             $messageData['res_reservation_id'] = $reservation->id;
             $messageData['user_add']           = $request->_bs_user_id;
-            $messageData['date_add']           = $date;
             $this->_ReservationEmailService->create($messageData);
 
             return $this->CreateResponse(true, 200, "Mensaje enviado", $response);
@@ -135,6 +161,32 @@ class ReservationController extends Controller
             $response = $service->listSourceType();
             return $this->CreateResponse(true, 200, "", $response);
         });
+    }
+
+    public function patch(Request $request)
+    {
+
+        $service = $this->_ReservationService;
+        return $this->TryCatch(function () use ($request, $service) {
+            $result = $service->patch($request->all(), $request->route('microsite_id'));
+
+            $this->_notification($request->route("microsite_id"), [$result], "Reservación actualizada", "update", $request->key);
+
+            return response()->json($result);
+        });
+    }
+
+    private function _notification(Int $microsite_id, $data, String $message, String $action, String $key = null)
+    {
+        event(new EmitNotification("b-mesas-floor-res",
+            array(
+                'microsite_id' => $microsite_id,
+                'user_msg'     => $message,
+                'data'         => $data,
+                'action'       => $action,
+                'key'          => $key,
+            )
+        ));
     }
 
 }

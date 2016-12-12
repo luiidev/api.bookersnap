@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use App\Http\Requests\Request;
 use Carbon\Carbon;
 
-class ReservationTemporalRequest extends Request
+class AvailabilityInfoRequest extends Request
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,14 +24,13 @@ class ReservationTemporalRequest extends Request
      */
     public function rules()
     {
-        $dateMin = Carbon::yesterday('America/Lima')->subDay()->toDateString();
+        $dateMin = Carbon::yesterday($this->timezone)->subDay()->toDateString();
         return [
-            'hour'        => 'required|date_format: H:i:s|multiple_hour:15',
-            'date'        => "required|date_format: Y-m-d|after:$dateMin",
-            'num_guests'  => 'required|integer',
-            'zone_id'     => 'integer|exists:res_zone,id',
-            'next_day'    => 'required|integer',
-            'ev_event_id' => 'integer',
+            "date"       => "required|date_format: Y-m-d|after:$dateMin",
+            "hour"       => "date_format: H:i:s|multiple_hour:15",
+            "next_day"   => "integer|between:0,1",
+            "zone_day"   => "integer|exists:res_zone,id",
+            "num_guests" => "integer",
         ];
     }
 

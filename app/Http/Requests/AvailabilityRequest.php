@@ -27,15 +27,17 @@ class AvailabilityRequest extends Request
         // $dateMin = Carbon::yesterday($this->timezone)->toDateString();
         // $dateMax = Carbon::tomorrow($this->timezone)->toDateString();
 
-        $dateMin = Carbon::yesterday('America/Lima')->toDateString();
-        $dateMax = Carbon::tomorrow('America/Lima')->toDateString();
+        $dateMin = Carbon::yesterday($this->timezone)->subDay()->toDateString();
+        // $dateMax = Carbon::tomorrow('America/Lima')->toDateString();
 
         return [
             'hour'       => 'required|date_format: H:i:s|multiple_hour:15',
-            'date'       => "required|date_format: Y-m-d|after:$dateMin|before:$dateMax",
+            // 'date'       => "required|date_format: Y-m-d|after:$dateMin|before:$dateMax",
+            'date'       => "required|date_format: Y-m-d|after:$dateMin",
             'num_guests' => 'required|integer',
             'next_day'   => 'required|integer|between:0,1',
             'zone_id'    => 'integer|exists:res_zone,id',
+            'event_id'   => 'integer|exists:ev_event,id',
         ];
 
     }

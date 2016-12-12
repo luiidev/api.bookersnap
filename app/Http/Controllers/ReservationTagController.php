@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EmitNotification;
 use App\Http\Requests\ReservationTagRequest;
 use App\Services\ReservationTagService;
 use Illuminate\Http\Request;
@@ -22,7 +23,6 @@ class ReservationTagController extends Controller
      */
     public function index(Request $request)
     {
-        // dd($request);
         $microsite_id = $request->route("microsite_id");
         $tags         = $this->service->get_tags($microsite_id);
         return $this->CreateJsonResponse(true, 200, "", $tags);
@@ -50,6 +50,7 @@ class ReservationTagController extends Controller
         $microsite_id = $request->route("microsite_id");
         return $this->TryCatchDB(function () use ($microsite_id, $name) {
             $tag = $this->service->create_tag($microsite_id, $name);
+            $this->_notification($microsite_id);
             return $this->CreateJsonResponse(true, 201, "Se agrego nuevo tag", $tag);
         });
     }
@@ -99,6 +100,17 @@ class ReservationTagController extends Controller
         $idTag = $request->route("tag");
 
         $response = $this->service->destroy_tag($idTag);
+        $this->_notification($request->route("microsite_id"));
         return $this->CreateJsonResponse(true, 200, "Se elimino tag seleccionado", $response);
+    }
+
+    private function _notification(Int $microsite_id)
+    {
+        event(new EmitNotification("b-mesas-config-update",
+            array(
+                'microsite_id' => $microsite_id,
+                'user_msg'     => 'Hay una actualización en la configuración (Tags).',
+            )
+        ));
     }
 }

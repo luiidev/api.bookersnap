@@ -10,22 +10,25 @@ use App\res_zone;
 use App\Services\Helpers\DateTimesHelper;
 use Carbon\Carbon;
 use DB;
+use App\Services\Helpers\CalendarHelper;
 
 class CalendarService
 {
-
+    
     public function getList(int $microsite_id, int $year, int $month, int $day = null)
     {
         $calendar = new Calendar($year, $month, $day);
-
-        $turns = res_turn_calendar::with("turn")
+        //return Helpers\CalendarHelper::searchDate($microsite_id);
+        $turns = res_turn_calendar::with(["turn.zones" => function($query) {
+            return $query->select("id");
+        }])
             ->whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
             ->get()
             ->map(function ($item) {
                 return (object) [
                     'title'      => $item->turn->name,
                     // 'start_time' => $item->turn->hours_ini,
-                    // 'end_time' => $item->turn->hours_end,
+                    // 'end_time'   => $item->turn->hours_end,
                     'start_time' => $item->start_time,
                     'end_time'   => $item->end_time,
                     'color'      => $item->turn->typeTurn->color,
@@ -51,7 +54,8 @@ class CalendarService
     }
 
     public function getListShift(int $microsite_id, string $date)
-    {
+    {   
+        $date   = CalendarHelper::realDate($microsite_id, $date);        
         list($year, $month, $day) = explode("-", $date);
         $turns                    = $this->getList($microsite_id, $year, $month, $day);
 
@@ -281,13 +285,15 @@ class CalendarService
 
     /**
      *  Retonar la zonas disponible para una fecha, consultando los turnos disponibles en en la fecha indicada
-     * @param  Int    $microsite
+     * @param  Int    $microsite_id
      * @param  String    $date
      * @return  Illuminate\Database\Eloquent\Collection App\res_zone
      */
-    public function getZones(Int $microsite, String $date, String $date_end)
-    {
-        $now   = Carbon::now();
+    public function getZones(Int $microsite_id, String $date, String $date_end = null)
+    {           
+        $date   = CalendarHelper::realDate($microsite_id, $date);        
+        $date_end = (strcmp($date, $date_end) < 0) ? $date_end : $date;
+        
         $turns = res_turn_calendar::where(function ($query) use ($date, $date_end) {
 
             $query->whereBetween("start_date", array($date, $date_end));
@@ -298,7 +304,7 @@ class CalendarService
 
         $zones = res_zone::join("res_turn_zone as tz", "tz.res_zone_id", "=", "res_zone.id")
             ->whereIn('tz.res_turn_id', $turns)
-            ->where('ms_microsite_id', $microsite)
+            ->where('ms_microsite_id', $microsite_id)
             ->distinct()
             ->with(['tables' => function ($query) {
                 return $query->with(["turns" => function ($query) {
@@ -318,4 +324,5 @@ class CalendarService
 
         return $zones;
     }
+    
 }

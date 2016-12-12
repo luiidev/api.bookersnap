@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EmitNotification;
 use App\Http\Requests\GuestRequest;
 use App\Services\GuestService;
 use Illuminate\Http\Request;
@@ -94,6 +95,7 @@ class GuestController extends Controller
         $params       = $request->input();
         return $this->TryCatch(function () use ($params, $microsite_id) {
             $result = $this->_GuestService->createTagCustom($params, $microsite_id);
+            $this->_notification($microsite_id);
             return $this->CreateResponse(true, 200, "", $result);
         });
     }
@@ -110,8 +112,18 @@ class GuestController extends Controller
         $guest_tag_id = $request->route('guest_tag_id');
         return $this->TryCatch(function () use ($guest_tag_id, $microsite_id) {
             $result = $this->_GuestService->deleteTagCustom($guest_tag_id, $microsite_id);
+            $this->_notification($microsite_id);
             return $this->CreateResponse(true, 200, "Se elimino tag seleccionado", $result);
         });
     }
 
+    private function _notification(Int $microsite_id)
+    {
+        event(new EmitNotification("b-mesas-config-update",
+            array(
+                'microsite_id' => $microsite_id,
+                'user_msg'     => 'Hay una actualización en la configuración (Tags).',
+            )
+        ));
+    }
 }
