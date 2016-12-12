@@ -6,11 +6,11 @@ use App\res_guest;
 use App\res_reservation;
 use App\res_reservation_status;
 use App\res_source_type;
+use App\Services\Helpers\CalendarHelper;
 use App\Services\Helpers\ReservationHelper;
 use App\Services\Helpers\TurnsHelper;
 use DB;
 use Exception;
-use App\Services\Helpers\CalendarHelper;
 
 class ReservationService
 {
@@ -38,15 +38,15 @@ class ReservationService
 
     public function getListSearch(array $params)
     {
-        
+
         $microsite_id = $params['microsite_id'];
         $start_date   = CalendarHelper::realDate($microsite_id, $params['date']);
-        $end_date = $params['date_end'];        
-        $end_date = (strcmp($start_date, $end_date) > 0) ? $end_date : $start_date;
-        
-        $realDateTimeOpen = CalendarHelper::realDateTimeOpen($microsite_id, $start_date);
+        $end_date     = $params['date_end'];
+        $end_date     = (strcmp($start_date, $end_date) > 0) ? $end_date : $start_date;
+
+        $realDateTimeOpen  = CalendarHelper::realDateTimeOpen($microsite_id, $start_date);
         $realDateTimeClose = CalendarHelper::realDateTimeClose($microsite_id, $end_date);
-        
+
         $reservations = res_reservation::select("res.*")->with([
             "tables" => function ($query) {
                 return $query->select("res_table.id", "res_zone_id", "name");
@@ -70,7 +70,7 @@ class ReservationService
         }
 
 //        $reservations = $reservations->whereBetween("res.date_reservation", array($params['date'], $params['date_end']));
-        
+
         $reservations = $reservations->whereRaw("CONCAT(res.date_reservation, ' ', res.hours_reservation) BETWEEN ? AND ?", array($realDateTimeOpen, $realDateTimeClose));
 
         if (count($params['turns']) > 0) {
@@ -116,16 +116,16 @@ class ReservationService
 
     public function getList(int $microsite_id, string $start_date = null, string $end_date = null)
     {
-        
-        if(is_null($start_date)){
-            $start_date   = CalendarHelper::realDate($microsite_id);
-        }       
-        if(strcmp($end_date, $start_date) < 0){
+
+        if (is_null($start_date)) {
+            $start_date = CalendarHelper::realDate($microsite_id);
+        }
+        if (strcmp($end_date, $start_date) < 0) {
             $end_date = $start_date;
-        }        
-        $realDateTimeOpen = CalendarHelper::realDateTimeOpen($microsite_id, $start_date);
+        }
+        $realDateTimeOpen  = CalendarHelper::realDateTimeOpen($microsite_id, $start_date);
         $realDateTimeClose = CalendarHelper::realDateTimeClose($microsite_id, $end_date);
-            
+
         $reservations = res_reservation::select("res.*")->with([
             "tables" => function ($query) {
                 return $query->select("res_table.id", "res_zone_id", "name");
