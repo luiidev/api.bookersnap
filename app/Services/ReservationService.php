@@ -42,10 +42,7 @@ class ReservationService
         $microsite_id = $params['microsite_id'];
         $start_date   = CalendarHelper::realDate($microsite_id, $params['date']);
         $end_date = $params['date_end'];        
-        $end_date = (strcmp($start_date, $end_date) > 0) ? $end_date : $start_date;
-        
-        $realDateTimeOpen = CalendarHelper::realDateTimeOpen($microsite_id, $start_date);
-        $realDateTimeClose = CalendarHelper::realDateTimeClose($microsite_id, $end_date);
+        $end_date = (strcmp($end_date, $start_date) > 0) ? $end_date : $start_date;
         
         $reservations = res_reservation::select("res.*")->with([
             "tables" => function ($query) {
@@ -71,7 +68,7 @@ class ReservationService
 
 //        $reservations = $reservations->whereBetween("res.date_reservation", array($params['date'], $params['date_end']));
         
-        $reservations = $reservations->whereRaw("CONCAT(res.date_reservation, ' ', res.hours_reservation) BETWEEN ? AND ?", array($realDateTimeOpen, $realDateTimeClose));
+        $reservations = $reservations->whereRaw("res.date_reservation BETWEEN ? AND ?", array($start_date, $end_date));
 
         if (count($params['turns']) > 0) {
 

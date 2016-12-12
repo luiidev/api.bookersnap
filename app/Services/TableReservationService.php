@@ -326,8 +326,10 @@ class TableReservationService extends Service
         if ($reservation !== null) {
 
             // Actualizar reservacion
-            $reservation->res_reservation_status_id = self::_ID_STATUS_RESERVATION_SEATED;
-            $this->update_input_output($reservation);
+            if($reservation->res_reservation_status_id != self::_ID_STATUS_RESERVATION_SEATED){
+                $reservation->res_reservation_status_id = self::_ID_STATUS_RESERVATION_SEATED;
+                $this->update_input_output($reservation);
+            }
 
             if ($this->req->has("guests")) {
                 // Por consultar actualizacion de  numero de invitados
