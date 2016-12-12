@@ -68,14 +68,17 @@ class WebAppController extends Controller
             ];
             return $this->CreateResponse(true, 201, "", $data);
         });
-    }
+    }    
     
-    public function formReservation(Request $request){
+    public function editReservation(Request $request){
 
     	return $this->TryCatch(function () use ($request) {
 
             $microsite_id = $request->route('microsite_id');
-            $date = CalendarHelper::realDate($microsite_id, $request->input('date'));
+            $reservation_id = $request->route('reservation_id');
+                        
+            $reservation = $this->reservation($microsite_id, $reservation_id);
+            $date = ($reservation)?$reservation->date_reservation : CalendarHelper::realDate($microsite_id, $request->input('date'));
             
             $turnsIds = $this->turnsIdsByDate($microsite_id, $date);
             $zones = $this->zonesIdsByTurnsIds($turnsIds);
@@ -88,40 +91,6 @@ class WebAppController extends Controller
             $shifts = $this->shifts($turnsIds, $notes);
             $blockTables = $this->_BlockService->getTables($microsite_id, $date);
             $reservations = $this->reservationsByDate($microsite_id, $date);
-            $data = [
-                "zones" => $zones,
-            	"config" => $configuration,
-                "status" => $status,
-            	"servers" => $servers,
-            	"tags" => $tags,
-                "shifts" => $shifts,
-            	"sourceTypes" => $sourceTypes,
-                "blockTables" => $blockTables,
-                "reservations" => $reservations
-            ];
-            return $this->CreateResponse(true, 201, "", $data);
-        });
-    }
-    
-    public function editReservation(Request $request){
-
-    	return $this->TryCatch(function () use ($request) {
-
-            $microsite_id = $request->route('microsite_id');
-            $reservation_id = $request->route('reservation_id');
-                        
-            $reservation = $this->reservation($microsite_id, $reservation_id);
-            $turnsIds = $this->turnsIdsByDate($microsite_id, $reservation->date_reservation);
-            $zones = $this->zonesIdsByTurnsIds($turnsIds);
-            $configuration = $this->configuration($microsite_id);
-            $servers = $this->servers($microsite_id);
-            $tags = $this->tagsReservations($microsite_id);
-            $sourceTypes = $this->souceTypes();
-            $status = $this->status();
-            $notes = $this->notes($microsite_id, $reservation->date_reservation);
-            $shifts = $this->shifts($turnsIds, $notes);
-            $blockTables = $this->_BlockService->getTables($microsite_id, $reservation->date_reservation);
-            $reservations = $this->reservationsByDate($microsite_id, $reservation->date_reservation);
             
             $data = [
             	"reservation" => $reservation,
@@ -137,6 +106,34 @@ class WebAppController extends Controller
             ];
             return $this->CreateResponse(true, 201, "", $data);
         });
+    }
+            
+    public function editBlock(Request $request){
+
+    	return $this->TryCatch(function () use ($request) {
+
+            $microsite_id = $request->route('microsite_id');
+            $block_id = $request->route('block_id');
+            
+            $block = $this->block($microsite_id, $block_id);
+            $date = ($block) ? $block->start_date: CalendarHelper::realDate($microsite_id, $request->input('date'));
+            $turnsIds = $this->turnsIdsByDate($microsite_id, $date);
+            $zones = $this->zonesIdsByTurnsIds($turnsIds);
+            $notes = $this->notes($microsite_id, $date);
+            $shifts = $this->shifts($turnsIds, $notes);
+            $blockTables = $this->_BlockService->getTables($microsite_id, $date);
+            $data = [
+                "block" => $block,
+                "zones" => $zones,
+                "shifts" => $shifts,
+                "blockTables" => $blockTables,
+            ];
+            return $this->CreateResponse(true, 201, "", $data);
+        });
+    }
+    
+    private function block($microsite_id, $block_id) {
+        return \App\Entities\Block::where("ms_microsite_id", $microsite_id)->with('tables')->find($block_id);
     }
     
     private function reservation($microsite_id, $reservation_id) {
