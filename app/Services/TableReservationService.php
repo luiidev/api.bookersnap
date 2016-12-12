@@ -148,15 +148,18 @@ class TableReservationService extends Service
             $reservation->datetime_input  = ($action == "create") ? $now->toDateTimeString():$reservation->datetime_input;
             $reservation->datetime_output = $now->toDateTimeString();
         }
-
+        
+        $reservation->status_standing = (is_array($this->req->tables) && count($this->req->tables) > 0) ? 0:1;
+        
         $reservation->save();
-
-        $tables = array();
-        foreach ($this->req->tables as $key => $value) {
-            $tables[$value] = array("num_people" => 0);
+        
+        if(is_array($this->req->tables)){
+            $tables = array();
+            foreach ($this->req->tables as $value) {
+                $tables[$value] = array("num_people" => 0);
+            }
+            $reservation->tables()->sync($tables);
         }
-
-        $reservation->tables()->sync($tables);
 
         if ($this->req->has("tags")) {
             $reservation->tags()->sync($this->req->tags);
