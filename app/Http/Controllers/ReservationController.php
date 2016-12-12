@@ -45,6 +45,7 @@ class ReservationController extends Controller
         $service = $this->_ReservationService;
 
         return $this->TryCatch(function () use ($request, $service) {
+
             $date                   = Carbon::now();
             $params                 = $request->all();
             $params['date']         = ($request->input('date')) ? $request->input('date') : $date->format('Y-m-d');
@@ -58,6 +59,7 @@ class ReservationController extends Controller
             $params['microsite_id'] = $request->route('microsite_id');
 
             $data = $service->getListSearch($params);
+
             return $this->CreateResponse(true, 201, "", $data);
         });
     }
@@ -122,7 +124,7 @@ class ReservationController extends Controller
         $service = $this->_ReservationService;
 
         return $this->TryCatch(function () use ($request, $service) {
-
+            
             $messageData['from_email'] = "user@bookersnap.com";
             $messageData['from_name']  = "bookersnap.com";
 

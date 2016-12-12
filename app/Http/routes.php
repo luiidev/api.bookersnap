@@ -223,6 +223,17 @@ function routeMesas()
             Route::get('people', 'AvailabilityController@getPeople');
             Route::get('formatAvailability', 'AvailabilityController@getFormatAvailability');
         });
+
+        //-----------------------------------------------------
+        // MICROSITE:: Floor
+        //-----------------------------------------------------
+        Route::group(['prefix' => 'web-app/'], function () {
+            Route::get('floor', 'WebAppController@floor');
+            Route::get('reservation', 'WebAppController@editReservation');
+            Route::get('reservation/{reservation_id}', 'WebAppController@editReservation');
+            Route::get('block', 'WebAppController@editBlock');
+            Route::get('block/{block_id}', 'WebAppController@editBlock');
+        });
     });
 
 }

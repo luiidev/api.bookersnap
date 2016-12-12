@@ -15,32 +15,26 @@ class BlockService {
 
     public function getBlock($microsite, $id_block) {
         $block = Block::with('tables')->find($id_block);
-
         return $block;
     }
 
     public function listado(int $microsite_id, string $date = null) {
         
-        if (is_null($date)) {
-            $date = CalendarHelper::realDate($microsite_id);
-        }
-        $realDateTimeOpen = CalendarHelper::realDateTimeOpen($microsite_id, $date);
-        $realDateTimeClose = CalendarHelper::realDateTimeClose($microsite_id, $date);
-
+        $date = CalendarHelper::realDate($microsite_id, $date);
         $data = array();
         $blocks = Block::with('tables')->where("ms_microsite_id", "=", $microsite_id)
-                        ->whereRaw("CONCAT(res_block.start_date, ' ', res_block.start_time) BETWEEN ? AND ?", array($realDateTimeOpen, $realDateTimeClose))->get();
-
+                        ->where("res_block.start_date", $date)->get();
         return $blocks;
+        
     }
 
     public function getTables(int $microsite_id, string $date = null) {
         
-        list($datetimeOpen, $datetimeClose) = CalendarHelper::realDateTimeOpenAndClose($microsite_id, $date);
+        $date = CalendarHelper::realDate($microsite_id, $date);
 
         $data = array();
         $blocks = Block::where("ms_microsite_id", "=", $microsite_id)
-                        ->whereRaw("CONCAT(res_block.start_date, ' ', res_block.start_time) BETWEEN ? AND ?", array($datetimeOpen, $datetimeClose))->get();
+                        ->where("res_block.start_date", $date)->get();
         $i = 0;
         foreach ($blocks as $block) {
             $blockTables = BlockTable::where("res_block_id", "=", $block->id)->get();
@@ -65,11 +59,9 @@ class BlockService {
 
     public function getTablesReservation(int $microsite_id, string $date) {
         
-        list($datetimeOpen, $datetimeClose) = CalendarHelper::realDateTimeOpenAndClose($microsite_id, $date);
         $data = array();
-
         $reservations = res_reservation::with("server")->where("ms_microsite_id", "=", $microsite_id)
-                ->whereRaw("CONCAT(date_reservation, ' ', hours_reservation) BETWEEN ? AND ?", array($datetimeOpen, $datetimeClose))->get();
+                ->where("date_reservation", $date)->get();
 
         $i = 0;
         foreach ($reservations as $reservation) {
@@ -96,14 +88,21 @@ class BlockService {
 
         DB::beginTransaction();
         try {
-
+            
+            $reservationInit = CalendarHelper::CalculeTimesReservation($microsite, $data["start_date"], $data["start_time"]);
+            $reservationEnd = CalendarHelper::CalculeTimesReservation($microsite, $data["start_date"], $data["end_time"]);
+            if(!$reservationInit && !$reservationEnd){
+                abort(500, "Rango de horas no permitido");
+            }
+            
             $model = new Block();
             $model->start_date = isset($data["start_date"]) ? $data["start_date"] : "";
-            $model->end_date = $model->start_date;
-            $model->start_time = isset($data["start_time"]) ? $data["start_time"] : "";
-            $model->end_time = isset($data["end_time"]) ? $data["end_time"] : "";
-            $model->ms_microsite_id = $microsite;
-
+            $model->start_time = $reservationInit->hours_reservation;
+            $model->end_time = $reservationEnd->hours_reservation;
+            $model->ms_microsite_id = $microsite;            
+            $model->start_datetime = $reservationInit->date_reservation ." ".$reservationInit->hours_reservation;
+            $model->end_datetime = $reservationEnd->date_reservation ." ".$reservationEnd->hours_reservation;
+            
             $model->user_add = 1;
 
             if (!$model->save()) {
@@ -144,11 +143,22 @@ class BlockService {
             }
 
             $model->start_date = isset($data["start_date"]) ? $data["start_date"] : $model->start_date;
-            $model->end_date = $model->start_date;
             $model->start_time = isset($data["start_time"]) ? $data["start_time"] : $model->start_time;
             $model->end_time = isset($data["end_time"]) ? $data["end_time"] : $model->end_time;
             $model->user_upd = 1;
-
+            
+            $reservationInit = CalendarHelper::CalculeTimesReservation($microsite, $model->start_date, $model->start_time);
+            $reservationEnd = CalendarHelper::CalculeTimesReservation($microsite, $model->start_date, $model->end_time);
+            if(!$reservationInit && !$reservationEnd){
+                abort(500, "Rango de horas no permitido");
+            }
+            
+            $model->start_time = $reservationInit->hours_reservation;
+            $model->end_time = $reservationEnd->hours_reservation;           
+            $model->start_datetime = $reservationInit->date_reservation ." ".$reservationInit->hours_reservation;
+            $model->end_datetime = $reservationEnd->date_reservation ." ".$reservationEnd->hours_reservation;
+            
+            
             if (!$model->update()) {
                 throw new Exception('messages.block_error_update');
             }

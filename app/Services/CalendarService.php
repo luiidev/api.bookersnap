@@ -324,4 +324,5 @@ class CalendarService
 
         return $zones;
     }
+    
 }

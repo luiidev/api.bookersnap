@@ -145,7 +145,10 @@ class CalendarHelper {
                             ->where("res_turn.ms_microsite_id", $microsite_id)
                             ->where("start_date", "<=", $yesterday->toDateString())
                             ->where("end_date", ">=", $yesterday->toDateString())
-                            ->orderBy("end_datetime", 'DESC')->limit(1)->first();
+                            /*->where(DB::raw("CONCAT('" . $yesterday->toDateString() . "',' ', start_time)"), "<=", $now->toDateTimeString())
+                            ->where(DB::raw("IF(end_time > start_time, CONCAT('" . $yesterday->toDateString() . "',' ',end_time), CONCAT('" . $now->toDateString() . "',' ',end_time))"), ">=", $now->toDateTimeString())*/
+                            ->orderBy("end_datetime", 'DESC')
+                            ->limit(1)->first();
 
             if ($turnYesterday) {
                 $endDatetime = Carbon::parse($turnYesterday->end_datetime);

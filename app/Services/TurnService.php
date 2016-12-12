@@ -54,7 +54,6 @@ class TurnService {
             $rows = (in_array("zones.turns", $data)) ? $rows->with('zones.turns') : $rows;
             $rows = (in_array("calendar", $data)) ? $rows->with('calendar') : $rows;
         }
-
         return $rows->get();
     }
 

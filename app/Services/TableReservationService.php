@@ -113,10 +113,12 @@ class TableReservationService extends Service
         }
 
         $now     = Carbon::now();
-        $turn = TurnsHelper::TypeTurnWithHourForHour($this->req->date, $this->req->hour, $this->microsite_id);
-        
-        $duration                     = ($action == "create") ? $this->req->duration : $reservation->hours_duration;
-        
+        //$turn = TurnsHelper::TypeTurnWithHourForHour($this->req->date, $this->req->hour, $this->microsite_id);        
+        $reservationInit = CalendarHelper::CalculeTimesReservation($this->microsite_id, $this->req->date, $this->req->hour);
+        if(!$reservationInit){
+            abort(500, "No hay reservaciones para esta fecha");
+        }        
+        //$duration                     = ($action == "create") ? $this->req->duration : $reservation->hours_duration;        
         
         $reservation->res_guest_id              = $guest_id;
         $reservation->res_source_type_id        = self::_ID_SOURCE_RESERVATION_HOSTESS;
@@ -124,7 +126,7 @@ class TableReservationService extends Service
         $reservation->status_released           = 0;
         $reservation->num_guest                 = $this->req->covers;
         $reservation->date_reservation          = $this->req->date;
-        $reservation->hours_reservation         = $this->req->hour;
+        $reservation->hours_reservation         = $reservationInit->hours_reservation;
         $reservation->hours_duration            = $this->req->duration;
         $reservation->res_server_id             = $this->req->server_id;
         $reservation->note                      = $this->req->note;
@@ -132,29 +134,32 @@ class TableReservationService extends Service
         $reservation->email                     = $email;
         $reservation->user_add                  = $this->req->_bs_user_id;
         $reservation->ms_microsite_id           = $this->microsite_id;
-        $reservation->res_turn_id               = $turn->turn_id;
+        $reservation->res_turn_id               = $reservationInit->res_turn_id;
 
         if ($this->req->status_id < self::_ID_STATUS_RESERVATION_SEATED) {
 //            if ($action == "create") {
-                $reservation->datetime_input  = trim($reservation->date_reservation) . ' ' . trim($reservation->hours_reservation);
+                $reservation->datetime_input  = trim($reservationInit->date_reservation) . ' ' . trim($reservation->hours_reservation);
                 $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $reservation->hours_duration);
 //            }
         } else if ($this->req->status_id == self::_ID_STATUS_RESERVATION_SEATED) {
             $reservation->datetime_input  = $now->toDateTimeString();
             $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $reservation->hours_duration);
-        } else if ($this->req->status_id == self::_ID_STATUS_RESERVATION_RELEASED || $this->req->status_id == self::_ID_STATUS_RESERVATION_CANCELED || $this->req->status_id == self::_ID_STATUS_RESERVATION_ABSENT) {
+        } else if ($this->req->status_id == self::_ID_STATUS_RESERVATION_RELEASED || $this->req->status_id == self::_ID_STATUS_RESERVATION_CANCELED || $this->req->status_id == self::_ID_STATUS_RESERVATION_ABSENT) {            
             $reservation->datetime_input  = ($action == "create") ? $now->toDateTimeString():$reservation->datetime_input;
             $reservation->datetime_output = $now->toDateTimeString();
         }
-
+        
+        $reservation->status_standing = (is_array($this->req->tables) && count($this->req->tables) > 0) ? 0:1;
+        
         $reservation->save();
-
-        $tables = array();
-        foreach ($this->req->tables as $key => $value) {
-            $tables[$value] = array("num_people" => 0);
+        
+        if(is_array($this->req->tables)){
+            $tables = array();
+            foreach ($this->req->tables as $value) {
+                $tables[$value] = array("num_people" => 0);
+            }
+            $reservation->tables()->sync($tables);
         }
-
-        $reservation->tables()->sync($tables);
 
         if ($this->req->has("tags")) {
             $reservation->tags()->sync($this->req->tags);
@@ -191,8 +196,7 @@ class TableReservationService extends Service
             "res_server_id",
         );
 
-        $reservation = res_reservation::select($get)->withRelations()->where("ms_microsite_id", $this->microsite_id)->find($this->reservation);
-        $reservation->date_reservation = CalendarHelper::dateReservationInCalendar($this->microsite_id, $reservation->date_reservation, $reservation->hours_reservation);        
+        $reservation = res_reservation::select($get)->withRelations()->where("ms_microsite_id", $this->microsite_id)->find($this->reservation);       
         return $reservation;
     }
 
@@ -258,8 +262,9 @@ class TableReservationService extends Service
         
         if(!$reservationInit){
             abort(500, "No puedes crear reservaciones rápidas en este tiempo");
-        }        
-//        $realDate = CalendarHelper::realDate($this->microsite_id, $date);
+        }
+        
+        $realDate = CalendarHelper::realDate($this->microsite_id);
 //        $turn     = TurnsHelper::TypeTurnWithHourForHour($realDate, $time, $this->microsite_id);
         $duration = res_turn_time::where("res_turn_id", $reservationInit->res_turn_id)->where("num_guests", $num_guest)->first();
 
@@ -271,7 +276,7 @@ class TableReservationService extends Service
         $reservation->num_people_1              = $this->req->guests["men"];
         $reservation->num_people_2              = $this->req->guests["women"];
         $reservation->num_people_3              = $this->req->guests["children"];
-        $reservation->date_reservation          = $reservationInit->date_reservation;
+        $reservation->date_reservation          = $realDate;
         $reservation->hours_reservation         = $reservationInit->hours_reservation;
         $reservation->hours_duration            = $duration ? $duration->time : "01:30:00";
         $reservation->user_add                  = $this->req->_bs_user_id;
@@ -324,8 +329,10 @@ class TableReservationService extends Service
         if ($reservation !== null) {
 
             // Actualizar reservacion
-            $reservation->res_reservation_status_id = self::_ID_STATUS_RESERVATION_SEATED;
-            $this->update_input_output($reservation);
+            if($reservation->res_reservation_status_id != self::_ID_STATUS_RESERVATION_SEATED){
+                $reservation->res_reservation_status_id = self::_ID_STATUS_RESERVATION_SEATED;
+                $this->update_input_output($reservation);
+            }
 
             if ($this->req->has("guests")) {
                 // Por consultar actualizacion de  numero de invitados
