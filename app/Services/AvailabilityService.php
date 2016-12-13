@@ -14,6 +14,7 @@ use App\res_turn_calendar;
 use App\Services\CalendarService;
 use App\Services\Helpers\CalendarHelper;
 use Carbon\Carbon;
+use DB;
 
 class AvailabilityService
 {
@@ -730,17 +731,17 @@ class AvailabilityService
             }
         }
         // return ;
-        // dd("test");
+        //dd($indexQuery, $indexAvailability, $indexHourMax, $resultsMid);
         if (count($resultsMid) > 0) {
             $arrayMid->push($resultsMid);
         } else {
-            $arrayMid->push(["index" => $indexQuery, "hour" => $hourQuery->toTimeString(), "tables_id" => null, "form" => null, "promotions" => null]);
+            $arrayMid->push(["index" => $indexQuery, "hour" => $hourQuery->toTimeString(), "tables_id" => null, "availability" => false, "form" => null, "promotions" => null]);
         }
 
         $arrayUp = $this->searchUpAvailability($indexHourInitUp, $microsite_id, $date, $num_guests, $zone_id, $indexHourMax, $timezone, $availabilityTables, $eventId);
 
         $arrayDown = $this->searchDownAvailability($indexHourInitDown, $microsite_id, $date, $num_guests, $zone_id, $indexHourMin, $timezone, $availabilityTables, $eventId);
-
+        
         $cantUp = $arrayUp->count();
         if ($cantUp < 2) {
             $arrayUp = $this->addUpAvailavility($arrayUp, $indexQuery + $cantUp + 1, $indexHourMax, $eventId);
@@ -749,9 +750,10 @@ class AvailabilityService
         if ($cantDown < 2) {
             $arrayDown = $this->addDownAvailavility($arrayDown, $indexQuery - $cantDown, $indexHourMin, $eventId);
         }
-        // dd("test");
+//        dd($arrayDown);
         return collect(array_merge($arrayDown->toArray(), $arrayMid->toArray(), $arrayUp->toArray()));
     }
+    
 /**
  * permite calcula la fecha actual en el formato de multiplo de 15 minutos y devolverte la fecha actual, fecha permitida de busqueda asi como la hora busqueda superio
  * @param  string $hour     hora de busqueda
@@ -872,10 +874,10 @@ class AvailabilityService
         $indexUpAux = $indexHourInit;
         for ($i = $countUp; $i < 2; $i++) {
             if ($indexUpAux < $indexHourMax) {
-                $arrayUp->push(["index" => $indexUpAux, "hour" => $this->timeForTable->indexToTime($indexUpAux), "tables_id" => null, "form" => null, "promotions" => null]);
+                $arrayUp->push(["index" => $indexUpAux, "hour" => $this->timeForTable->indexToTime($indexUpAux), "tables_id" => null, "availability" => false, "form" => null, "promotions" => null]);
                 $indexUpAux++;
             } else {
-                $arrayUp->push(["index" => $indexUpAux, "hour" => null, "tables_id" => null, "form" => null, "promotions" => null]);
+                $arrayUp->push(["index" => $indexUpAux, "hour" => null, "tables_id" => null, "availability" => false, "form" => null, "promotions" => null]);
             }
         }
         return $arrayUp;
@@ -893,10 +895,10 @@ class AvailabilityService
         $indexDownAux = $indexHourInit - 1;
         for ($i = $countDown; $i < 2; $i++) {
             if ($indexDownAux >= $indexHourActualAux) {
-                $arrayDown->prepend(["index" => $indexDownAux, "hour" => $this->timeForTable->indexToTime($indexDownAux), "tables_id" => null, "form" => null, "promotions" => null]);
+                $arrayDown->prepend(["index" => $indexDownAux, "hour" => $this->timeForTable->indexToTime($indexDownAux), "tables_id" => null, "availability" => false, "form" => null, "promotions" => null]);
                 $indexDownAux--;
             } else {
-                $arrayDown->prepend(["index" => $indexDownAux, "hour" => null, "tables_id" => null, "form" => null, "promotions" => null]);
+                $arrayDown->prepend(["index" => $indexDownAux, "hour" => null, "tables_id" => null, "availability" => false, "form" => null, "promotions" => null]);
             }
         }
         return $arrayDown;
@@ -932,6 +934,12 @@ class AvailabilityService
         $availabilityTablesFilter = $this->getFilterTablesGuest($availabilityTables, $indexHour);
         if ($availabilityTablesFilter->isEmpty()) {
             return [];
+//            $availabilityTablesIdFinal = $this->checkReservationStandingPeople($date, $hour, $this->time_tolerance, $timezone, $microsite_id, $num_guests);
+//            $formInfo = null;
+//            if($availabilityTablesIdFinal){
+//                $formInfo                  = ["date" => $date, "hour" => $hour, "next_day" => $next_day, "event_id" => $eventId, "zone_id" => $zone_id, "num_guest" => $num_guests];
+//            }
+//            return ["index" => $indexHour, "hour" => $hour, "tables_id" => null, "availability" => $availabilityTablesIdFinal, "form" => $formInfo, "promotions" => $eventId];
         }
         //Devulve los id de las mesas que fueron filtradas por tipo de reservacion y numero de invitados
         $availabilityTablesId = $availabilityTablesFilter->pluck('id');
@@ -941,7 +949,7 @@ class AvailabilityService
 
         //Devuelve id de las mesas filtradas que estan reservadas en una fecha y hora
         $listReservations = $this->getTableReservation($availabilityTablesId->toArray(), $date, $startHour->toDateTimeString(), $endHour->toDateTimeString());
-
+        dd($listReservations);
         $listReservationsTemp = $this->getReservationTemp($availabilityTablesId->toArray(), $date, $hour, $timezone, $microsite_id, $next_day);
 
         $unavailabilityTablesFilter = collect(array_merge($listBlocks, $listReservations, $listReservationsTemp))->unique();
@@ -953,19 +961,25 @@ class AvailabilityService
         $nextDay                   = $indexHour >= 96 ? 1 : 0;
         $formInfo                  = ["date" => $date, "hour" => $hour, "next_day" => $nextDay, "event_id" => $eventId, "zone_id" => $zone_id, "num_guest" => $num_guests];
         if ($availabilityTablesIdFinal->count() > 0) {
-            return ["index" => $indexHour, "hour" => $hour, "tables_id" => [$availabilityTablesIdFinal->first()], "form" => $formInfo, "promotions" => $eventId];
+            return ["index" => $indexHour, "hour" => $hour, "tables_id" => [$availabilityTablesIdFinal->first()], "availability" => true, "form" => $formInfo, "promotions" => $eventId];
         } else {
             $availabilityTablesIdFinal = $this->algoritmoAvailability($availabilityTablesId->toArray(), $num_guests);
             // return ["hour" => $hour, "tables_id" => $availabilityTablesIdFinal];
             if (isset($availabilityTablesIdFinal)) {
-                return ["index" => $indexHour, "hour" => $hour, "tables_id" => $availabilityTablesIdFinal, "form" => $formInfo, "promotions" => $eventId];
+                
+                return ["index" => $indexHour, "hour" => $hour, "tables_id" => $availabilityTablesIdFinal, "availability" => true, "form" => $formInfo, "promotions" => $eventId];
+                
             } else {
                 $availabilityTablesIdFinal = $this->checkReservationStandingPeople($date, $hour, $this->time_tolerance, $timezone, $microsite_id, $num_guests);
-
-                return ["index" => $indexHour, "hour" => $hour, "tables_id" => null, "standing_people" => $availabilityTablesIdFinal, "form" => $formInfo, "promotions" => $eventId];
+                $formInfo = null;
+                if($availabilityTablesIdFinal){
+                    $formInfo                  = ["date" => $date, "hour" => $hour, "next_day" => $next_day, "event_id" => $eventId, "zone_id" => $zone_id, "num_guest" => $num_guests];
+                }
+                return ["index" => $indexHour, "hour" => $hour, "tables_id" => null, "availability" => $availabilityTablesIdFinal, "form" => $formInfo, "promotions" => $eventId];
+//                $availabilityTablesIdFinal = $this->checkReservationStandingPeople($date, $hour, $this->time_tolerance, $timezone, $microsite_id, $num_guests);
+//                return ["index" => $indexHour, "hour" => $hour, "tables_id" => null, "standing_people" => $availabilityTablesIdFinal, "form" => $formInfo, "promotions" => $eventId];
             }
         }
-
     }
 
 /**
@@ -1002,22 +1016,45 @@ class AvailabilityService
  */
     public function getTableReservation(array $tables_id, string $date, string $hourI, string $hourF)
     {
-        // return $hourI;
         $listReservation = [];
-        $reservations    = res_table_reservation::whereIn('res_table_id', $tables_id)->with(['reservation' => function ($query) use ($date, $hourI, $hourF) {
-            return $query->where('date_reservation', '=', $date)
-                ->where('res_reservation_status_id', '<>', $this->id_status_released)
-                ->where('res_reservation_status_id', '<>', $this->id_status_cancel)
-                ->where('res_reservation_status_id', '<>', $this->id_status_absent)
-                ->where("datetime_input", '<=', $hourI)
-                ->where("datetime_output", '>=', $hourI)
-                ->orwhere("datetime_input", '<', $hourF)
-                ->where("datetime_output", '>=', $hourF);
-        }])->get();
-        $listReservation = $reservations->reject(function ($value) use ($hourF) {
-            return $value->reservation == null;
-        });
-        return $listReservation->pluck('res_table_id')->unique()->values()->all();
+        $datetimeNow = Carbon::now()->toDateTimeString();        
+        $tolerance = ($this->time_tolerance)?$this->time_tolerance:0;
+        /*
+         * 
+         * SI ([FINALIZACION_DE_RESERVACION] + [TOLERANCIA_MINUTOS] < [FECHA_Y_HORA_ACTUAL])
+         *      [FINALIZACION_DE_RESERVACION] = [FINALIZACION_DE_RESERVACION] + [TOLERANCIA_MINUTOS]
+         * 
+         */
+//        return [$tolerance, $hourI, $hourF, $datetimeNow];
+        return \App\res_reservation::from('res_reservation as res')->join("res_table_reservation as table_res", "table_res.res_reservation_id", "=", "res.id")
+                ->select("res.id", "table_res.res_table_id", DB::raw("IF(res.datetime_input + INTERVAL $tolerance MINUTE > '$datetimeNow', res.datetime_output, res.datetime_input + INTERVAL $tolerance MINUTE) AS newEnd"))
+                ->where('res.res_reservation_status_id', '<>', $this->id_status_released)
+                ->where('res.res_reservation_status_id', '<>', $this->id_status_cancel)
+                ->where('res.res_reservation_status_id', '<>', $this->id_status_absent)
+                ->where(function($query) use($tolerance, $hourI, $hourF, $datetimeNow){
+                    $query->where("res.datetime_input", '<', $hourI)
+                            ->where(DB::raw("IF(res.datetime_input + INTERVAL $tolerance MINUTE > '$datetimeNow', res.datetime_output, res.datetime_input + INTERVAL $tolerance MINUTE)"), '>=', $hourI)
+                            ->orwhere("res.datetime_input", '<', $hourF)
+                            ->where(DB::raw("IF(res.datetime_input + INTERVAL $tolerance MINUTE > '$datetimeNow', res.datetime_output, res.datetime_input + INTERVAL $tolerance MINUTE)"), '>=', $hourF);                    
+                })
+                ->groupBy('table_res.res_table_id')
+                        ->get()->toArray();
+//                ->pluck('table_res.res_table_id')->toArray();
+                
+//        $reservations    = res_table_reservation::whereIn('res_table_id', $tables_id)->with(['reservation' => function ($query) use ($date, $hourI, $hourF) {
+//            return $query->where('date_reservation', '=', $date)
+//                ->where('res_reservation_status_id', '<>', $this->id_status_released)
+//                ->where('res_reservation_status_id', '<>', $this->id_status_cancel)
+//                ->where('res_reservation_status_id', '<>', $this->id_status_absent)
+//                ->where("datetime_input", '<=', $hourI)
+//                ->where("datetime_output", '>=', $hourI)
+//                ->orwhere("datetime_input", '<', $hourF)
+//                ->where("datetime_output", '>=', $hourF);
+//        }])->get();
+//        $listReservation = $reservations->reject(function ($value) use ($hourF) {
+//            return $value->reservation == null;
+//        });
+//        return $listReservation->pluck('res_table_id')->unique()->values()->all();
     }
 /**
  * Funcion que permite filtrar las mesas disponibles en un turno para reservacion en linea estado 2
@@ -1401,9 +1438,11 @@ class AvailabilityService
         }
         $cantGuest = $num_guests + $reservations->num_guests_standing;
         if ($num_guests + $reservations->num_guests_standing <= $this->max_people_standing) {
-            return collect(["availability_standing" => true, "num_guest_availability" => $cantGuest, "num_guest_s_max" => $this->max_people_standing]);
+            return true;
+//            return collect(["availability_standing" => true, "num_guest_availability" => $cantGuest, "num_guest_s_max" => $this->max_people_standing]);
         } else {
-            return collect(["availability_standing" => false, "num_guest_availability" => $cantGuest, "num_guest_s_max" => $this->max_people_standing]);
+            return false;
+//            return collect(["availability_standing" => false, "num_guest_availability" => $cantGuest, "num_guest_s_max" => $this->max_people_standing]);
         }
     }
 

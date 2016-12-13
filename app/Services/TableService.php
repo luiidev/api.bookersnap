@@ -150,7 +150,6 @@ class TableService {
         /* Obtener Los Ids de las zonas Habbilitadas por los turnos habiles */
         $turnZoneIds = \App\res_turn_zone::whereIn('res_turn_id', $turnsIds)->groupBy('res_zone_id')->pluck('res_zone_id');
 
-
         $zones = \App\res_zone::whereIn('res_zone.id', $turnZoneIds)->where("res_zone.status", 1)->with(['tables.turns' => function($query) use($turnsIds) {
                         return $query->whereIn('res_turn_id', $turnsIds)->where('res_turn_rule_id', 2);
                     }, 'turns' => function($query) use($turnsIds) {
@@ -160,7 +159,6 @@ class TableService {
                     }, 'tables.blocks' => function($query) use($fecha) {
                         return $query->select(array('res_block.id', 'res_block.start_date', 'res_block.start_time', 'res_block.end_time', 'res_block.next_day'))->where('res_block.start_date', $fecha->toDateString());
                     }])->get();
-
 
 //        $tables = $this->turnsCalendarByDate($microsite_id, $date);
 //        $reservations = $this->reservationsByDate($microsite_id, $date);
