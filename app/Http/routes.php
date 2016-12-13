@@ -229,6 +229,9 @@ function routeMesas()
         //-----------------------------------------------------
         Route::group(['prefix' => 'web-app/'], function () {
             Route::get('floor', 'WebAppController@floor');
+            Route::get('book', 'WebAppController@book');
+            Route::get('book/history', 'WebAppController@bookHistory');
+            Route::get('book/history/reservations', 'WebAppController@bookHistoryReservations');
             Route::get('reservation', 'WebAppController@editReservation');
             Route::get('reservation/{reservation_id}', 'WebAppController@editReservation');
             Route::get('block', 'WebAppController@editBlock');
