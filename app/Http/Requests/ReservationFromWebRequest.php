@@ -26,15 +26,14 @@ class ReservationFromWebRequest extends Request
         return [
             "token" =>  "required|exists:res_table_reservation_temp",
             "guest" => "required|array",
-            "guest.first_name"    =>  "required|alpha|",
-            "guest.last_name" =>  "required|alpha",
+            "guest.first_name"    =>  "required|alpha_spaces|",
+            "guest.last_name" =>  "required|alpha_spaces",
             "guest.email" =>  "required|email",
-            "guest.job"   =>  "alpha",
+            "guest.phone" =>  "digits_between:6,17",
+            "guest.profession"   =>  "alpha_spaces",
             "guest.find_out"    =>  "string",
-            "phone" =>  "digits_between:6,17",
             "note"  =>  "string|max:200",
             "guest_list"    =>  "array",
-                "guest_list.*"  =>  "string"
         ];
     }
 
@@ -49,16 +48,16 @@ class ReservationFromWebRequest extends Request
                 // "token.exists" => "El token no es valido",
                 // "guest.required" => "Los datos del invitado es requerido",
                 // "guest.first_name.required" => "El campo nombre es requerido",
-                // "guest.first_name.alpha" => "El campo nombre solo puede contener letras",
+                "guest.first_name.alpha_spaces" => "El campo nombre solo puede contener letras",
                 // "guest.last_name.required" => "El campo apellido es requerido",
-                // "guest.last_name.alpha" => "El campo apellido solo puede contener letras",
+                "guest.last_name.alpha_spaces" => "El campo apellido solo puede contener letras",
                 // "guest.email.required" => "El campo correo es requerido",
-                // "guest.job.alpha" => "El campo profesion solo puede contener letras",
+                // "guest.phone.digits_between" => "El campo de telefono debe contener entre 6 y 17 caracteres",
+                "guest.profession.alpha_spaces" => "El campo profesion solo puede contener letras",
                 // "guest.find_out.string" => "El campo debe contener solo caracteres",
-                // "phone.digits_between" => "El campo de telefono debe contener entre 6 y 17 caracteres",
                 // "note.string" => "El campo nota contener solo caracteres",
                 // "note.max" => "El campo nota debe contener una maximo de 200 caracteres",
-                // "guest_list.*.string" => "La lista de invitados debe contener solo caracteres"
+                "guest_list.array" => "El campo debe ser una lista"
             ];
     }
 }

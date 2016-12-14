@@ -33,6 +33,9 @@ class AppServiceProvider extends ServiceProvider
             }
         }, "Los minutos de la hora no son compatibles con el multiplo determinado en la validación");
 
+        Validator::extend('alpha_spaces', function ($attribute, $value) {
+            return preg_match('/^[\pL\s]+$/u', $value); 
+        });
     }
 
     /**

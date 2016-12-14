@@ -35,7 +35,7 @@ return [
     'date_format'          => 'El campo {:attribute} no corresponde con el formato de fecha :format.',
     'different'            => 'Los campos {:attribute} y :other han de ser diferentes.',
     'digits'               => 'El campo {:attribute} debe ser un número de :digits dígitos.',
-    'digits_between'       => 'El campo {:attribute} debe contener entre :min y :max dígitos.',
+    'digits_between'       => 'El campo debe contener entre :min y :max dígitos.',
     'distinct'             => 'El campo {:attribute} tiene un valor duplicado.',
     'email'                => 'El campo no corresponde con una dirección de e-mail válida.',
     'filled'               => 'El campo {:attribute} es obligatorio.',

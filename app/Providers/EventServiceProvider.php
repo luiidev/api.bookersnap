@@ -15,6 +15,8 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         'App\Events\EmitNotification' => [
             'App\Listeners\EmitNotificationListener',
+        ], 'App\Events\SendMailEvent' => [
+            'App\Listeners\SendMailListener',
         ],
     ];
 
