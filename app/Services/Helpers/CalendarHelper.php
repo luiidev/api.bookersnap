@@ -417,6 +417,7 @@ class CalendarHelper {
                         ->orderBy("end_datetime")->get();
 
         $collect = [];
+        
         if ($lastTurn->count() > 0) {
 
             $reservation = new \App\res_reservation();
@@ -467,19 +468,22 @@ class CalendarHelper {
                         $hours_reservation = $turn->hours_end;
                     }
                 }
-                $collect[] = [$diff, $date_reservation, $hours_reservation];
+                //$collect[] = [$diff, $date_reservation, $hours_reservation];
                 if ($diff <= $diffHours || $encontroHorario) {
                     $reservation->date_reservation = $date_reservation;
                     $reservation->hours_reservation = $hours_reservation;
                     $reservation->res_turn_id = $turn->id;
                     $diffHours = $diff;
                     if ($encontroHorario) {
+                        $reservation->datetime_input = Carbon::parse($reservation->date_reservation." ".$reservation->hours_reservation);
+                        $duration = TurnsHelper::sobremesa($reservation->res_turn_id, $guests);
                         break;
                     }
                 }
             }
             return $reservation;
         }
+        
         return false;
     }
 

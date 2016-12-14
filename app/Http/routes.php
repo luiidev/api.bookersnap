@@ -179,7 +179,6 @@ function routeMesas()
         // MICROSITE::RESERVATION
         //-----------------------------------------------------
         Route::get('reservations', 'ReservationController@index');
-        Route::get('reservations/search', 'ReservationController@search');
         Route::get('reservations/{reservation_id}', 'ReservationController@show');
         Route::post('reservations', 'ReservationController@create');
         Route::put('reservations/{reservation_id}', 'ReservationController@update');

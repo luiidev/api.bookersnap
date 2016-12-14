@@ -55,7 +55,6 @@ class ReservationTemporalController extends Controller
     {
         //inyectar evento
         // $request->request->set('ev_event_id', 1);
-
         return $this->TryCatch(function () use ($request) {
             $ev_event_id = $request->ev_event_id;
 
@@ -76,24 +75,13 @@ class ReservationTemporalController extends Controller
             $realDate = \Carbon\Carbon::parse($reservationTime);
             $next_day = (strcmp($realDate->toDateString(), $date))?1:0;
             
-            try {
-                $configuration = $this->configurationService->getConfiguration($microsite_id);
-                $configuration->max_people;
-                if ($configuration->max_people < $num_guests) {
-                    abort(501, "La configuracion del sitio no soporta la esa cantidad de usuario");
-                }
-                if (isset($zone_id)) {
-                    $availability = $this->availabilityService->searchAvailabilityDay($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone);
-                } else {
-                    $availability = $this->availabilityService->searchAvailabilityDayAllZone($microsite_id, $date, $hour, $num_guests, $next_day, $timezone);
-                }
-            } catch (\Exception $e) {
-                $dateExpire = Carbon::now($timezone)->subMinutes($this->service->getTimeTolerance())->toDateTimeString();
-                $this->service->deleteTemporal($dateExpire, $token);
-                abort(500, $e->getMessage());
+            $configuration = $this->configurationService->getConfiguration($microsite_id);
+            $configuration->max_people;
+            if ($configuration->max_people < $num_guests) {
+                abort(501, "La configuracion del sitio no soporta la esa cantidad de usuario");
             }
-            // return $availability;
-            $reservationTemporal = $this->service->createReservationTemporal($user_id, $microsite_id, $hour, $date, $num_guests, $zone_id, $timezone, $availability, $ev_event_id, $token, $next_day, $num_guests);
+            
+            $reservationTemporal = $this->service->createReservationTemporal($user_id, $microsite_id, $hour, $date, $num_guests, $zone_id, $timezone, $ev_event_id, $token, $next_day, $num_guests);
             return $this->CreateJsonResponse(true, 200, "", $reservationTemporal);
         });
     }

@@ -769,13 +769,13 @@ class AvailabilityService
 
         $timeDate = Carbon::parse($date, $timezone);
         $now      = Carbon::now($timezone);
-
+        
         if ($otherDay) {
             $hourAvailability = isset($hourAuxLimitIni) ? $hourAuxLimitIni : Carbon::parse($date . " " . $hourInitOtherDay, $timezone);
         } else {
             $dateCompare = $timeDate->toDateString() <=> $now->toDateString();
             if ($dateCompare == 0) {
-                $hourAvailability = isset($hourAuxLimitIni) ? $hourAuxLimitIni : $this->dateMaxFormat(Carbon::now($timezone));
+                $hourAvailability = isset($hourAuxLimitIni) ? $hourAuxLimitIni : $this->dateMaxFormat(Carbon::now());
             } else if ($dateCompare > 0) {
                 $hourAvailability = isset($hourAuxLimitIni) ? $hourAuxLimitIni : $this->dateMaxFormat($hourQuery);
             }
@@ -1740,33 +1740,23 @@ class AvailabilityService
 
     public function getReservationTemp(array $tables_id, string $date, string $hour, string $timezone, int $microsite_id, int $next_day)
     {
-        $hour                = Carbon::parse($date . " " . $hour, $timezone);
-        $hourActual          = Carbon::now($timezone)->subMinutes(10);
-        $listReservationTemp = [];
-        $tables              = collect();
-        $reservations        = res_table_reservation_temp::where('date', $date)
-            ->where('hour', $hour->toTimeString())
-            ->where('ms_microsite_id', $microsite_id)
-            ->where('next_day', $next_day)
-            ->get();
+        $hour                = Carbon::parse($date . " " . $hour);
+        $hourActual          = Carbon::now()->subMinutes(10);
+        $tables              = collect();      
+        $reservations        = res_table_reservation_temp::where('date', $date)->where('hour', $hour)->where('ms_microsite_id', $microsite_id)->where('expire', '>', $hourActual->toDateTimeString())->get();       
         if ($reservations->count() > 0) {
-            $listReservationTemp = $reservations->reject(function ($value) use ($hourActual) {
-                return $value->expire < $hourActual->toDateTimeString();
-            });
-            foreach ($listReservationTemp as $reservationTemp) {
+            foreach ($reservations as $reservationTemp) {
                 $tables_id = explode(",", $reservationTemp->tables_id);
                 foreach ($tables_id as $id) {
                     $id = (int) $id;
                     $tables->push($id);
                 }
-
             }
             return $tables->toArray();
-        } else {
-            return $listReservationTemp;
         }
-
+        return [];
     }
+    
     public function otherDay($date, $hour, $next_day, $timezone)
     {
         $dateQuery    = Carbon::parse($date . " " . $hour, $timezone)->addDay($next_day);

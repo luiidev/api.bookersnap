@@ -30,7 +30,7 @@ class ReservationTemporalRequest extends Request
             'date'        => "required|date_format: Y-m-d|after:$dateMin",
             'num_guests'  => 'required|integer',
             'zone_id'     => 'integer|exists:res_zone,id',
-            'next_day'    => 'required|integer',
+//            'next_day'    => 'required|integer',
             'ev_event_id' => 'integer',
         ];
     }

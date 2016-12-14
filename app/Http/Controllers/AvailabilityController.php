@@ -32,6 +32,7 @@ class AvailabilityController extends Controller
             if(!$reservationTime){
                 abort(500, "Este horario no existe");
             }
+            
             $realDate = \Carbon\Carbon::parse($reservationTime);
             $next_day = (strcmp($realDate->toDateString(), $date))?1:0;
 
