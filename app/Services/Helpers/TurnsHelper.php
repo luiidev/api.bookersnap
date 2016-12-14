@@ -100,4 +100,22 @@ class TurnsHelper
 
         return $typeTurnsId;
     }
+    
+    /**
+     * Sobremesa: Duracion de una reservacion en un turno, por la cantidad de asistentes
+     * @param int   $tunr_id    ID del turno
+     * 
+     */
+    public static function sobremesa(int $turn_id, int $guests) {
+        $time = "01:30:00";
+        $duration = \App\res_turn_time::where("res_turn_id", $turn_id)->where("num_guests", $guests)->first();
+        if($duration){
+            return $duration->time;
+        }
+        $duration = \App\res_turn_time::where("res_turn_id", $turn_id)->where("num_guests", "<=" ,$guests)->orderBy("num_guests", "desc")->first();
+        if($duration){
+            return $duration->time;
+        }
+        return $time;
+    }
 }
