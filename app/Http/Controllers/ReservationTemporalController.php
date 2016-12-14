@@ -9,6 +9,7 @@ use App\Services\FormService;
 use App\Services\ReservationTemporalService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Services\Helpers\CalendarHelper;
 
 class ReservationTemporalController extends Controller
 {
@@ -65,8 +66,16 @@ class ReservationTemporalController extends Controller
             $date         = $request->date;
             $num_guests   = $request->num_guests;
             $zone_id      = $request->zone_id;
-            $next_day     = $request->next_day;
+//            $next_day     = $request->next_day;
             $timezone     = $request->timezone;
+            
+            $reservationTime = CalendarHelper::getDatetimeCalendar($microsite_id, $date, $hour);
+            if(!$reservationTime){
+                abort(500, "Este horario no existe");
+            }
+            $realDate = \Carbon\Carbon::parse($reservationTime);
+            $next_day = (strcmp($realDate->toDateString(), $date))?1:0;
+            
             try {
                 $configuration = $this->configurationService->getConfiguration($microsite_id);
                 $configuration->max_people;

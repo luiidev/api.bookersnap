@@ -28,7 +28,7 @@ class AvailabilityInfoRequest extends Request
         return [
             "date"       => "required|date_format: Y-m-d|after:$dateMin",
             "hour"       => "date_format: H:i:s|multiple_hour:15",
-            "next_day"   => "integer|between:0,1",
+//            "next_day"   => "integer|between:0,1",
             "zone_day"   => "integer|exists:res_zone,id",
             "num_guests" => "integer",
         ];

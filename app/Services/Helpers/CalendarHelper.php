@@ -317,7 +317,11 @@ class CalendarHelper {
         }
         return $now->toDateString();
     }
-
+    
+    /*
+     * 
+     * Retorna fecha y hora real si existe hori en el calendario.
+     */
     static function getDatetimeCalendar(int $microsite_id, string $date, string $time) {
 
         $now = Carbon::parse(trim($date) . " " . trim($time));

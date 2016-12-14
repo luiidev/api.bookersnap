@@ -946,10 +946,10 @@ class AvailabilityService
 
         //Devuelve id de las mesas filtradas que estan bloquedadas en una fecha y hora
         $listBlocks = $this->getTableBlock($availabilityTablesId->toArray(), $date, $startHour->toDateTimeString(), $endHour->toDateTimeString());
-
+        
         //Devuelve id de las mesas filtradas que estan reservadas en una fecha y hora
         $listReservations = $this->getTableReservation($availabilityTablesId->toArray(), $date, $startHour->toDateTimeString(), $endHour->toDateTimeString());
-        dd($listReservations);
+        
         $listReservationsTemp = $this->getReservationTemp($availabilityTablesId->toArray(), $date, $hour, $timezone, $microsite_id, $next_day);
 
         $unavailabilityTablesFilter = collect(array_merge($listBlocks, $listReservations, $listReservationsTemp))->unique();
@@ -992,19 +992,31 @@ class AvailabilityService
  */
     public function getTableBlock(array $tables_id, string $date, string $hourI, string $hourF)
     {
-        $listBlock = [];
-        $blocks    = BlockTable::whereIn('res_table_id', $tables_id)->with(['block' => function ($query) use ($date, $hourI, $hourF) {
-            $query->where('start_date', '=', $date)
-                ->whereRaw("ADDDATE(concat(start_date,' ',start_time), INTERVAL next_day DAY) <= ?", array($hourI))
-                ->whereRaw("ADDDATE(concat(start_date,' ',end_time),INTERVAL next_day DAY )>= ?", array($hourI))
-                ->orwhereRaw("ADDDATE(concat(start_date,' ',start_time),INTERVAL next_day DAY )< ?", array($hourF))
-                ->whereRaw("ADDDATE(concat(start_date,' ',end_time),INTERVAL next_day DAY )>= ?", array($hourF));
-        }])->get();
-        // return $blocks;
-        $listBlock = $blocks->reject(function ($value, $key) {
-            return $value->block == null;
-        });
-        return $listBlock->pluck('res_table_id')->unique()->values()->all();
+        $listBlock = [];        
+//        $hourI = "2016-12-13 20:30:00";
+//        $hourF = "2016-12-14 01:15:00";
+//        return [$hourI, $hourF];
+        return \App\Entities\Block::from('res_block as b')
+                ->select('b.id', 'bt.res_table_id', 'start_datetime', 'end_datetime')
+                ->join('res_block_table as bt', 'bt.res_block_id', '=', 'b.id')
+                ->whereRaw("b.start_datetime <= ?", array($hourI))
+                ->whereRaw("b.end_datetime >= ?", array($hourI))
+                ->orwhereRaw("b.start_datetime < ?", array($hourF))
+                ->whereRaw("b.end_datetime >= ?", array($hourF))
+                ->groupBy('bt.res_table_id')
+                ->pluck('bt.res_table_id')->toArray();
+        
+//        $blocks    = BlockTable::whereIn('res_table_id', $tables_id)->with(['block' => function ($query) use ($hourI, $hourF) {
+//            $query->whereRaw("start_datetime <= ?", array($hourI))
+//                ->whereRaw("end_datetime >= ?", array($hourI))
+//                ->orwhereRaw("start_datetime < ?", array($hourF))
+//                ->whereRaw("end_datetime >= ?", array($hourF));
+//        }])->get();
+//        // return $blocks;
+//        $listBlock = $blocks->reject(function ($value, $key) {
+//            return $value->block == null;
+//        });
+//        return $listBlock->pluck('res_table_id')->unique()->values()->all();
     }
 /**
  * funcion que permite determinar reservaciones en una hora determinada
@@ -1025,12 +1037,12 @@ class AvailabilityService
          *      [FINALIZACION_DE_RESERVACION] = [FINALIZACION_DE_RESERVACION] + [TOLERANCIA_MINUTOS]
          * 
          */
-//        return [$tolerance, $hourI, $hourF, $datetimeNow];
         return \App\res_reservation::from('res_reservation as res')->join("res_table_reservation as table_res", "table_res.res_reservation_id", "=", "res.id")
                 ->select("res.id", "table_res.res_table_id", DB::raw("IF(res.datetime_input + INTERVAL $tolerance MINUTE > '$datetimeNow', res.datetime_output, res.datetime_input + INTERVAL $tolerance MINUTE) AS newEnd"))
                 ->where('res.res_reservation_status_id', '<>', $this->id_status_released)
                 ->where('res.res_reservation_status_id', '<>', $this->id_status_cancel)
                 ->where('res.res_reservation_status_id', '<>', $this->id_status_absent)
+                ->where('res.wait_list', 0)
                 ->where(function($query) use($tolerance, $hourI, $hourF, $datetimeNow){
                     $query->where("res.datetime_input", '<', $hourI)
                             ->where(DB::raw("IF(res.datetime_input + INTERVAL $tolerance MINUTE > '$datetimeNow', res.datetime_output, res.datetime_input + INTERVAL $tolerance MINUTE)"), '>=', $hourI)
@@ -1038,8 +1050,7 @@ class AvailabilityService
                             ->where(DB::raw("IF(res.datetime_input + INTERVAL $tolerance MINUTE > '$datetimeNow', res.datetime_output, res.datetime_input + INTERVAL $tolerance MINUTE)"), '>=', $hourF);                    
                 })
                 ->groupBy('table_res.res_table_id')
-                        ->get()->toArray();
-//                ->pluck('table_res.res_table_id')->toArray();
+                ->pluck('table_res.res_table_id')->toArray();
                 
 //        $reservations    = res_table_reservation::whereIn('res_table_id', $tables_id)->with(['reservation' => function ($query) use ($date, $hourI, $hourF) {
 //            return $query->where('date_reservation', '=', $date)
