@@ -17,4 +17,14 @@ class ms_microsite extends Model
     {
         return $this->belongsTo('App\Entities\bs_user', 'bs_user_id', 'id');
     }
+
+    public function country()
+    {
+    	return $this->belongsTo(bs_country::class, "bs_country_id");
+    }
+
+    public function configuration()
+    {
+        return $this->hasOne(res_configuration::class, "ms_microsite_id");
+    }
 }

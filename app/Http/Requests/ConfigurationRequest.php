@@ -94,6 +94,9 @@ class ConfigurationRequest extends Request
             "status_people_1"      => "integer",
             "status_people_2"      => "integer",
             "status_people_3"      => "integer",
+            // "id"                   => "array",
+            // "id.*"                 => "exists:res_form,id",
+
         ];
     }
 

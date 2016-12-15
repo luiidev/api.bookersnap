@@ -20,12 +20,9 @@ class NoteController extends Controller
     public function index(Request $request)
     {
         return $this->TryCatchDB(function () use ($request) {
-
-            $date = Carbon::now();
-            $now  = $date->format('Y-m-d');
-            $date = ($request->has('date')) ? $request->input('date') : $now;
-
-            //return $date;
+          
+            $microsite_id = $request->route('microsite_id');
+            $date = $request->input('date');            
             $note = $this->_NoteService->getList($request->route('microsite_id'), $date);
             return $this->CreateJsonResponse(true, 201, "Listado de notas", $note);
         });
@@ -36,10 +33,10 @@ class NoteController extends Controller
         $service = $this->_NoteService;
         return $this->TryCatchDB(function () use ($request, $service) {
             
-            $now = Carbon::now();
-            $date = ($request->has('date_add')) ? $request->input('date_add') : $now->toDateString();
+            $microsite_id = $request->route('microsite_id');           
+            $date = $request->input('date');
             
-            $note = $service->saveNote($request->all(), $request->route('microsite_id'), $date);
+            $note = $service->saveNote($request->all(), $microsite_id, $date);
 
             event(new EmitNotification("b-mesas-floor-notes",
                 array(

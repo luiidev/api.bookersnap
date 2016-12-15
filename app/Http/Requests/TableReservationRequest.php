@@ -24,7 +24,7 @@ class TableReservationRequest extends Request
      */
     public function rules()
     {
-        $date = Carbon::yesterday()->setTimezone($this->timezone)->toDateString();
+        $date = Carbon::yesterday()->toDateString();
         return [
             "guest_id"         => "exists:res_guest,id",
             "status_id"        => "required|exists:res_reservation_status,id",
@@ -39,8 +39,8 @@ class TableReservationRequest extends Request
             "guest.last_name"  => "string|max:255",
             "guest.email"      => "email",
             "guest.phone"      => "digits_between:7,15",
-            "tables"           => "required|array",
-            "tables.*"         => "required|integer|exists:res_table,id",
+            "tables"           => "array",
+            "tables.*"         => "integer|exists:res_table,id",
             "tags"             => "array",
             "tags.*"           => "exists:res_tag_r,id",
         ];

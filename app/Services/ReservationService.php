@@ -6,6 +6,8 @@ use App\res_guest;
 use App\res_reservation;
 use App\res_reservation_status;
 use App\res_source_type;
+use App\Services\Helpers\CalendarHelper;
+use App\Services\Helpers\TurnsHelper;
 use DB;
 use Exception;
 
@@ -13,10 +15,12 @@ class ReservationService
 {
 
     protected $_ZoneTableService;
+    protected $_TurnsHelper;
 
     public function __construct(GuestService $GuestService)
     {
-        $this->_GuestService = $GuestService;
+        $this->_GuestService      = $GuestService;
+        $this->_TurnsHelper       = new TurnsHelper();
     }
 
     public function get(int $microsite_id, int $reservation_id)
@@ -29,58 +33,18 @@ class ReservationService
         return $rows;
     }
 
-    public function getListSearch(array $params)
+    public function getList(int $microsite_id, string $start_date = null, string $end_date = null)
     {
-        $reservations = res_reservation::select("res.*")->with([
-            "tables" => function ($query) {
-                return $query->select("res_table.id", "res_zone_id", "name");
+        $start_date = CalendarHelper::realDate($microsite_id);
+        $end_date   = (strcmp($end_date, $start_date) > 0) ? $end_date : $start_date;
 
-            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList"])->from("res_reservation as res")->where("res.wait_list", 0);
-
-        if ($params['search_text'] !== "") {
-            $reservations = $reservations->join("res_guest as guest", "guest.id", "=", "res.res_guest_id");
-            $reservations = $reservations->where("guest.first_name", "LIKE", "%" . $params['search_text'] . "%");
-        }
-
-        $reservations = $reservations->whereBetween("res.date_reservation", array($params['date'], $params['date_end']));
-
-        if (count($params['turns']) > 0) {
-            $reservations = $reservations->whereIn('res.res_turn_id', $params['turns']);
-        }
-
-        if (count($params['sources']) > 0) {
-            $reservations = $reservations->whereIn('res.res_source_type_id', $params['sources']);
-        }
-        if (count($params['zones']) > 0) {
-
-            $reservations = $reservations->join('res_table_reservation', function ($join) {
-                $join->on('res_table_reservation.res_reservation_id', '=', 'res.id');
-            });
-
-            $reservations = $reservations->join('res_table', function ($join) use ($params) {
-                $join->on('res_table.id', '=', 'res_table_reservation.res_table_id')
-                    ->whereIn('res_table.res_zone_id', $params['zones']);
-            });
-        }
-
-        if ($params['page_size'] !== 0) {
-            return $reservations = $reservations->paginate($params['page_size']);
-        }
-
-        //return $reservations->toSql();
-
-        return $reservations->get();
-    }
-
-    public function getList(int $microsite_id, string $start_date, string $end_date)
-    {
         $reservations = res_reservation::select("res.*")->with([
             "tables" => function ($query) {
                 return $query->select("res_table.id", "res_zone_id", "name");
 
             }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList"])->from("res_reservation as res");
 
-        $reservations = $reservations->whereBetween("res.date_reservation", array($start_date, $end_date));
+        $reservations = $reservations->whereRaw("res.date_reservation BETWEEN ? AND ?", array($start_date, $end_date));
 
         return $reservations->get();
     }

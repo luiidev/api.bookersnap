@@ -35,7 +35,7 @@ class AvailabilityRequest extends Request
             // 'date'       => "required|date_format: Y-m-d|after:$dateMin|before:$dateMax",
             'date'       => "required|date_format: Y-m-d|after:$dateMin",
             'num_guests' => 'required|integer',
-            'next_day'   => 'required|integer|between:0,1',
+//            'next_day'   => 'required|integer|between:0,1',
             'zone_id'    => 'integer|exists:res_zone,id',
             'event_id'   => 'integer|exists:ev_event,id',
         ];

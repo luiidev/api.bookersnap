@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Block extends Model
 {
-
+    
+    const CREATED_AT = "date_add";
+    const UPDATED_AT = "date_upd";
+    
     protected $primaryKey = 'id';
-    public $timestamps    = false;
     protected $table      = 'res_block';
 
     public function tables()

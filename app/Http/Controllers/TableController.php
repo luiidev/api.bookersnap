@@ -29,5 +29,18 @@ class TableController extends Controller {
                     return $this->CreateJsonResponse(true, 200, "disponibilidad de mesas", $data);
                 });
     }
+    
+    function searchAvailability(Request $request) {
+        
+        $service = $this->_TableService;
+        return $this->TryCatch(function () use ($request, $service) {
+                    $now = Carbon::now();
+                    $date = $request->input('date', $now->toDateString());
+                    $num_guests = $request->input('num_guests', 2);
+                    $hour = $request->input('hour', $now->toTimeString());
+                    $data = $service->searchAvailability($request->route('microsite_id'), $num_guests, $date, $hour);
+                    return $this->CreateJsonResponse(true, 200, "disponibilidad de mesas", $data);
+                });
+    }
 
 }

@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ReservationTemporalRequest;
 use App\Services\AvailabilityService;
 use App\Services\ConfigurationService;
+use App\Services\FormService;
 use App\Services\ReservationTemporalService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Services\Helpers\CalendarHelper;
 
 class ReservationTemporalController extends Controller
 {
@@ -15,11 +17,12 @@ class ReservationTemporalController extends Controller
     private $availabilityService;
     private $configurationService;
 
-    public function __construct(ReservationTemporalService $ReservationTemporalService, AvailabilityService $AvailabilityService, ConfigurationService $ConfigurationService)
+    public function __construct(ReservationTemporalService $ReservationTemporalService, AvailabilityService $AvailabilityService, ConfigurationService $ConfigurationService, FormService  $FormService)
     {
         $this->service              = $ReservationTemporalService;
         $this->availabilityService  = $AvailabilityService;
         $this->configurationService = $ConfigurationService;
+        $this->formService = $FormService;
     }
 
     /**
@@ -52,7 +55,6 @@ class ReservationTemporalController extends Controller
     {
         //inyectar evento
         // $request->request->set('ev_event_id', 1);
-
         return $this->TryCatch(function () use ($request) {
             $ev_event_id = $request->ev_event_id;
 
@@ -63,26 +65,23 @@ class ReservationTemporalController extends Controller
             $date         = $request->date;
             $num_guests   = $request->num_guests;
             $zone_id      = $request->zone_id;
-            $next_day     = $request->next_day;
+//            $next_day     = $request->next_day;
             $timezone     = $request->timezone;
-            try {
-                $configuration = $this->configurationService->getConfiguration($microsite_id);
-                $configuration->max_people;
-                if ($configuration->max_people < $num_guests) {
-                    abort(501, "La configuracion del sitio no soporta la esa cantidad de usuario");
-                }
-                if (isset($zone_id)) {
-                    $availability = $this->availabilityService->searchAvailabilityDay($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone);
-                } else {
-                    $availability = $this->availabilityService->searchAvailabilityDayAllZone($microsite_id, $date, $hour, $num_guests, $next_day, $timezone);
-                }
-            } catch (\Exception $e) {
-                $dateExpire = Carbon::now($timezone)->subMinutes($this->service->getTimeTolerance())->toDateTimeString();
-                $this->service->deleteTemporal($dateExpire, $token);
-                abort(500, $e->getMessage());
+            
+            $reservationTime = CalendarHelper::getDatetimeCalendar($microsite_id, $date, $hour);
+            if(!$reservationTime){
+                abort(500, "Este horario no existe");
             }
-            // return $availability;
-            $reservationTemporal = $this->service->createReservationTemporal($user_id, $microsite_id, $hour, $date, $num_guests, $zone_id, $timezone, $availability, $ev_event_id, $token, $next_day, $num_guests);
+            $realDate = \Carbon\Carbon::parse($reservationTime);
+            $next_day = (strcmp($realDate->toDateString(), $date))?1:0;
+            
+            $configuration = $this->configurationService->getConfiguration($microsite_id);
+            $configuration->max_people;
+            if ($configuration->max_people < $num_guests) {
+                abort(501, "La configuracion del sitio no soporta la esa cantidad de usuario");
+            }
+            
+            $reservationTemporal = $this->service->createReservationTemporal($user_id, $microsite_id, $hour, $date, $num_guests, $zone_id, $timezone, $ev_event_id, $token, $next_day, $num_guests);
             return $this->CreateJsonResponse(true, 200, "", $reservationTemporal);
         });
     }
@@ -93,9 +92,20 @@ class ReservationTemporalController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($lang, $microsite_id, $token)
     {
-        //
+        return $this->TryCatch(function () use ($microsite_id, $token) {
+
+            $reservation_temp = $this->service->getTempReservation($token);
+
+            if ($reservation_temp["reservation"] === null) {
+                return $this->CreateJsonResponse(true, 200, "", null);
+            }
+
+            $forms = $this->formService->getFormsByMicrosite($microsite_id);
+
+            return $this->CreateJsonResponse(true, 200, "", ["reservation" => $reservation_temp["reservation"], "forms" => $forms, "time" => $reservation_temp["time"]]);
+        });
     }
 
     /**

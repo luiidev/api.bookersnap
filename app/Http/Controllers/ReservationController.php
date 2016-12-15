@@ -6,6 +6,7 @@ use App\Events\EmitNotification;
 use App\Helpers\MailMandrillHelper;
 use App\Http\Controllers\Controller as Controller;
 use App\Http\Requests\ReservationRequest;
+use App\Services\Helpers\CalendarHelper;
 use App\Services\ReservationEmailService;
 use App\Services\ReservationService;
 use Carbon\Carbon;
@@ -27,34 +28,14 @@ class ReservationController extends Controller
     public function index(Request $request)
     {
         $service = $this->_ReservationService;
-
         return $this->TryCatch(function () use ($request, $service) {
-            $date       = Carbon::now();
-            $start_date = ($request->input('date')) ? $request->input('date') : $date->toDateString();
-            $end_date   = ($request->input('date_end')) ? $request->input('date_end') : $date->toDateString();
-
-            $data = $service->getList($request->route('microsite_id'), $start_date, $end_date);
-            return $this->CreateResponse(true, 201, "", $data);
-        });
-    }
-
-    public function search(Request $request)
-    {
-        $service = $this->_ReservationService;
-
-        return $this->TryCatch(function () use ($request, $service) {
-            $date = Carbon::now();
-
-            $params                = $request->all();
-            $params['date']        = ($request->input('date')) ? $request->input('date') : $date->toDateString();
-            $params['date_end']    = ($request->input('date_end')) ? $request->input('date_end') : $params['date'];
-            $params['page_size']   = ($request->input('page_size')) ? $request->input('page_size') : 0;
-            $params['search_text'] = ($request->input('search_text')) ? $request->input('search_text') : "";
-            $params['turns']       = ($request->input('turns')) ? explode(",", $request->input('turns')) : [];
-            $params['sources']     = ($request->input('sources')) ? explode(",", $request->input('sources')) : [];
-            $params['zones']       = ($request->input('zones')) ? explode(",", $request->input('zones')) : [];
-
-            $data = $service->getListSearch($params);
+            
+            $microsite_id = $request->route('microsite_id');            
+            $start_date   = $request->input('date');
+            $end_date     = $request->input('date_end');
+            
+            $data = $service->getList($microsite_id, $start_date, $end_date);
+            
             return $this->CreateResponse(true, 201, "", $data);
         });
     }
@@ -117,9 +98,9 @@ class ReservationController extends Controller
     public function sendEmail(Request $request)
     {
         $service = $this->_ReservationService;
-        
-        return $this->TryCatch(function () use ($request, $service) {
 
+        return $this->TryCatch(function () use ($request, $service) {
+            
             $messageData['from_email'] = "user@bookersnap.com";
             $messageData['from_name']  = "bookersnap.com";
 
@@ -127,11 +108,9 @@ class ReservationController extends Controller
 
             if (!$reservation) {
                 abort(401, "No existe reservación");
-            } else if ($reservation->email == null) {
-                abort(401, "La reservación no tiene email");
             }
 
-            $messageData['to_email'] = $reservation->email;
+            $messageData['to_email'] = $request->input("email");
             $messageData['to_name']  = $reservation->guest->first_name . " " . $reservation->guest->last_name;
 
             $messageData['subject'] = $request->input("subject");
@@ -167,7 +146,7 @@ class ReservationController extends Controller
         return $this->TryCatch(function () use ($request, $service) {
             $result = $service->patch($request->all(), $request->route('microsite_id'));
 
-            $this->_notification($request->route("microsite_id"), $result, "Reservación actualizada", "update", $request->key);
+            $this->_notification($request->route("microsite_id"), [$result], "Reservación actualizada", "update", $request->key);
 
             return response()->json($result);
         });
