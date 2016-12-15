@@ -476,7 +476,7 @@ class CalendarHelper {
                     $diffHours = $diff;
                     if ($encontroHorario) {
                         $reservation->datetime_input = Carbon::parse($reservation->date_reservation." ".$reservation->hours_reservation);
-                        $duration = TurnsHelper::sobremesa($reservation->res_turn_id, $guests);
+                        // $duration = TurnsHelper::sobremesa($reservation->res_turn_id, $guests);
                         break;
                     }
                 }

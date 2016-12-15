@@ -15,36 +15,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// use App\res_reservation;
-// use App\Entities\ms_microsite;
-// use App\Entities\bs_country;
-// use App\Entities\res_configuration;
-// Route::get('/mail', function () {
-    
-//     $to = array(
-//                     'email' => "luizhito.lp.4ever@gmail.com",
-//                     'name'  => "Luis Vasquez Arones",
-//                     'type'  => 'to',
-//                 );
-
-//     $data = array(
-//         "reservation" => res_reservation::with("guest")->find(437),
-//         "site" => ms_microsite::with("country", "configuration.percentage")->find(1)
-//     );
-
-//     // return bs_country::with("microsites")->get();
-//     // return res_configuration::with("microsite")->get();
-
-//     // return $data;
-
-//     $body = view("emails.web_reserve", $data)->render();
-//     // return $body;
-
-//     $config = "web_reserve";
-//     $mail = event(new App\Events\SendMailEvent($to, $body, $config));
-//     return $mail;
-// });
-
 Route::get('/docs', function () {
     return "documentacion del API";
 });
@@ -192,6 +162,8 @@ function routeMesas()
 
         Route::resource('table/reservation', 'TableReservationController', ["only" => ["store", "edit", "update"]]);
 
+        Route::get('table/reservation/confirmed/{crypt}', 'TableReservationController@showByCrypt');
+        Route::post('table/reservation/cancel/{crypt}', 'TableReservationController@cancelReserveWeb');
         Route::put('table/reservation/{reservation}/cancel', 'TableReservationController@cancel');
         Route::put('table/reservation/{reservation}/quickedit', 'TableReservationController@quickEdit');
         Route::put('table/reservation/{reservation}/sit', 'TableReservationController@sit');

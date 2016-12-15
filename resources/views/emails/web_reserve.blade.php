@@ -6,10 +6,12 @@
         .principal {
             background-color: #2B2C2C;
             width: 600px;
-            height: 780px;
+/*            height: 780px;*/
+            display: table;
             color: #2B2C2C;
             margin:0 auto 0 auto;
-             font-family: Verdana;
+            padding-bottom: 20px;
+            font-family: Verdana;
         }
         #header {
             font-size: 26px;
@@ -57,14 +59,16 @@
             </div>
 
             <div class="info">
+                @if( $reservation->event )
                 <div class="promo">
-                    <img src="{{ $promo_link or 'http://bookersnap.com/archivo/reservatiopromotion/320x320/b1a8c4e65b-lunes.jpg' }}" />
+                    <img src="http://bookersnap.com/archivo/reservatiopromotion/{{ $reservation->event['image'] }}" />
                 </div>
+                @endif
 
                 <div class="user">               
                   <label class="bold">{{ $reservation->guest["first_name"].' '.$reservation->guest["last_name"] }}</label>
                   <label>Email: <span class="bold">{{  $site->email}}</span></label>
-                  <label>Visítanos en:  <a href="'{{ $site->domain }}'"><span class="bold">{{  $site->site_name }}</span></a></label>
+                  <label>Visítanos en:  <a href="{{ $site->domain }}"><span class="bold">{{  $site->site_name }}</span></a></label>
                 </div>
 
                 <hr width="95%" align="center" size="1">

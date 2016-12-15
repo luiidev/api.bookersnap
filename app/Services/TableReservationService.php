@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Entities\ms_microsite;
 use App\Entities\res_table_reservation_temp;
+use App\Services\Helpers\CalendarHelper;
 use App\Services\Helpers\DateTimesHelper;
 use App\Services\Helpers\TurnsHelper;
 use App\res_guest;
@@ -12,7 +14,7 @@ use App\res_reservation;
 use App\res_reservation_guestlist;
 use App\res_turn_time;
 use Carbon\Carbon;
-use App\Services\Helpers\CalendarHelper;
+use Illuminate\Contracts\Encryption\DecryptException;
 
 class TableReservationService extends Service
 {
@@ -25,6 +27,40 @@ class TableReservationService extends Service
     const  _ID_STATUS_RESERVATION_RELEASED = 5;
     const  _ID_STATUS_RESERVATION_CANCELED = 6;
     const  _ID_STATUS_RESERVATION_ABSENT = 7;
+
+    public function showByCrypt()
+    {
+        try {
+            $id = decrypt($this->crypt);
+
+            return res_reservation::with("guest")
+                ->where("res_reservation_status_id", self::_ID_STATUS_RESERVATION_RESERVED)
+                ->where("ms_microsite_id", $this->microsite_id)
+                ->where("id", $id)
+                ->first();
+        } catch (DecryptException $e) {
+            return "";
+        }
+    }
+
+
+    public function cancelReserveWeb()
+    {
+        try {
+            $id = decrypt($this->crypt);
+
+            res_reservation::with("guest")
+                ->where("res_reservation_status_id", self::_ID_STATUS_RESERVATION_RESERVED)
+                ->where("ms_microsite_id", $this->microsite_id)
+                ->where("id", $id)
+                ->update([
+                    "res_reservation_status_id" => self::_ID_STATUS_RESERVATION_CANCELED
+                ]);
+            return "";
+        } catch (DecryptException $e) {
+            return "";
+        }
+    }
 
     public function find_guest()
     {
@@ -479,18 +515,20 @@ class TableReservationService extends Service
             abort(422 ,  "La reservacion no existe o expiro el tiempo de reservacion.");
         }
 
-        $date = !$temporal->next_day ? $temporal->date : Carbon::parse($temporal->date)->addDay(1, "days")->toDateString();
+        // $date = !$temporal->next_day ? $temporal->date : Carbon::parse($temporal->date)->addDay(1, "days")->toDateString();
+        $reservationInit = CalendarHelper::CalculeTimesReservation($this->microsite_id, $temporal->date, $temporal->hour);
 
-        $turn = TurnsHelper::TypeTurnWithHourForHour($date, $temporal->hour, $this->microsite_id);
+        $turn = TurnsHelper::TypeTurnWithHourForHour($temporal->date, $temporal->hour, $this->microsite_id);
         $duration = res_turn_time::where("res_turn_id", $turn->turn_id)->where("num_guests", $temporal->num_guest)->first();
 
         $reservation = new res_reservation();
         $reservation->res_guest_id              = $guest_id;
+        $reservation->ev_event_id              = $temporal->ev_event_id;
         $reservation->res_source_type_id        = self::_ID_SOURCE_RESERVATION_WEB;
         $reservation->res_reservation_status_id = self::_ID_STATUS_RESERVATION_RESERVED;
         $reservation->status_released           = 0;
         $reservation->num_guest                 = $temporal->num_guest;
-        $reservation->date_reservation          = $date;
+        $reservation->date_reservation          = $temporal->date;
         $reservation->hours_reservation         = $temporal->hour;
         $reservation->hours_duration            = $duration ? $duration->time : "01:30:00";
         $reservation->note                      = $this->req->note;
@@ -500,7 +538,7 @@ class TableReservationService extends Service
         $reservation->ms_microsite_id           = $this->microsite_id;
         $reservation->res_turn_id               = $turn->turn_id;
 
-        $reservation->datetime_input  = $date . ' ' .  $temporal->hour;
+        $reservation->datetime_input  = $reservationInit->date_reservation . ' ' .  $temporal->hour;
         $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $reservation->hours_duration);
 
         $reservation->save();
@@ -527,7 +565,11 @@ class TableReservationService extends Service
 
         res_table_reservation_temp::where("token", $this->req->token)->update(["expire" => $now]);
 
-        $data = res_reservation::withRelations()->find($reservation->id);
+        $data = array(
+            "reservation" => res_reservation::withRelations()->find($reservation->id),
+            "site" => ms_microsite::with("country", "configuration.percentage")->find($this->microsite_id),
+            "reserve_key" => encrypt($reservation->id)
+        );
 
         return $data;
     }
