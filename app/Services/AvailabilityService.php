@@ -983,7 +983,7 @@ class AvailabilityService
         $availabilityTablesIdFinal = $this->availabilityTablesIdFinal($availabilityTablesId->toArray(), $num_guests);
         
         $nextDay                   = $indexHour >= 96 ? 1 : 0;
-        $formInfo                  = ["date" => $date, "hour" => $hour, /*"next_day" => $nextDay,*/ "event_id" => $eventId, "zone_id" => $zone_id, "num_guest" => $num_guests];
+        $formInfo                  = ["date" => $date, "hour" => $hour, /*"next_day" => $nextDay,*/ "event_id" => $eventId, "zone_id" => $zone_id, "num_guests" => $num_guests];
         if ($availabilityTablesIdFinal->count() > 0) {
             return ["index" => $indexHour, "hour" => $hour, "tables_id" => [$availabilityTablesIdFinal->first()], "availability" => true, "form" => $formInfo, "promotions" => $eventId];
         } else {
@@ -997,7 +997,7 @@ class AvailabilityService
                 $availabilityTablesIdFinal = $this->checkReservationStandingPeople($date, $hour, $this->time_tolerance, $timezone, $microsite_id, $num_guests);
                 $formInfo = null;
                 if($availabilityTablesIdFinal){
-                    $formInfo                  = ["date" => $date, "hour" => $hour, /*"next_day" => $next_day,*/ "event_id" => $eventId, "zone_id" => $zone_id, "num_guest" => $num_guests];
+                    $formInfo                  = ["date" => $date, "hour" => $hour, /*"next_day" => $next_day,*/ "event_id" => $eventId, "zone_id" => $zone_id, "num_guests" => $num_guests];
                 }
                 return ["index" => $indexHour, "hour" => $hour, "tables_id" => null, "availability" => $availabilityTablesIdFinal, "form" => $formInfo, "promotions" => $eventId];
 //                $availabilityTablesIdFinal = $this->checkReservationStandingPeople($date, $hour, $this->time_tolerance, $timezone, $microsite_id, $num_guests);
