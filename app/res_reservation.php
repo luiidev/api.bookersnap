@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Entities\ev_event;
 use Illuminate\Database\Eloquent\Model;
 
 class res_reservation extends Model {
@@ -10,8 +11,7 @@ class res_reservation extends Model {
     const UPDATED_AT = "date_upd";
 
     protected $table = "res_reservation";
-    protected $hidden = ["ev_event_id", "ms_microsite_id", "bs_user_id", "date_upd", "user_add"];
-    
+    protected $hidden = ["ms_microsite_id", "bs_user_id", "date_upd", "user_add"];
 
     public function status() {
         return $this->belongsTo('App\res_reservation_status', 'res_reservation_status_id');
@@ -49,8 +49,12 @@ class res_reservation extends Model {
         return $this->hasMany('App\res_reservation_email', "res_reservation_id");
     }
 
-    public function scopeWithRelations($query) {
+    public function event()
+    {
+        return $this->belongsTo(ev_event::class, "ev_event_id");
+    }
 
+    public function scopeWithRelations($query) {
         return $query->with(["tables" => function ($query) {
                         return $query->select("res_table.id", "name");
                     }, "guest" => function ($query) {
