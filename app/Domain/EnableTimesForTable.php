@@ -133,7 +133,7 @@ class EnableTimesForTable
                 "index"   => $i,
                 "rule_id" => -1,
                 "nextday" => $nextday,
-//                "reserva" => false,
+                "reserva" => false,
             );
         }
     }

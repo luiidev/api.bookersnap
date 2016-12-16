@@ -405,7 +405,7 @@ class WebAppController extends Controller
         $reservations = \App\res_reservation::select("res.*")->with([
             "tables" => function ($query) {
                 return $query->select("res_table.id", "res_zone_id", "name");
-            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList", "emails"])->from("res_reservation as res")->where("res.wait_list", 0);
+            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList", "emails", "event"])->from("res_reservation as res")->where("res.wait_list", 0);
 
         $this->queryReservation($reservations, $microsite_id, $date, $date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds);
         //return $reservations->toSql();
@@ -420,7 +420,7 @@ class WebAppController extends Controller
         $reservations = \App\res_reservation::select("res.*")->with([
             "tables" => function ($query) {
                 return $query->select("res_table.id", "res_zone_id", "name");
-            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList", "emails"])->from("res_reservation as res")->where("res.wait_list", 0);
+            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList", "emails", "event"])->from("res_reservation as res")->where("res.wait_list", 0);
 
         $this->queryReservation($reservations, $microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds);
         //return $reservations->toSql();

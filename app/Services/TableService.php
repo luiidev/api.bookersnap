@@ -262,9 +262,7 @@ class TableService {
             $this->initAvailavilityTable();
             $this->enableTurnZone($zone->turnZone);
             foreach ($zone->tables as $table) {
-                //$this->enableTurnTable($table->turns);
-                //$EnableTimesForTable->reservationsTable($reservations, $table->id);
-                //$EnableTimesForTable->blocksTable($blocks, $table->id);
+                $this->enableTurnTable($table->turns);
                 $this->turnEventsAvailability($turnEvent);
                 $newTables->push([
                     "id" => $table->id,
@@ -275,10 +273,7 @@ class TableService {
                     "availability" => $this->getAvailavilityTable(),
                 ]);
             }
-
-            
         }
-        
         return $newTables;
     }
 
@@ -326,15 +321,18 @@ class TableService {
     public function initAvailavilityTable() {
         $this->availavilityTable = [];
         for ($i = 0; $i < 120; $i++) {
-
+            
+            $nextday              = ($i < 96) ? 0 : 1;
+            
             $this->availavilityTable[] = [
                 "time" => $this->indexToTime($i),
                 "index" => $i,
                 "today" => ($i < 96),
-                "rule" => -1,
+                "nextday" => $nextday,
+                "rule_id" => -1,
                 "turn" => false,
                 "availability" => false,
-                "reserved" => false,
+                "reserva" => false,
                 'event_id' => null
             ];
         }
@@ -348,7 +346,7 @@ class TableService {
                 $end = $this->timeToIndex($turn->hours_end);
                 $end = ($ini > $end) ? $end + 96 : $end;
                 for ($i = $ini; $i < $end; $i++) {
-                    $this->availavilityTable[$i]['rule'] = $turnzone->res_turn_rule_id;
+                    $this->availavilityTable[$i]['rule_id'] = $turnzone->res_turn_rule_id;
                     $this->availavilityTable[$i]['turn'] = true;
                     if ($turn->res_type_turn_id == $this->_ID_RESERVATION_WEB) {
                         $this->availavilityTable[$i]['availability'] = true;
@@ -365,9 +363,9 @@ class TableService {
             $end = $this->timeToIndex($turn->end_time);
             $end = ($ini > $end || $turn->next_day) ? $end + 96 : $end;
             for ($i = $ini; $i < $end; $i++) {
-                if ($this->availavilityTable[$i]['turn'] === true) {
-                    $this->availavilityTable[$i]['rule'] = $turn->res_type_turn_id;
-                    if ($turn->res_type_turn_id == $this->_ID_RESERVATION_WEB) {
+                if (@$this->availavilityTable[$i]['rule_id'] === true) {
+                    $this->availavilityTable[$i]['rule_id'] = $turn->res_turn_rule_id;
+                    if ($turn->res_turn_rule_id == $this->_ID_RESERVATION_WEB) {
                         $this->availavilityTable[$i]['availability'] = true;
                     } else {
                         $this->availavilityTable[$i]['availability'] = false;
@@ -387,8 +385,8 @@ class TableService {
             for ($i = $ini; $i < $end; $i++) {
                 /* $this->availability[$i]['ini']            = $startHour;
                   $this->availability[$i]['end']            = $endHour; */
-                if ($this->availavilityTable[$i]['rule'] > 0) {
-                    $this->availavilityTable[$i]['rule'] = 2;
+                if (@$this->availavilityTable[$i]['rule_id'] > 0) {
+                    $this->availavilityTable[$i]['rule_id'] = 2;
                     $this->availavilityTable[$i]['event_id'] = $turn->event_id;
                     $this->availavilityTable[$i]['availability'] = false;
                 }
