@@ -17,7 +17,8 @@ class ReservationEmailService
         $reservation_email->user_add           = $data['user_add'];
         $reservation_email->save();
 
-        return $reservation_email;
+        return \App\res_reservation::withRelations()->find($reservation_email->res_reservation_id);
+//        return $reservation_email;
 
     }
 

@@ -11,6 +11,7 @@ use App\Services\ReservationEmailService;
 use App\Services\ReservationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class ReservationController extends Controller
 {
@@ -103,24 +104,40 @@ class ReservationController extends Controller
             
             $messageData['from_email'] = "user@bookersnap.com";
             $messageData['from_name']  = "bookersnap.com";
-
+            
             $reservation = $service->get($request->route('microsite_id'), $request->route('reservation_id'));
-
             if (!$reservation) {
                 abort(401, "No existe reservación");
+            }            
+            if(!$reservation->email){
+                $reservation->email = $request->input("email");
+                $reservation->save();
             }
-
-            $messageData['to_email'] = $request->input("email");
-            $messageData['to_name']  = $reservation->guest->first_name . " " . $reservation->guest->last_name;
+            
+            $validator = Validator::make($request->all(), [
+                "email"        => "required|email",
+                "subject"          => "required|string",
+                "message"      => "required|string",
+            ]);
+        
+            if ($validator->fails()) {
+                return $this->CreateJsonResponse(false, 422, "", $validator->errors(), null, null, "Parametro incorrectos");
+            }
+            
+            $messageData['to_email'] = $reservation->email;
+            $messageData['to_name']  = ($reservation->guest) ? $reservation->guest->first_name . " " . $reservation->guest->last_name: "SIN NOMBRE";
 
             $messageData['subject'] = $request->input("subject");
             $messageData['message'] = $request->input('message');
 
-            $response = $this->_MailMandrillHelper->sendEmail($messageData, 'emails.reservation-cliente');
+            $responsemail = $this->_MailMandrillHelper->sendEmail($messageData, 'emails.reservation-cliente');
 
             $messageData['res_reservation_id'] = $reservation->id;
             $messageData['user_add']           = $request->_bs_user_id;
-            $this->_ReservationEmailService->create($messageData);
+            
+            $response = $this->_ReservationEmailService->create($messageData);
+            
+            $this->_notification($request->route("microsite_id"), [$response], "Se envio un mensaje de reservación", "update", $request->key);
 
             return $this->CreateResponse(true, 200, "Mensaje enviado", $response);
         });
