@@ -12,10 +12,40 @@ use App\Services\Helpers\CreateTurnHelper;
 use App\Services\Helpers\TurnServiceHelper;
 use Carbon\Carbon;
 use DB;
+use App\Services\Helpers\TurnsHelper;
 
 class TurnService {
 
+    /**
+     * Colleccion de todos los turnos activos
+     * @param int $microsite_id
+     * @param string $with
+     * @return type
+     */
+    public function actives(int $microsite_id, string $with = null) {
+        
+        $turnIdscalendar = TurnsHelper::IdsCalendarActives($microsite_id);
+        
+        $rows = res_turn::with('typeTurn')->where('ms_microsite_id', $microsite_id)->whereIn('id', $turnIdscalendar);
+        if (!empty($params)) {
+            if (!empty($params['hours_ini'])) {
+                $rows = $rows->where('hours_ini', $params['hours_ini']);
+            }
+
+            if (!empty($params['hours_end'])) {
+                $rows = $rows->where('hours_end', $params['hours_end']);
+            }
+            if (!empty($params['type_turn'])) {
+                $rows = $rows->where('res_type_turn_id', $params['type_turn']);
+            }
+        }
+        $rows = $rows->get();
+
+        return $rows;
+    }
+    
     public function search(int $microsite_id, array $params) {
+        
         $rows = res_turn::with('typeTurn')->where('ms_microsite_id', $microsite_id);
         if (!empty($params)) {
             if (!empty($params['hours_ini'])) {

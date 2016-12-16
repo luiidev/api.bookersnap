@@ -11,20 +11,45 @@ use App\Services\Helpers\DateTimesHelper;
 use Carbon\Carbon;
 use DB;
 use App\Services\Helpers\CalendarHelper;
+use App\Services\Helpers\TurnsHelper;
 
 class CalendarService
 {
+    
+    private function turnIdsByCalendar(int $microsite_id, $date) {
+        /* Obtener Los Ids de los turnos Habilitados para un rabgo de fecha */
+        $fecha = Carbon::parse($date);
+        $dayOfWeek = $fecha->dayOfWeek + 1;
+        $queryTurns = \App\res_turn_calendar::select('res_turn.*')->join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
+                ->where(DB::raw("dayofweek(start_date)"), $dayOfWeek)
+                ->where("res_turn.ms_microsite_id", $microsite_id)
+                ->where("start_date", "<=", $fecha->toDateString())
+                ->where("end_date", ">=", $fecha->toDateString())
+                ->orderBy('start_date', 'desc');
+        $turnsIds = $queryTurns->pluck('id');
+        return $turnsIds->toArray();
+    }
+    
+    public function listTurns(int $microsite_id, $date) {                
+        $turnsIdsCalendar = $this->turnIdsByCalendar($microsite_id, $date);
+        $turnsIdsEvens = TurnsHelper::IdsTurnEventFreeByDate($microsite_id, $date);        
+        $turnsIds = collect(array_merge($turnsIdsCalendar, $turnsIdsEvens))->unique();
+        return res_turn::whereIn('id', $turnsIds->toArray())->with('typeTurn')->get();        
+    }
     
     public function getList(int $microsite_id, int $year, int $month, int $day = null)
     {
         $calendar = new Calendar($year, $month, $day);
         //return Helpers\CalendarHelper::searchDate($microsite_id);
-        $turns = res_turn_calendar::with(["turn.zones" => function($query) {
-            return $query->select("id");
-        }])
-            ->whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
-            ->get()
-            ->map(function ($item) {
+        
+        /* Obtener Los Ids de los turnos Habilitados para un rabgo de fecha */
+        $turns = \App\res_turn_calendar::join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
+                ->where("res_turn.ms_microsite_id", $microsite_id)
+                ->where(function($query) use ($calendar) {
+                    return $query->where("start_date", "<=", $calendar->FIRST_DATE)->where("end_date", ">=", $calendar->FIRST_DATE)
+                            ->orWhere("start_date", "<=", $calendar->END_DATE)->where("start_date", ">=", $calendar->END_DATE)
+                            ->orWhere("start_date", ">=", $calendar->FIRST_DATE)->where("start_date", "<=", $calendar->END_DATE);
+                })->with(["turn.zones"])->get()->map(function ($item) {
                 return (object) [
                     'title'      => $item->turn->name,
                     // 'start_time' => $item->turn->hours_ini,

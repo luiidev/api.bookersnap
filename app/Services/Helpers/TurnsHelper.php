@@ -4,6 +4,8 @@ namespace App\Services\Helpers;
 
 use App\res_turn_calendar;
 use App\Services\TurnService;
+use Carbon\Carbon;
+use DB;
 
 class TurnsHelper
 {
@@ -118,4 +120,199 @@ class TurnsHelper
         }
         return $time;
     }
+    
+    /**
+     * Colleccion de turnos en una fecha del calendario
+     * @param type $microsite_id
+     * @return \App\Services\Helpers\collect    [res_turn.*, start_datetime, end_datetime]
+     */
+    public static function JoinCalendarByDate($microsite_id, $date) {
+        $now = Carbon::parse(trim($date));
+        $nextday = $now->copy()->addDay();
+        $dayOfWeek = $now->dayOfWeek + 1;
+        $lastTurn = res_turn_calendar::select(array(
+                            "res_turn.*",
+                            DB::raw("CONCAT('" . $now->toDateString() . "',' ',start_time) AS start_datetime"),
+                            DB::raw("'" . $now->toDateString() . "' AS start_date"),
+                            DB::raw("IF(end_time > start_time, '" . $now->toDateString() . "', '" . $nextday->toDateString() . "') AS end_date"),
+                            DB::raw("IF(end_time > start_time, CONCAT('" . $now->toDateString() . "',' ',end_time), CONCAT('" . $nextday->toDateString() . "',' ',end_time)) AS end_datetime")
+                        ))
+                        ->join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
+                        ->where(DB::raw("dayofweek(start_date)"), $dayOfWeek)
+                        ->where("res_turn.ms_microsite_id", $microsite_id)
+                        ->where("start_date", "<=", $now->toDateString())
+                        ->where("end_date", ">=", $now->toDateString())
+                        ->orderBy("end_datetime")->get();
+        return $lastTurn;
+    }
+    
+    /**
+     * Colleccion de turnos de los eventos de una fecha
+     * @param type $microsite_id
+     * @return \App\Services\Helpers\collect    [res_turn.*, start_datetime, end_datetime]
+     */
+    public static function JoinEventByDate($microsite_id, $date) {
+        
+        $now = Carbon::parse(trim($date));
+        $nextday = $now->copy()->addDay();
+        $dayOfWeek = $now->dayOfWeek + 1;
+        $nextdate = $now->copy()->addDay()->toDateString();
+        $lastTurn = \App\Entities\ev_event::select(array(
+                            "res_turn.*",
+                            DB::raw("CONCAT('" . $now->toDateString() . "',' ',hours_ini) AS start_datetime"),
+                            DB::raw("'" . $now->toDateString() . "' AS start_date"),
+                            DB::raw("IF(hours_end > hours_ini, '" . $now->toDateString() . "', '" . $nextday->toDateString() . "') AS end_date"),
+                            DB::raw("IF(hours_end > hours_ini, CONCAT('" . $now->toDateString() . "',' ',hours_end), CONCAT('" . $nextday->toDateString() . "',' ',hours_end)) AS end_datetime")
+                        ))
+                        ->join("res_turn", "res_turn.id", "=", "ev_event.res_turn_id")
+                        ->where('datetime_event', '>=', $now->toDateString() . " 00:00:00")
+                        ->where('datetime_event', '<', $nextday->toDateString(). " 04:00:00")
+                        ->where("res_turn.ms_microsite_id", $microsite_id)
+                        ->orderBy("end_datetime")->get();
+        return $lastTurn;
+    }
+    
+    /**
+     * Colleccion de id de turnos de los eventos gratuitos de una fecha
+     * @param type $microsite_id
+     * @return array   IDS
+     */
+    public static function IdsTurnEventFreeByDate($microsite_id, $date) {
+
+        $fecha = Carbon::parse($date);
+        $datenow = $fecha->toDateString();
+        $dayOfWeek = $fecha->dayOfWeek + 1;
+        $nextdate = $fecha->copy()->addDay()->toDateString();
+
+//        $turnsEnd = \App\res_turn_calendar::select('res_turn.id', DB::raw("IF(res_turn.hours_ini > res_turn.hours_end, CONCAT('$nextdate', ' ', res_turn.hours_end), CONCAT('$datenow', ' ', res_turn.hours_end)) as  end_datetime"))
+//                ->join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
+//                ->where(DB::raw("dayofweek(start_date)"), $dayOfWeek)
+//                ->where("res_turn.ms_microsite_id", $microsite_id)
+//                ->where("start_date", "<=", $datenow)
+//                ->where("end_date", ">=", $datenow)
+//                ->orderBy('start_date', 'desc')
+//                ->first();
+//        
+//        $endDate = ($turnsEnd) ? $turnsEnd->end_datetime : $datenow . " 23:59:59";
+        $endDate = $nextdate . " 05:00:00";
+
+        $turId = \App\Entities\ev_event::with(["turn" => function($query) use ($datenow, $nextdate) {
+                                $query->select('id', 'hours_ini', 'hours_end', 'name', DB::raw("CONCAT('$datenow', ' ', res_turn.hours_ini) as  start_datetime"), DB::raw("IF(res_turn.hours_ini > res_turn.hours_end, CONCAT('$nextdate', ' ', res_turn.hours_end), CONCAT('$datenow', ' ', res_turn.hours_end)) as  end_datetime"));
+                            }])->where('status', 1)
+                        ->where('datetime_event', '>=', $fecha->toDateString() . " 00:00:00")
+                        ->where('datetime_event', '<', $endDate)
+                        ->where('bs_type_event_id', 1)
+                        ->where('ms_microsite_id', $microsite_id)
+                        ->whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')');
+        $turId = $turId->pluck('res_turn_id');        
+        return $turId->toArray();
+    }
+    
+    /**
+     * Colleccion de turnos activo en el calendario [turno con configuracion en el calendario mayor a la fecha actual]
+     * @param type $microsite_id
+     * @return \App\Services\Helpers\collect    [res_turn.*, start_datetime, end_datetime]
+     */
+    public static function JoinCalendarActives($microsite_id) : \Illuminate\Database\Eloquent\Collection {
+
+        $now = Carbon::now();
+        $nextday = $now->copy()->addDay();
+        $lastTurn = res_turn_calendar::select(array(
+                            "res_turn.*",            
+                            DB::raw("'" . $now->toDateString() . "' AS start_date"),
+                            DB::raw("IF(end_time > start_time, '" . $now->toDateString() . "', '" . $nextday->toDateString() . "') AS end_date"),
+                            DB::raw("CONCAT('" . $now->toDateString() . "',' ',start_time) AS start_datetime"),
+                            DB::raw("IF(end_time > start_time, CONCAT('" . $now->toDateString() . "',' ',end_time), CONCAT('" . $nextday->toDateString() . "',' ',end_time)) AS end_datetime")
+                        ))
+                        ->join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
+                        ->where("res_turn.ms_microsite_id", $microsite_id)
+                        ->where(function($query) use($now){
+                            return $query->where("start_date", "<=", $now->toDateString())
+                                    ->where("end_date", ">=", $now->toDateString())
+                                    ->orWhere("start_date", ">=", $now->toDateString());
+                        })->orderBy("end_datetime")->get();
+        return $lastTurn;
+    }
+    
+    
+    /**
+     * Colleccion de ids de turnos activo en el calendario [turno con configuracion en el calendario mayor a la fecha actual]
+     * @param type $microsite_id
+     * @return array   [res_turn.*, start_datetime, end_datetime]
+     */
+    public static function IdsCalendarActives($microsite_id) {
+        $now = Carbon::now();
+        $nextday = $now->copy()->addDay();
+        $turId = res_turn_calendar::select(array(
+                            "res_turn.*",            
+//                            DB::raw("'" . $now->toDateString() . "' AS start_date"),
+//                            DB::raw("IF(end_time > start_time, '" . $now->toDateString() . "', '" . $nextday->toDateString() . "') AS end_date"),
+//                            DB::raw("CONCAT('" . $now->toDateString() . "',' ',start_time) AS start_datetime"),
+                            DB::raw("IF(end_time > start_time, CONCAT('" . $now->toDateString() . "',' ',end_time), CONCAT('" . $nextday->toDateString() . "',' ',end_time)) AS end_datetime")
+                        ))
+                        ->join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
+                        ->where("res_turn.ms_microsite_id", $microsite_id)
+                        ->where(function($query) use($now){
+                            return $query->where("start_date", "<=", $now->toDateString())
+                                    ->where("end_date", ">=", $now->toDateString())
+                                    ->orWhere("start_date", ">=", $now->toDateString());
+                        })
+                        ->orderBy("end_datetime")->pluck('id');
+        return $turId->toArray();
+    }
+    
+    /**
+     * Colleccion de turnos activo por eventos [turno de eventos con inicio mayor o igual a la fecha actual]
+     * @param type $microsite_id
+     * @return \App\Services\Helpers\collect    [res_turn.*, start_datetime, end_datetime]
+     */
+    public static function JoinEventActives($microsite_id) {
+        
+        $now = Carbon::now();
+        $nextday = $now->copy()->addDay();
+        $dayOfWeek = $now->dayOfWeek + 1;
+        $nextdate = $now->copy()->addDay()->toDateString();
+        $lastTurn = \App\Entities\ev_event::select(array(
+                            "res_turn.*",
+//                            DB::raw("CONCAT('" . $now->toDateString() . "',' ',hours_ini) AS start_datetime"),
+                            DB::raw("CONCAT('" . $now->toDateString() . "',' ',hours_ini) AS start_datetime"),
+                            DB::raw("'" . $now->toDateString() . "' AS start_date"),
+                            DB::raw("IF(hours_end > hours_ini, '" . $now->toDateString() . "', '" . $nextday->toDateString() . "') AS end_date"),
+                            DB::raw("IF(hours_end > hours_ini, CONCAT('" . $now->toDateString() . "',' ',hours_end), CONCAT('" . $nextday->toDateString() . "',' ',hours_end)) AS end_datetime")
+                        ))
+                        ->join("res_turn", "res_turn.id", "=", "ev_event.res_turn_id")
+                        ->where('datetime_event', '>=', $now->toDateString() . " 00:00:00")
+                        ->where("res_turn.ms_microsite_id", $microsite_id)
+                        ->orderBy("end_datetime")->get();
+        return $lastTurn;
+    }
+    
+    /**
+     * Colleccion de turnos activo por eventos [turno de eventos con inicio mayor o igual a la fecha actual]
+     * @param type $microsite_id
+     * @return \App\Services\Helpers\collect    [res_turn.*, start_datetime, end_datetime]
+     */
+    public static function IdsEventActives($microsite_id) {
+        
+        $now = Carbon::now();
+        $nextday = $now->copy()->addDay();
+        $dayOfWeek = $now->dayOfWeek + 1;
+        $nextdate = $now->copy()->addDay()->toDateString();
+        $lastTurn = \App\Entities\ev_event::select(array(
+                            "res_turn.*",
+//                            DB::raw("CONCAT('" . $now->toDateString() . "',' ',hours_ini) AS start_datetime"),
+                            DB::raw("CONCAT('" . $now->toDateString() . "',' ',hours_ini) AS start_datetime"),
+                            DB::raw("'" . $now->toDateString() . "' AS start_date"),
+                            DB::raw("IF(hours_end > hours_ini, '" . $now->toDateString() . "', '" . $nextday->toDateString() . "') AS end_date"),
+                            DB::raw("IF(hours_end > hours_ini, CONCAT('" . $now->toDateString() . "',' ',hours_end), CONCAT('" . $nextday->toDateString() . "',' ',hours_end)) AS end_datetime")
+                        ))
+                        ->join("res_turn", "res_turn.id", "=", "ev_event.res_turn_id")
+                        ->where('datetime_event', '>=', $now->toDateString() . " 00:00:00")
+                        ->where("res_turn.ms_microsite_id", $microsite_id)
+                        ->orderBy("end_datetime")->pluck('id');
+        return $lastTurn->toArray;
+    }
+    
+    
+    
 }

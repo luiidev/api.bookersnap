@@ -85,7 +85,7 @@ class WebAppController extends Controller
 
             $dateTimeOpen  = CalendarHelper::realDateTimeOpen($microsite_id, $date);
             $dateTimeClose = CalendarHelper::realDateTimeClose($microsite_id, $date);
-
+            
             $turnsIds = $this->turnsIdsByDate($microsite_id, $date);
             $turns    = $this->turnsByIds($turnsIds);
             $zones    = $this->zonesIdsByTurnsIds($turnsIds);
@@ -105,8 +105,8 @@ class WebAppController extends Controller
             $pax             = $this->paxReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
             $mesasOcupadas   = $this->mesasOcupadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
             $mesasReservadas = $this->mesasReservadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
-
-            $availebility = $this->_TableService->availability($microsite_id, $date);
+            
+            $availebility = $this->_TableService->tablesAvailability($microsite_id, $date);
 
             $reservaSentadas = $this->reservacionesSentadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
 

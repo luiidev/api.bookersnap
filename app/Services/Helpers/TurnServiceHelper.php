@@ -44,6 +44,7 @@ class TurnServiceHelper {
                 $turnTable['res_turn_rule_id'] = ($rule_id != -1) ? $rule_id : 0;
                 $turnTable['next_day'] = ($i >= 96) ? 1 : 0;
             } else if ($rule_id_old == $rule_id) {
+                $turnTable['next_day'] = ($i >= 96) ? 1 : 0;
                 $turnTable['end_time'] = \App\Domain\TimeForTable::indexToTime($i);
             }
 

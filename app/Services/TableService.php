@@ -9,10 +9,16 @@ use App\res_reservation;
 use App\res_table;
 use App\Services\CalendarService;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class TableService {
 
     protected $_CalendarService;
+    protected $_DATETIME_OPEN;
+    protected $_DATETIME_CLOSE;
+    protected $_TURNS_CALENDAR;
+    protected $_TURNS_EVENT;
+    protected $_EVENTS;
 
     public function __construct(CalendarService $CalendarService) {
         $this->_CalendarService = $CalendarService;
@@ -74,8 +80,8 @@ class TableService {
 
 //        return $this->testReturnEvents($microsite_id, $date);
         $tables = $this->turnsCalendarByDate($microsite_id, $date);
-        $reservations = $this->reservationsByDate($microsite_id, $date);
-        $blocks = $this->blocksByDate($microsite_id, $date);
+//        $reservations = $this->reservationsByDate($microsite_id, $date);
+//        $blocks = $this->blocksByDate($microsite_id, $date);
 //        $eventsFree = $this->eventsFreeByDate($microsite_id, $date);
         //        $eventsPay = $this->eventsPayByDate($microsite_id, $date);
         //        $promotionsFree = $this->promotionsFreeByDate($microsite_id, $date);
@@ -134,41 +140,146 @@ class TableService {
                     }, "zone.turns.turnTable"])->get();
     }
 
-    public function searchAvailability($microsite_id, $num_guest, $date, $hour) {
+    public function turnEvent($microsite_id, $date) {
 
-        $fecha = \Carbon\Carbon::parse($date . " " . $hour);
+        $fecha = Carbon::parse($date);
+        $datenow = $fecha->toDateString();
         $dayOfWeek = $fecha->dayOfWeek + 1;
+        $nextdate = $fecha->copy()->addDay()->toDateString();
 
-        /* Obtener Los Ids de los turnos Habilitados para la fecha */
-        $turnsIds = \App\res_turn_calendar::join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
+        $turnsEnd = \App\res_turn_calendar::select('res_turn.id', DB::raw("IF(res_turn.hours_ini > res_turn.hours_end, CONCAT('$nextdate', ' ', res_turn.hours_end), CONCAT('$datenow', ' ', res_turn.hours_end)) as  end_datetime"))
+                ->join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
                 ->where(DB::raw("dayofweek(start_date)"), $dayOfWeek)
                 ->where("res_turn.ms_microsite_id", $microsite_id)
-                ->where("start_date", "<=", $fecha->toDateString())
-                ->where("end_date", ">=", $fecha->toDateString())
-                ->pluck('id');
+                ->where("start_date", "<=", $datenow)
+                ->where("end_date", ">=", $datenow)
+                ->orderBy('start_date', 'desc')
+                ->first();
+        $endDate = ($turnsEnd) ? $turnsEnd->end_datetime : $datenow . " 23:59:59";
+
+        return ev_event::with(["turn" => function($query) use ($datenow, $nextdate) {
+                                $query->select('id', 'hours_ini', 'hours_end', 'name', DB::raw("CONCAT('$datenow', ' ', res_turn.hours_ini) as  start_datetime"), DB::raw("IF(res_turn.hours_ini > res_turn.hours_end, CONCAT('$nextdate', ' ', res_turn.hours_end), CONCAT('$datenow', ' ', res_turn.hours_end)) as  end_datetime"));
+                            }])->where('status', 1)
+                        ->where('datetime_event', '>=', $fecha->toDateString() . " 00:00:00")
+                        ->where('datetime_event', '<', $endDate)
+                        ->where('bs_type_event_id', 1)
+                        ->where('ms_microsite_id', $microsite_id)
+                        ->whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
+                        ->get()->map(function($item) use ($datenow, $nextdate) {
+                    $turn = $item->turn;
+                    $turn->event_id = $item->id;
+                    return $turn;
+                });
+    }
+
+    private function zonesAvailabilityByTurns($turnsIds) {
 
         /* Obtener Los Ids de las zonas Habbilitadas por los turnos habiles */
         $turnZoneIds = \App\res_turn_zone::whereIn('res_turn_id', $turnsIds)->groupBy('res_zone_id')->pluck('res_zone_id');
 
+//        $zones = \App\res_zone::whereIn('res_zone.id', $turnZoneIds)->where("res_zone.status", 1)->with(['tables.turns' => function($query) use($turnsIds) {
+//                        return $query->whereIn('res_turn_id', $turnsIds)->where('res_turn_rule_id', 2);
+//                    }, 'turnZone' => function($query) use($turnsIds) {
+//                        return $query->whereIn('res_turn_id', $turnsIds)->with('turn');
+//                    }, 'tables.reservations' => function($query) use($fecha) {
+//                        return $query->select(array('res_reservation.id', 'res_reservation.date_reservation', 'res_reservation.hours_reservation', 'res_reservation.next_day', 'res_reservation.hours_duration', 'res_reservation.res_reservation_status_id', 'res_reservation.datetime_input', 'res_reservation.datetime_output'))->where('res_reservation.date_reservation', $fecha->toDateString());
+//                    }, 'tables.blocks' => function($query) use($fecha) {
+//                        return $query->select(array('res_block.id', 'res_block.start_date', 'res_block.start_time', 'res_block.end_time', 'res_block.next_day'))->where('res_block.start_date', $fecha->toDateString());
+//                    }])->get();
+
         $zones = \App\res_zone::whereIn('res_zone.id', $turnZoneIds)->where("res_zone.status", 1)->with(['tables.turns' => function($query) use($turnsIds) {
                         return $query->whereIn('res_turn_id', $turnsIds)->where('res_turn_rule_id', 2);
-                    }, 'turns' => function($query) use($turnsIds) {
-                        return $query->whereIn('res_turn_id', $turnsIds);
-                    }, 'tables.reservations' => function($query) use($fecha) {
-                        return $query->select(array('res_reservation.id', 'res_reservation.date_reservation', 'res_reservation.hours_reservation', 'res_reservation.next_day', 'res_reservation.hours_duration', 'res_reservation.res_reservation_status_id', 'res_reservation.datetime_input', 'res_reservation.datetime_output'))->where('res_reservation.date_reservation', $fecha->toDateString());
-                    }, 'tables.blocks' => function($query) use($fecha) {
-                        return $query->select(array('res_block.id', 'res_block.start_date', 'res_block.start_time', 'res_block.end_time', 'res_block.next_day'))->where('res_block.start_date', $fecha->toDateString());
+                    }, 'turnZone' => function($query) use($turnsIds) {
+                        return $query->whereIn('res_turn_id', $turnsIds)->with('turn');
                     }])->get();
 
-//        $tables = $this->turnsCalendarByDate($microsite_id, $date);
-//        $reservations = $this->reservationsByDate($microsite_id, $date);
-//        $blocks = $this->blocksByDate($microsite_id, $date);
-//        $eventsFree = $this->eventsFreeByDate($microsite_id, $date);
-        //        $eventsPay = $this->eventsPayByDate($microsite_id, $date);
-        //        $promotionsFree = $this->promotionsFreeByDate($microsite_id, $date);
-//        return $zones[0];
-        $a = $this->searchAvailavilityByZone($zones[0]);
-        return [$zones[0], $a];
+        return $zones;
+    }
+    
+    private function zoneAvailabilityByTruns($zoneId, $turnsIds) {
+        
+        $zone = \App\res_zone::whereIn('res_zone.id', $turnZoneIds)->where("res_zone.status", 1)->with(['tables.turns' => function($query) use($turnsIds) {
+                        return $query->whereIn('res_turn_id', $turnsIds)->where('res_turn_rule_id', 2);
+                    }, 'turnZone' => function($query) use($turnsIds) {
+                        return $query->where('res_turn_id', $zoneId)->with('turn');
+                    }])->first();
+
+        return $zone;
+    }
+    
+    /**
+     * Obtener Los Ids de los turnos Habilitados para la fecha del mcalendario
+     * @param int $microsite_id
+     * @param string $date
+     * @return array
+     */
+    private function turnsIdsByDateCalendar(int $microsite_id, string $date) {
+        $fecha = Carbon::parse($date);
+        $dayOfWeek = $fecha->dayOfWeek + 1;
+
+        $queryTurns = \App\res_turn_calendar::select('res_turn.*')->join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
+                ->where(DB::raw("dayofweek(start_date)"), $dayOfWeek)
+                ->where("res_turn.ms_microsite_id", $microsite_id)
+                ->where("start_date", "<=", $fecha->toDateString())
+                ->where("end_date", ">=", $fecha->toDateString())
+                ->orderBy('start_date', 'desc');
+        $turnsIds = $queryTurns->pluck('id');
+        return $turnsIds;
+    }
+
+
+    public function searchAvailability($microsite_id, $num_guest, $date, $hour) {
+        $turnsIds = $this->turnsIdsByDateCalendar($microsite_id, $date);
+//        $realdate = Helpers\CalendarHelper::realDateByHousInDate($microsite_id, $date, $hour);
+        /* Obtener Los Ids de los turnos Habilitados para la fecha */
+        $turnEvent = $this->turnEvent($microsite_id, $date);
+        $zones = $this->zonesAvailabilityByTurns($turnsIds);
+        return $this->searchAvailavilityByZone($zones[0], $turnEvent);
+    }
+    
+    public function tablesZoneAvailability($microsite_id, $date, $zoneId) {
+        $turnsIds = $this->turnsIdsByDateCalendar($microsite_id, $date);        
+        /* Obtener Los Ids de los turnos Habilitados para la fecha */
+        $turnEvent = $this->turnEvent($microsite_id, $date);
+        $zones = $this->zoneAvailabilityByTruns($zoneId, $turnsIds);
+        return $this->searchAvailavilityByZone($zones, $turnEvent);
+    }
+    
+    /**
+     * Disponibilidad de todas las mesas en una fecha
+     * @param type $microsite_id
+     * @param type $date
+     * @return type
+     */
+    public function tablesAvailability($microsite_id, $date) {
+        $turnsIds = $this->turnsIdsByDateCalendar($microsite_id, $date);        
+        /* Obtener Los Ids de los turnos Habilitados para la fecha */
+        $turnEvent = $this->turnEvent($microsite_id, $date);
+        $zones = $this->zonesAvailabilityByTurns($turnsIds);
+        
+        $newTables = collect();
+        foreach ($zones as  $zone) {
+            $this->initAvailavilityTable();
+            $this->enableTurnZone($zone->turnZone);
+            foreach ($zone->tables as $table) {
+                //$this->enableTurnTable($table->turns);
+                //$EnableTimesForTable->reservationsTable($reservations, $table->id);
+                //$EnableTimesForTable->blocksTable($blocks, $table->id);
+                $this->turnEventsAvailability($turnEvent);
+                $newTables->push([
+                    "id" => $table->id,
+                    "res_zone_id" => $table->res_zone_id,
+                    "name" => $table->name,
+                    "min_cover" => $table->min_cover,
+                    "max_cover" => $table->max_cover,
+                    "availability" => $this->getAvailavilityTable(),
+                ]);
+            }
+
+            
+        }
+        
+        return $newTables;
     }
 
     protected $availavilityTable;
@@ -222,28 +333,33 @@ class TableService {
                 "today" => ($i < 96),
                 "rule" => -1,
                 "turn" => false,
-                "reservations" => null,
                 "availability" => false,
+                "reserved" => false,
+                'event_id' => null
             ];
         }
     }
 
     public function enableTurnZone($turnsZone) {
-        foreach ($turnsZone as $turn) {
-            $ini = $this->timeToIndex($turn->hours_ini);
-            $end = $this->timeToIndex($turn->hours_end);
-            $end = ($ini > $end) ? $end + 96 : $end;
-            for ($i = $ini; $i < $end; $i++) {
-                $this->availavilityTable[$i]['rule'] = $turn->res_type_turn_id;
-                $this->availavilityTable[$i]['turn'] = true;
-                if ($turn->res_type_turn_id == $this->_ID_RESERVATION_WEB) {
-                    $this->availavilityTable[$i]['availability'] = true;
+        foreach ($turnsZone as $turnzone) {
+            if ($turnzone->turn) {
+                $turn = $turnzone->turn;
+                $ini = $this->timeToIndex($turn->hours_ini);
+                $end = $this->timeToIndex($turn->hours_end);
+                $end = ($ini > $end) ? $end + 96 : $end;
+                for ($i = $ini; $i < $end; $i++) {
+                    $this->availavilityTable[$i]['rule'] = $turnzone->res_turn_rule_id;
+                    $this->availavilityTable[$i]['turn'] = true;
+                    if ($turn->res_type_turn_id == $this->_ID_RESERVATION_WEB) {
+                        $this->availavilityTable[$i]['availability'] = true;
+                    }
                 }
             }
         }
     }
 
     public function enableTurnTable($turnsTable) {
+
         foreach ($turnsTable as $turn) {
             $ini = $this->timeToIndex($turn->start_time);
             $end = $this->timeToIndex($turn->end_time);
@@ -260,33 +376,37 @@ class TableService {
             }
         }
     }
-    
-    private function reservatedTables($reservations)
-    {
-        foreach ($reservations as $reservation) {
-            $ini = $this->defineIndex($reservation->date_reservation, $reservation->datetime_input);
-            $end = $this->defineIndex($reservation->date_reservation, $reservation->datetime_output);
+
+    private function turnEventsAvailability($turnsEvent) {
+
+        foreach ($turnsEvent as $turn) {
+            $ini = $this->timeToIndex($turn->hours_ini);
+            $end = $this->timeToIndex($turn->hours_end);
+            $end = ($ini > $end) ? $end + 96 : $end;
 
             for ($i = $ini; $i < $end; $i++) {
-                /*$this->availability[$i]['ini']            = $startHour;
-                $this->availability[$i]['end']            = $endHour;*/
-                $this->availability[$i]['reservations'][] = ["id" =>$reservation->id];
-                $this->availavilityTable[$i]['availability'] = false;
+                /* $this->availability[$i]['ini']            = $startHour;
+                  $this->availability[$i]['end']            = $endHour; */
+                if ($this->availavilityTable[$i]['rule'] > 0) {
+                    $this->availavilityTable[$i]['rule'] = 2;
+                    $this->availavilityTable[$i]['event_id'] = $turn->event_id;
+                    $this->availavilityTable[$i]['availability'] = false;
+                }
             }
         }
     }
 
-    public function searchAvailavilityByZone($zone) {
+    public function searchAvailavilityByZone($zone, $turnEvent) {
 
         $newTables = collect();
-        $tempTable = null;
 
         $this->initAvailavilityTable();
-        $this->enableTurnZone($zone->turns);
-        foreach ($zone->tables as $key => $table) {
+        $this->enableTurnZone($zone->turnZone);
+        foreach ($zone->tables as $table) {
             //$this->enableTurnTable($table->turns);
             //$EnableTimesForTable->reservationsTable($reservations, $table->id);
             //$EnableTimesForTable->blocksTable($blocks, $table->id);
+            $this->turnEventsAvailability($turnEvent);
             $newTables->push([
                 "id" => $table->id,
                 "res_zone_id" => $table->res_zone_id,

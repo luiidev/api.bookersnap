@@ -55,12 +55,16 @@ class ReservationTemporalController extends Controller
     {
         //inyectar evento
         // $request->request->set('ev_event_id', 1);
+        
         return $this->TryCatch(function () use ($request) {
+            
+            $token        = request()->cookie('token', request()->cookie('laravel_session'));
+            
             $ev_event_id = $request->ev_event_id;
 
             $user_id      = $request->input("_bs_user_id");
             $microsite_id = $request->route('microsite_id');
-            $token        = $request->token;
+//            $token        = $request->token;            
             $hour         = $request->hour;
             $date         = $request->date;
             $num_guests   = $request->num_guests;
