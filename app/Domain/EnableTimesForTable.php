@@ -13,7 +13,6 @@ namespace App\Domain;
  *
  * @author USER
  */
-use Carbon\Carbon;
 
 class EnableTimesForTable
 {
@@ -31,11 +30,11 @@ class EnableTimesForTable
         $this->initAvailability();
         $ini = $this->timeToIntegerRangePosition($turn->hours_ini);
         $end = $this->timeToIntegerRangePosition($turn->hours_end);
-        
+
         for ($i = $ini; $i <= $end; $i++) {
             $this->availability[$i]['rule_id'] = 1;
         }
-        if($turns_table){
+        if ($turns_table) {
             $this->defineRule($turns_table);
         }
         return $this->availability;
@@ -72,32 +71,32 @@ class EnableTimesForTable
     private function defineIndex(string $date, string $datetime)
     {
         list($dateIni, $hoursIni) = explode(" ", $datetime);
-        list($hours, $minute) = explode(":", $hoursIni);
-        
-        $r      = $minute % 15;
+        list($hours, $minute)     = explode(":", $hoursIni);
+
+        $r = $minute % 15;
         if ($r > 0) {
             $minute -= $r;
             if ($r > 8) {
                 $minute += 15;
             }
         }
-        $index = (int)$hours * 4 + (int)$minute / 15;
-        if(($dateIni <=> $date) == 1){
-            $index +=96;
+        $index = (int) $hours * 4 + (int) $minute / 15;
+        if (($dateIni <=> $date) == 1) {
+            $index += 96;
         }
         return $index;
     }
-    
+
     private function reservations($reservation)
     {
         $ini = $this->defineIndex($reservation->date_reservation, $reservation->datetime_input);
         $end = $this->defineIndex($reservation->date_reservation, $reservation->datetime_output);
-        
+
         for ($i = $ini; $i < $end; $i++) {
             /*$this->availability[$i]['ini']            = $startHour;
             $this->availability[$i]['end']            = $endHour;*/
-            $this->availability[$i]['reservations'][] = ["id" =>$reservation->id];
-            $this->availability[$i]['reserva']       = true;
+            $this->availability[$i]['reservations'][] = ["id" => $reservation->id];
+            $this->availability[$i]['reserva']        = true;
             $this->availability[$i]['rule_id']        = 0;
         }
     }
@@ -105,8 +104,8 @@ class EnableTimesForTable
     private function blocks($block)
     {
 //        if(($block->start_time <=> $block->start_time) == 1){
-//            
-//        }
+        //
+        //        }
         $ini = $this->defineIndex($block->start_date);
         $end = $this->defineIndex($block->start_date);
 
@@ -133,7 +132,7 @@ class EnableTimesForTable
                 "index"   => $i,
                 "rule_id" => -1,
                 "nextday" => $nextday,
-//                "reserva" => false,
+                "reserva" => false,
             );
         }
     }
@@ -152,28 +151,28 @@ class EnableTimesForTable
     private function timeToIntegerRangePosition(string $time)
     {
 //        $minute = (date("i", strtotime($time)));
-//        $r      = $minute % 15;
-//        if ($r > 0) {
-//            $minute -= $r;
-//            if ($r > 8) {
-//                $minute += 15;
-//            }
-//        }
-//        return date("H", strtotime($time)) * 4 + $minute / 15;
-        
+        //        $r      = $minute % 15;
+        //        if ($r > 0) {
+        //            $minute -= $r;
+        //            if ($r > 8) {
+        //                $minute += 15;
+        //            }
+        //        }
+        //        return date("H", strtotime($time)) * 4 + $minute / 15;
+
         list($hours, $minute) = explode(":", $time);
-        
-        $r      = $minute % 15;
+
+        $r = $minute % 15;
         if ($r > 0) {
             $minute -= $r;
             if ($r > 8) {
                 $minute += 15;
             }
         }
-        $index = (int)$hours * 4 + (int)$minute / 15;
-        
+        $index = (int) $hours * 4 + (int) $minute / 15;
+
         return $index;
-        
+
     }
 
     private function rangeToTime(int $index)
