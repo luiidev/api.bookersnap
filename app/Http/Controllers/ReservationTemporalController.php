@@ -53,12 +53,14 @@ class ReservationTemporalController extends Controller
      */
     public function store(ReservationTemporalRequest $request)
     {
+        // return $request->header("token");
         //inyectar evento
         // $request->request->set('ev_event_id', 1);
         
         return $this->TryCatch(function () use ($request) {
             
-            $token        = request()->cookie('token', request()->cookie('laravel_session'));
+            // $token        = request()->cookie('token', request()->cookie('laravel_session'));
+            $token        = request()->header("token");
             
             $ev_event_id = $request->ev_event_id;
 
@@ -141,8 +143,12 @@ class ReservationTemporalController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($lang, $microsite_id, $token)
     {
-        //
+        return $this->TryCatch(function () use ($microsite_id, $token) {
+            $this->service->temporalReserveFinish($token);
+
+            return $this->CreateJsonResponse(true, 200, "");
+        });
     }
 }
