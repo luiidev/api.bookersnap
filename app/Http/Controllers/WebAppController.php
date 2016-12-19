@@ -90,7 +90,7 @@ class WebAppController extends Controller
             $turns    = $this->turnsByIds($turnsIds);
             $zones    = $this->zonesIdsByTurnsIds($turnsIds);
 
-            $reservations = $this->bookReservations($microsite_id, $date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
+            $reservations = $this->bookReservations($microsite_id, $date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'),  $request->input('nstatus'), $request->input('page_size'));
 
             $configuration = $this->configuration($microsite_id);
             $servers       = $this->servers($microsite_id);
@@ -101,14 +101,14 @@ class WebAppController extends Controller
             $status        = $this->status();
             $blocks        = $this->blocksByRangeDate($microsite_id, $dateTimeOpen, $dateTimeClose);
 
-            $sentados        = $this->numSentadosReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
-            $pax             = $this->paxReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
-            $mesasOcupadas   = $this->mesasOcupadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
-            $mesasReservadas = $this->mesasReservadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
+            $sentados        = $this->numSentadosReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
+            $pax             = $this->paxReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
+            $mesasOcupadas   = $this->mesasOcupadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
+            $mesasReservadas = $this->mesasReservadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
             
             $availebility = $this->_TableService->tablesAvailability($microsite_id, $date);
 
-            $reservaSentadas = $this->reservacionesSentadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
+            $reservaSentadas = $this->reservacionesSentadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
 
             $TOTAL       = $reservations->count();
             $PAX         = $pax->PAX;
@@ -170,7 +170,7 @@ class WebAppController extends Controller
             $zones    = $this->zonesIdsByTurnsIds($turnsIds);
             $blocks   = $this->blocksByRangeDate($microsite_id, $dateTimeOpen, $dateTimeClose);
 
-            $reservations = $this->searchReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
+            $reservations = $this->searchReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
 
             $configuration = $this->configuration($microsite_id);
             $servers       = $this->servers($microsite_id);
@@ -180,12 +180,12 @@ class WebAppController extends Controller
             $tags          = $this->tagsReservations($microsite_id);
             $status        = $this->status();
 
-            $sentados        = $this->numSentadosReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
-            $pax             = $this->paxReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
-            $mesasOcupadas   = $this->mesasOcupadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
-            $mesasReservadas = $this->mesasReservadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
+            $sentados        = $this->numSentadosReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
+            $pax             = $this->paxReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
+            $mesasOcupadas   = $this->mesasOcupadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
+            $mesasReservadas = $this->mesasReservadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
 
-            $reservaSentadas = $this->reservacionesSentadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
+            $reservaSentadas = $this->reservacionesSentadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
 
             $TOTAL       = $reservations->total();
             $PAX         = $pax->PAX;
@@ -247,13 +247,13 @@ class WebAppController extends Controller
             $turns    = $this->turnsByIds($turnsIds);
             $zones    = $this->zonesIdsByTurnsIds($turnsIds);
 
-            $reservations = $this->searchReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
+            $reservations = $this->searchReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
 
-            $sentados        = $this->numSentadosReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
-            $pax             = $this->paxReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
-            $mesasOcupadas   = $this->mesasOcupadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
-            $mesasReservadas = $this->mesasReservadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
-            $reservaSentadas = $this->reservacionesSentadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('page_size'));
+            $sentados        = $this->numSentadosReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
+            $pax             = $this->paxReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
+            $mesasOcupadas   = $this->mesasOcupadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
+            $mesasReservadas = $this->mesasReservadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
+            $reservaSentadas = $this->reservacionesSentadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
 
             $TOTAL       = $reservations->total();
             $PAX         = $pax->PAX;
@@ -356,58 +356,58 @@ class WebAppController extends Controller
         });
     }
 
-    public function paxReservations($microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $page_size = 30)
+    public function paxReservations($microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds, $page_size = 30)
     {
         $reservations = \App\res_reservation::select(DB::raw("SUM(res.num_guest) AS PAX, SUM(res.num_people_1) AS PAX01, SUM(res.num_people_2) AS PAX02, SUM(res.num_people_3) AS PAX03"))->from("res_reservation as res")->where("res.wait_list", 0);
-        $this->queryReservation($reservations, $microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds);
+        $this->queryReservation($reservations, $microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds);
 //        return $reservations->toSql();
         return $reservations->first();
     }
 
-    public function numSentadosReservations($microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $page_size = 30)
+    public function numSentadosReservations($microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds, $page_size = 30)
     {
         $reservations = \App\res_reservation::select(DB::raw("COUNT(res.id) AS SENTADOS"))->from("res_reservation as res")->where("res.wait_list", 0);
-        $this->queryReservation($reservations, $microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds);
+        $this->queryReservation($reservations, $microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds);
 //        return $reservations->toSql();
         $reservations = $reservations->where('res.res_reservation_status_id', 4);
         return $reservations->first()->SENTADOS;
     }
 
-    public function mesasOcupadas($microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $page_size = 30)
+    public function mesasOcupadas($microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds, $page_size = 30)
     {
         $reservations = \App\res_reservation::select(DB::raw("COUNT(res.id) AS SENTADOS"))->from("res_reservation as res")->where("res.wait_list", 0);
-        $this->queryReservation($reservations, $microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds);
+        $this->queryReservation($reservations, $microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds);
 //        return $reservations->toSql();
         $reservations = $reservations->where('res.res_reservation_status_id', 4);
         $reservations = $reservations->join("res_table_reservation as t_res", "t_res.res_reservation_id", "=", "res.id");
         return $reservations->first()->SENTADOS;
     }
 
-    public function reservacionesSentadas($microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $page_size = 30)
+    public function reservacionesSentadas($microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds, $page_size = 30)
     {
         $reservations = \App\res_reservation::select(DB::raw("COUNT(res.id) AS SENTADOS"))->from("res_reservation as res")->where("res.wait_list", 0);
-        $this->queryReservation($reservations, $microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds);
+        $this->queryReservation($reservations, $microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds);
         $reservations = $reservations->where('res.res_reservation_status_id', 4);
         return $reservations->first()->SENTADOS;
     }
 
-    public function mesasReservadas($microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $page_size = 30)
+    public function mesasReservadas($microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds, $page_size = 30)
     {
         $reservations = \App\res_reservation::select(DB::raw("COUNT(res.id) AS SENTADOS"))->from("res_reservation as res")->where("res.wait_list", 0);
-        $this->queryReservation($reservations, $microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds);
+        $this->queryReservation($reservations, $microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds);
 //        return $reservations->toSql();
         $reservations = $reservations->join("res_table_reservation as t_res", "t_res.res_reservation_id", "=", "res.id");
         return $reservations->first()->SENTADOS;
     }
 
-    public function bookReservations($microsite_id, $date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $page_size = 30)
+    public function bookReservations($microsite_id, $date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds, $page_size = 30)
     {
         $reservations = \App\res_reservation::select("res.*")->with([
             "tables" => function ($query) {
                 return $query->select("res_table.id", "res_zone_id", "name");
             }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList", "emails", "event"])->from("res_reservation as res")->where("res.wait_list", 0);
 
-        $this->queryReservation($reservations, $microsite_id, $date, $date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds);
+        $this->queryReservation($reservations, $microsite_id, $date, $date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds);
         //return $reservations->toSql();
         $sortBy       = $this->getNameSort($sortBy);
         $reservations = $reservations->orderBy($sortBy->value, $sortBy->type);
@@ -415,14 +415,14 @@ class WebAppController extends Controller
         return $reservations->get();
     }
 
-    public function searchReservations($microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $page_size = 30)
+    public function searchReservations($microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds, $page_size = 30)
     {
         $reservations = \App\res_reservation::select("res.*")->with([
             "tables" => function ($query) {
                 return $query->select("res_table.id", "res_zone_id", "name");
             }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList", "emails", "event"])->from("res_reservation as res")->where("res.wait_list", 0);
 
-        $this->queryReservation($reservations, $microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds);
+        $this->queryReservation($reservations, $microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds);
         //return $reservations->toSql();
 
         $sortBy = $this->getNameSort($sortBy);
@@ -432,12 +432,13 @@ class WebAppController extends Controller
         return $reservations->paginate($page_size);
     }
 
-    private function queryReservation(&$reservations, $microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds)
+    private function queryReservation(&$reservations, $microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds)
     {
 
         $turnIds   = ($turnIds) ? explode(",", $turnIds) : [];
         $sourceIds = ($sourceIds) ? explode(",", $sourceIds) : [];
         $zoneIds   = ($zoneIds) ? explode(",", $zoneIds) : [];
+        $nstatusIds = ($nstatusIds) ? explode(",", $nstatusIds) : [];
 
         if (strlen(trim($searchText)) > 0 || $sortBy == "guest.asc" || $sortBy == "guest.desc" || $sortBy === "guest") {
             $reservations = $reservations->join("res_guest as guest", "guest.id", "=", "res.res_guest_id");
@@ -451,7 +452,10 @@ class WebAppController extends Controller
         }
 
         $reservations = $reservations->whereBetween("res.date_reservation", [$start_date, $end_date]);
-
+        
+        if (count($nstatusIds) > 0) {
+            $reservations =  $reservations->whereNotIn("res.res_reservation_status_id", $nstatusIds);
+        }
         if (count($turnIds) > 0) {
             $typeTurns    = \App\res_turn::whereIn('id', $turnIds)->groupBy('res_type_turn_id')->pluck('res_type_turn_id')->toArray();
             $reservations = $reservations->join('res_turn', function ($join) {
