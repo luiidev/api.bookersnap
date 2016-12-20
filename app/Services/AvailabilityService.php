@@ -1498,17 +1498,23 @@ class AvailabilityService
             ->where(DB::raw("DATE_FORMAT(datetime_event, '%Y-%m-%d')"), $date)
             ->where('bs_type_event_id', 1)
             ->where('ms_microsite_id', $microsite_id)
-            ->whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
+//            ->whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
             ->get();
     }
     
-    public function searchEventsByType($microsite_id, $date, $typeEventIds) {
-        return ev_event::with("turn")
-            ->where('status', 1)
-            ->where(DB::raw("DATE_FORMAT(datetime_event, '%Y-%m-%d')"), $date)
-            ->whereIn('bs_type_event_id', $typeEventIds)
+    public function searchPromotionFree(int $microsite_id, $date) {
+        $datenow = Carbon::parse($date);
+        
+        return ev_event::with('turns')->where('status', 1)
             ->where('ms_microsite_id', $microsite_id)
-            ->whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
+            ->where('bs_type_event_id', 3)
+            ->whereHas('turns', function($query) use ($datenow){
+//                return $query->where('dayd', ($datenow->dayOfWeek));
+                return $query->whereHas('days', function($query) use ($datenow){
+                    return $query->where('res_day_turn_promotion.day', '<>',$datenow->dayOfWeek);
+//                    return $query->where('res_day_turn_promotion.day2', $datenow->dayOfWeek);
+                });
+            })
             ->get();
     }
 
@@ -2029,7 +2035,8 @@ class AvailabilityService
         
         $promotions = collect();
         $eventsFree = collect();
-        $events = $this->searchEventsByType($microsite_id, $date->toDateString(), [1,3]);
+//        $events = $this->searchPromotionFree($microsite_id, $date->toDateString());
+        $events = $this->searchEventFree($microsite_id, $date->toDateString());
         
         if($events){
             $events2 = clone $events;
