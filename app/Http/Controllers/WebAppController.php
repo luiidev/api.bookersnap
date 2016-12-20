@@ -75,8 +75,13 @@ class WebAppController extends Controller
     {
         return $this->TryCatch(function () use ($request) {
 
-            $microsite_id  = $request->route('microsite_id');
-            $date          = CalendarHelper::realDate($microsite_id);
+            $microsite_id = $request->route('microsite_id');
+            if ($request->has("date")) {
+                $date = CalendarHelper::realDate($microsite_id, $request->input('date'));
+            } else {
+                $date = CalendarHelper::realDate($microsite_id);
+            }
+            
             $dateTimeOpen  = CalendarHelper::realDateTimeOpen($microsite_id, $date);
             $dateTimeClose = CalendarHelper::realDateTimeClose($microsite_id, $date);
 
