@@ -235,7 +235,18 @@ class CalendarHelper {
                 return $now->copy()->yesterday();
             }
         }
-
+        
+        $eventsFree = \App\Entities\ev_event::eventFreeActive($now->toDateString(), "9999-12-31")
+                ->select('ev_event.id',  'ev_event.name','ev_event.datetime_event', 'res_turn.*')
+                ->where('ev_event.ms_microsite_id', $microsite_id)
+                ->orderBy('ev_event.datetime_event', 'ASC')
+                ->orderBy('res_turn.early', 'ASC')
+                ->orderBy('res_turn.hours_end', 'ASC')
+                ->join('res_turn', 'res_turn.id', '=', 'ev_event.res_turn_id')->get();
+        
+        
+//        echo json_encode($eventsFree);
+//        exit;
 
         $date = $now->toDateString();
         $dayofweek = $now->dayOfWeek + 1;

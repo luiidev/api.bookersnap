@@ -98,7 +98,7 @@ class AvailabilityService
     }
 
     //Retorna todas las horas disponibles en un dia
-    public function getHours(int $microsite_id, string $date, int $zone_id = null, string $timezone)
+    public function getHours(int $microsite_id, string $date, string $timezone)
     {
         $dateC         = Carbon::parse($date, $timezone);
         $configuration = $this->configurationService->getConfiguration($microsite_id);
@@ -109,6 +109,15 @@ class AvailabilityService
         $dateCompare = $dateC->toDateString() <=> $nowC->toDateString();
 
         $zone_id = isset($zone_id) ? $zone_id : $this->calendarService->getZones($microsite_id, $date, $date)->pluck('id')->toArray();
+//        $zonesId  = $this->calendarService->getZones($microsite_id, $date)->pluck('id')->toArray();
+        
+//        if($zonesId->isEmpty()){
+//            $events =  $this->searchEventFree($microsite_id, $date)->pluck('turn.id');
+//            if ($zonesId->isEmpty()) {
+//                $zonesId  = $this->calendarService->getZones($microsite_id, $date, "9999-12-31")->pluck('id')->toArray();
+//            }
+//        }
+        
         $enable  = false;
         if (is_array($zone_id)) {
             foreach ($zone_id as $id) {
@@ -257,20 +266,20 @@ class AvailabilityService
     //Busca todas las zonas disponibles en un dia
     public function searchZones(int $microsite_id, string $date, string $timezone)
     {
-        $zonesId = $this->calendarService->getZones($microsite_id, $date, $date);
-        if (!$zonesId->isEmpty()) {
-            $zoneNull = collect(["id" => null, "name" => "TODOS"]);
-            $zonesId->prepend($zoneNull);
-            return $zonesId->map(function ($item, $key) {
-                $itemAux           = [];
-                $itemAux['id']     = $item['id'];
-                $itemAux['option'] = $item['name'];
-                return $itemAux;
-            });
-        } else {
-            $dateC = Carbon::parse($date, $timezone);
-            abort(500, "No hay zonas disponibles " . $dateC->formatLocalized('%A %d %B %Y'));
+        return $zones  = $this->calendarService->getZones($microsite_id, $date);        
+        if($zones->isEmpty()){
+            $events =  $this->searchEventFree($microsite_id, $date)->pluck('turn.id');
+            if ($zones->isEmpty()) {
+                $zones  = $this->calendarService->getZones($microsite_id, $date, "9999-12-31");
+            }
         }
+        
+        return $zones->map(function($item){
+            return [
+                "id" => $item->id,
+                "option" => $item->name
+            ];
+        });
     }
 
     //Busca disponibilidad en todas las zonas
@@ -1501,20 +1510,6 @@ class AvailabilityService
 //            ->whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
             ->get();
     }
-    
-    public function searchPromotionFree(int $microsite_id, $date) {
-        $datenow = Carbon::parse($date);
-        
-        return ev_event::with('turns.days')->where('status', 1)
-            ->where('ms_microsite_id', $microsite_id)
-            ->where('bs_type_event_id', 3)
-            ->whereHas('turns', function($query) use ($datenow){
-                return $query->whereHas('days', function($query) use ($datenow){
-                    return $query->where('res_day_turn_promotion.day', $datenow->dayOfWeek);
-                });
-            })
-            ->get();
-    }
 
     public function searchTablesEventFree(Carbon $today, Carbon $tomorrow, int $microsite_id, int $zone_id)
     {
@@ -2034,24 +2029,22 @@ class AvailabilityService
         $promotions = collect();
         $eventsFree = collect();
         
-//return         $events = $this->searchPromotionFree($microsite_id, $date->toDateString());
-        return $events = $this->searchEventFree($microsite_id, $date->toDateString());
         
-        if($events){
-            $events2 = clone $events;
-            $eventsFree = collect($events->where('bs_type_event_id', $this->id_event_free)->values());            
-            $promotions = collect($events2->where('bs_type_event_id', $this->id_promotion)->values());
-        }
+        $eventsFree = $this->searchEventFree($microsite_id, $date->toDateString());
+        
+        $events = collect();
+        
+        $promotions = ev_event::promotionFreeActive($date->toDateString())->with(['turns.days'])->where('ms_microsite_id', $microsite_id)->get();
+        
+        $eventsFree = ev_event::eventFreeActive($date->toDateString())->with('turn')->where('ms_microsite_id', $microsite_id)->get();
+        
+//        return [$date->toDateString(), $promotions, $eventsFree];
+        
+        $zones = $this->searchZones($microsite_id, $date->toDateString(), $timezone);
         
         try
         {
-            $zones = $this->searchZones($microsite_id, $date->toDateString(), $timezone);
-        } catch (\Exception $e) {
-            $zones = [];
-        }
-        try
-        {
-            $hours = $this->getHours($microsite_id, $date->toDateString(), null, $timezone);
+            $hours = $this->getHours($microsite_id, $date->toDateString(), $timezone);
             $hours = $hours->map(function($item) use ($promotions, $eventsFree){
                 
                 if($item['event'] != null && $eventsFree->count() > 0){
@@ -2067,6 +2060,7 @@ class AvailabilityService
             });
         } catch (\Exception $e) {
             $hours = [];
+            
         }
         
 
