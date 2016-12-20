@@ -54,7 +54,7 @@ class ReservationService
             },"status", "server", "source", "turn.typeTurn", "tags", "guestList", "guest", "guest.emails", "guest.phones"]);
         
                                     
-        $reservations = !(isset($name) && strlen($name)>0)? $reservations : $reservations->whereHas('turn.typeTurn', function ($query) use($name){
+        $reservations = !(isset($name) && strlen($name)>0)? $reservations : $reservations->whereHas('guest', function ($query) use($name){
                 $query->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%$name%");
             });
         

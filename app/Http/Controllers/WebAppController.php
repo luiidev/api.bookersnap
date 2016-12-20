@@ -70,6 +70,45 @@ class WebAppController extends Controller
             return $this->CreateResponse(true, 201, "", $data);
         });
     }
+    
+    public function grid(Request $request)
+    {
+        return $this->TryCatch(function () use ($request) {
+
+            $microsite_id  = $request->route('microsite_id');
+            $date          = CalendarHelper::realDate($microsite_id);
+            $dateTimeOpen  = CalendarHelper::realDateTimeOpen($microsite_id, $date);
+            $dateTimeClose = CalendarHelper::realDateTimeClose($microsite_id, $date);
+
+            $turnsIds      = $this->turnsIdsByDate($microsite_id, $date);
+            $turns         = $this->turnsByIds($turnsIds);
+            $blocks        = $this->blocksByRangeDate($microsite_id, $dateTimeOpen, $dateTimeClose);
+            $reservations  = $this->reservationsByDate($microsite_id, $date);
+            $configuration = $this->configuration($microsite_id);
+            $sourceTypes   = $this->souceTypes();
+            $notes         = $this->notes($microsite_id, $date);
+            $shifts        = $this->shifts($turnsIds, $notes);
+            $status        = $this->status();
+            $availebility = $this->_TableService->tablesAvailability($microsite_id, $date);
+
+            $data = [
+                "schedule"     => [
+                    "dateOpen"      => $date,
+                    "datetimeOpen"  => $dateTimeOpen,
+                    "datetimeClose" => $dateTimeClose,
+                ],
+                "config"       => $configuration,
+                "status"       => $status,
+                "turns"        => $turns,
+                "shifts"       => $shifts,
+                "blocks"       => $blocks,
+                "reservations" => $reservations,
+                "sourceTypes"  => $sourceTypes,
+                "availabilityTables" => $availebility
+            ];
+            return $this->CreateResponse(true, 201, "", $data);
+        });
+    }
 
     public function book(Request $request)
     {
