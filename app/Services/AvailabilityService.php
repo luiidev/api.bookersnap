@@ -55,9 +55,11 @@ class AvailabilityService
                 abort(500, "Rango incorrecto los ragos correctos para horario de madrugada son de 00:00:00 a 05:45:00");
             }
         }
-        $zone_id       = isset($zone_id) ? collect($zone_id) : $this->calendarService->getZones($microsite_id, $date, $date)->pluck('id');
+        
+        $zone_id       = isset($zone_id) ? collect($zone_id) : $this->calendarService->getZones($microsite_id, $date)->pluck('id');
         $dateTimeQuery = Carbon::parse($date . " " . $hour, $timezone)->addDay($next_day);
         $today         = Carbon::parse($date, $timezone);
+        
         if (!$zone_id->isEmpty()) {
             foreach ($zone_id as $id) {
                $events = $this->searchAllEvent($microsite_id, $date, $hour, $timezone, $next_day, $id);
@@ -69,6 +71,7 @@ class AvailabilityService
         } else {
             return abort(500, "No existe zonas disponibles para " . $dateTimeQuery->formatLocalized('%A %d %B %Y'));
         }
+        
     }
 
     //Retorna todos los eventos en un dia ** Prioridad Eventos de Pago/Eventos Gratuitos/Promociones **
@@ -273,8 +276,16 @@ class AvailabilityService
     //Busca disponibilidad en todas las zonas
     public function searchAvailabilityDayAllZone(int $microsite_id, string $date, string $hour, int $num_guests, int $next_day, string $timezone, int $eventId = null)
     {
-        $this->validNextDate($date, $next_day, $timezone);
-        $zonesId  = $this->calendarService->getZones($microsite_id, $date, $date)->pluck('id');
+        //$this->validNextDate($date, $next_day, $timezone);
+        $zonesId  = $this->calendarService->getZones($microsite_id, $date)->pluck('id');
+        
+        if($zonesId->isEmpty()){
+            $events =  $this->searchEventFree($microsite_id, $date)->pluck('turn.id');
+            if ($zonesId->isEmpty()) {
+                $zonesId  = $this->calendarService->getZones($microsite_id, $date, "9999-12-31")->pluck('id');
+            }
+        }        
+        
         $response = collect();
         if (!$zonesId->isEmpty()) {
             foreach ($zonesId as $zoneId) {
@@ -1480,6 +1491,26 @@ class AvailabilityService
 //            return collect(["availability_standing" => false, "num_guest_availability" => $cantGuest, "num_guest_s_max" => $this->max_people_standing]);
         }
     }
+    
+    public function searchEventFree($microsite_id, $date) {
+        return ev_event::with("turn")
+            ->where('status', 1)
+            ->where(DB::raw("DATE_FORMAT(datetime_event, '%Y-%m-%d')"), $date)
+            ->where('bs_type_event_id', 1)
+            ->where('ms_microsite_id', $microsite_id)
+            ->whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
+            ->get();
+    }
+    
+    public function searchEventsByType($microsite_id, $date, $typeEventIds) {
+        return ev_event::with("turn")
+            ->where('status', 1)
+            ->where(DB::raw("DATE_FORMAT(datetime_event, '%Y-%m-%d')"), $date)
+            ->whereIn('bs_type_event_id', $typeEventIds)
+            ->where('ms_microsite_id', $microsite_id)
+            ->whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
+            ->get();
+    }
 
     public function searchTablesEventFree(Carbon $today, Carbon $tomorrow, int $microsite_id, int $zone_id)
     {
@@ -1491,8 +1522,6 @@ class AvailabilityService
             ->where('ms_microsite_id', $microsite_id)
             ->whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
             ->get();
-        
-        
         
         if (!$eventsFree->isEmpty()) {
             $indexLimit = collect();
@@ -1997,20 +2026,15 @@ class AvailabilityService
         $dateFin  = $date->copy()->lastOfMonth()->addDays(14);
         $next_day = 0;
         
-        try
-        {
-            
-            $events = $this->getEvents($microsite_id, $date->toDateString(), $date->toTimeString(), $timezone, $next_day, null);
-            if($events){
-                $eventsIds = $events->pluck('id');
-                $events = ev_event::whereIn('id', $eventsIds)->with('type')->get(array('id', 'name', 'description', 'image', 'image_map', 'bs_type_event_id', 'item'));
-                $eventsFree = collect($events->where('bs_type_event_id', $this->id_event_free)->values());
-                $promotions = collect($events->where('bs_type_event_id', $this->id_promotion)->values());
-            }
-        } catch (\Exception $e) {
-            $events = [];
-            $promotions = collect();
-            $eventsFree = collect();
+        
+        $promotions = collect();
+        $eventsFree = collect();
+        $events = $this->searchEventsByType($microsite_id, $date->toDateString(), [1,3]);
+        
+        if($events){
+            $events2 = clone $events;
+            $eventsFree = collect($events->where('bs_type_event_id', $this->id_event_free)->values());            
+            $promotions = collect($events2->where('bs_type_event_id', $this->id_promotion)->values());
         }
         
         try
@@ -2022,15 +2046,16 @@ class AvailabilityService
         try
         {
             $hours = $this->getHours($microsite_id, $date->toDateString(), null, $timezone);
-            $hours = $hours->map(function($item) use ($promotions, $eventsFree){                
+            $hours = $hours->map(function($item) use ($promotions, $eventsFree){
+                
                 if($item['event'] != null && $eventsFree->count() > 0){
                     $item['events'] = $eventsFree->where('id', $item['event'])->all();
                 }else if(is_array($item['promotions']) && @$promotions){
                     $item['events'] = $promotions->whereIn('id', $item['promotions'])->all();
                 }
 
-                unset($item['event']);
-                unset($item['promotions']);
+//                unset($item['event']);
+//                unset($item['promotions']);
 
                 return $item;
             });

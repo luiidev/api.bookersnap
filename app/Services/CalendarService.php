@@ -15,26 +15,12 @@ use App\Services\Helpers\TurnsHelper;
 
 class CalendarService
 {
-    
-    private function turnIdsByCalendar(int $microsite_id, $date) {
-        /* Obtener Los Ids de los turnos Habilitados para un rabgo de fecha */
-        $fecha = Carbon::parse($date);
-        $dayOfWeek = $fecha->dayOfWeek + 1;
-        $queryTurns = \App\res_turn_calendar::select('res_turn.*')->join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
-                ->where(DB::raw("dayofweek(start_date)"), $dayOfWeek)
-                ->where("res_turn.ms_microsite_id", $microsite_id)
-                ->where("start_date", "<=", $fecha->toDateString())
-                ->where("end_date", ">=", $fecha->toDateString())
-                ->orderBy('start_date', 'desc');
-        $turnsIds = $queryTurns->pluck('id');
-        return $turnsIds->toArray();
-    }
-    
-    public function listTurns(int $microsite_id, $date) {                
-        $turnsIdsCalendar = $this->turnIdsByCalendar($microsite_id, $date);
-        $turnsIdsEvens = TurnsHelper::IdsTurnEventFreeByDate($microsite_id, $date);        
+        
+    public function listTurns(int $microsite_id, $date) { 
+        $turnsIdsCalendar = TurnsHelper::TurnIdsCalendar($microsite_id, $date);
+        $turnsIdsEvens = TurnsHelper::IdsTurnEventFreeByDate($microsite_id, $date); 
         $turnsIds = collect(array_merge($turnsIdsCalendar, $turnsIdsEvens))->unique();
-        return res_turn::whereIn('id', $turnsIds->toArray())->with('typeTurn')->get();        
+        return res_turn::whereIn('id', $turnsIds->toArray())->with('typeTurn')->get();       
     }
     
     public function getList(int $microsite_id, int $year, int $month, int $day = null)
@@ -309,47 +295,19 @@ class CalendarService
     }
 
     /**
-     *  Retonar la zonas disponible para una fecha, consultando los turnos disponibles en en la fecha indicada
+     *  Retonar la zonas y sus mesas activas en una fecha o rango de fecha
      * @param  Int    $microsite_id
      * @param  String    $date
      * @return  Illuminate\Database\Eloquent\Collection App\res_zone
      */
     public function getZones(Int $microsite_id, String $date, String $date_end = null)
     {           
-        $date   = CalendarHelper::realDate($microsite_id, $date);        
+        $date   = CalendarHelper::realDate($microsite_id, $date);      
         $date_end = (strcmp($date_end, $date) > 0) ? $date_end : $date;
         
-//        $turns = res_turn_calendar::where(function ($query) use ($date, $date_end) {
-//
-//            $query->whereBetween("start_date", array($date, $date_end));
-//
-//        })->orWhere(function ($query) use ($date) {
-//            $query->whereRaw("start_date <= ?  and end_date >= ? and dayofweek(start_date) = dayofweek(?)", array($date, $date, $date));
-//        })->distinct()->get()->pluck("res_turn_id");
-//        $zones = res_zone::join("res_turn_zone as tz", "tz.res_zone_id", "=", "res_zone.id")
-//            ->whereIn('tz.res_turn_id', $turns)
-//            ->where('ms_microsite_id', $microsite_id)
-//            ->distinct()
-//            ->with(['tables' => function ($query) {
-//                return $query->with(["turns" => function ($query) {
-//                    return $query->where("res_turn_rule_id", 0)->orderBy("start_time", "asc");
-//                }]);
-//            }])
-//            ->get(array(
-//                "id",
-//                "name",
-//                "sketch",
-//                "status",
-//                "type_zone",
-//                "join_table",
-//                "status_smoker",
-//                "people_standing",
-//            ));
-        $turns = $this->turnsIdsByRangeDate($microsite_id, $date, $date_end);
-        
-
-        
-        $zoneIds = \App\res_turn_zone::whereIn('res_turn_id', $turns)->groupBy('res_zone_id')->pluck('res_zone_id');
+        $turnIds = $this->turnsIdsByRangeDate($microsite_id, $date, $date_end);
+                
+        $zoneIds = \App\res_turn_zone::whereIn('res_turn_id', $turnIds)->groupBy('res_zone_id')->pluck('res_zone_id');
         
         return \App\res_zone::whereIn('id', $zoneIds)
                 ->where('ms_microsite_id', $microsite_id)
@@ -367,10 +325,9 @@ class CalendarService
                     "join_table",
                     "status_smoker",
                     "people_standing",
-                ));
-                
+                ));                
     }
-    
+        
     private function turnsIdsByRangeDate(int $microsite_id, string $date_ini, string $date_end) {
 
         $fecha = \Carbon\Carbon::parse($date_ini);

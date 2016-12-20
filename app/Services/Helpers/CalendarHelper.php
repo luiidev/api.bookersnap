@@ -343,8 +343,10 @@ class CalendarHelper {
             }
         }
         
-        $lastTurn = TurnsHelper::JoinEventByDate($microsite_id, $date);        
+        $lastTurn = TurnsHelper::JoinEventByDate($microsite_id, $date);
+        
         foreach ($lastTurn as $turn) {
+            //return [$now, $lastTurn, self::untilNextDay($turn->hours_end, $turn->hours_ini), self::inRangeHours($now->toTimeString(), $turn->hours_ini, "23:59:59")];
             if (self::untilNextDay($turn->hours_end, $turn->hours_ini)) {
                 if (self::inRangeHours($now->toTimeString(), $turn->hours_ini, "23:59:59")) {
                     return $now->toDateTimeString();

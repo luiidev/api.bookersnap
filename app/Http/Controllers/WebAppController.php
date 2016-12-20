@@ -463,7 +463,7 @@ class WebAppController extends Controller
             });
             if (count($typeTurns) > 0) {
                 $reservations = $reservations->join('res_type_turn', function ($join) use ($typeTurns) {
-                    $join->on('res_type_turn.id', '=', 'res_turn.res_type_turn_id')->whereIn('res_type_turn.id', $typeTurns);
+                    $join->on('res_type_turn.id', '=', 'res_turn.res_type_turn_id')->whereIn('res_turn.res_type_turn_id', $typeTurns);
                 });
             }
         }

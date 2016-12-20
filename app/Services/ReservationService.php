@@ -33,7 +33,50 @@ class ReservationService
         return $rows;
     }
 
-    public function getList(int $microsite_id, string $start_date = null, string $end_date = null)
+    public function getList(int $microsite_id, string $start_date, string $end_date = null, $filters = null)
+    {
+//        $start_date = CalendarHelper::realDate($microsite_id);
+        $end_date   = (strcmp($end_date, $start_date) > 0) ? $end_date : $start_date;
+        
+//        $nostatusIds = [];
+//        $sourceIds = [];
+//        $textSearch  = "";
+//        $email = "";
+//        $name = "";        
+//        $typeTurnIds = [];
+//        $zoneIds = [];
+        
+        $pagesize = 100;
+        
+        $reservations = res_reservation::with([
+            "tables" => function ($query) {
+                return $query->select("res_table.id", "res_zone_id", "name");
+            },"status", "server", "source", "turn.typeTurn", "tags", "guestList", "guest", "guest.emails", "guest.phones"]);
+        
+                                    
+        $reservations = !(isset($name) && strlen($name)>0)? $reservations : $reservations->whereHas('turn.typeTurn', function ($query) use($name){
+                $query->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%$name%");
+            });
+        
+        $reservations = (count(@$typeTurnIds) == 0)? $reservations : $reservations->whereHas('turn', function ($query) use($typeTurnIds){
+            $query->whereIn('res_type_turn_id', $typeTurnIds);
+        });
+        
+        $reservations = (count(@$zoneIds) == 0)? $reservations : $reservations->whereHas('tables', function ($query) use($zoneIds){
+            $query->whereIn('res_zone_id', $zoneIds);
+        });
+            
+        $reservations = (count(@$nostatusIds) == 0)? $reservations : $reservations->where('res_reservation_status_id','<>', $nostatusIds);
+        $reservations = (count(@$sourceIds) == 0)? $reservations : $reservations->where('res_source_type_id', $sourceIds);
+        $reservations = !(isset($email) && strlen($email)>0) ? $reservations : $reservations->where('email', 'LIKE', "%$email%");
+
+        $reservations = $reservations->whereRaw("date_reservation BETWEEN ? AND ?", array($start_date, $end_date));
+        $reservations = $reservations->where("ms_microsite_id", $microsite_id);
+        return $reservations->get();
+//        return $reservations->paginate($pagesize);
+    }
+    
+    public function getBook(int $microsite_id, string $start_date = null, string $end_date = null, string $filters)
     {
         $start_date = CalendarHelper::realDate($microsite_id);
         $end_date   = (strcmp($end_date, $start_date) > 0) ? $end_date : $start_date;
@@ -217,5 +260,6 @@ class ReservationService
 
         return $res;
     }
+    
 
 }
