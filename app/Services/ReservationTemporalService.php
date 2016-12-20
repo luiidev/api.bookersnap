@@ -175,4 +175,13 @@ class ReservationTemporalService {
         return array("reservation" => $reservationtemporal, "time" => $diff,);
     }
 
+    public function temporalReserveFinish(String $token)
+    {
+        $now = Carbon::now();
+        $reservationtemporal = res_table_reservation_temp::where("token", $token)->orderBy("expire", "desc")->first();
+        if ($reservationtemporal !== null) {
+            $reservationtemporal->expire = $now->toDateTimeString();
+            $reservationtemporal->save();
+        }
+    }
 }

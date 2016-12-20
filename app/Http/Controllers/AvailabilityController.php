@@ -28,7 +28,8 @@ class AvailabilityController extends Controller
             $zone_id      = $request->zone_id;
             $event_id     = $request->event_id;
             
-            $reservationTime = CalendarHelper::getDatetimeCalendar($microsite_id, $date, $hour);            
+            $reservationTime = CalendarHelper::getDatetimeCalendar($microsite_id, $date, $hour);
+            
             if(!$reservationTime){
                 abort(500, "Este horario no existe");
             }
