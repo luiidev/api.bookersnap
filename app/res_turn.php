@@ -130,15 +130,44 @@ class res_turn extends Model {
                     return $query->where('bs_type_event_id', 1)->whereBetween(DB::raw("DATE_FORMAT(datetime_event, '%Y-%m-%d')"), [$start_date, $end_date]);
                 });
     }
-    
+
+    /**
+     * Turno activos por eventos en un rango de fechas 
+     * @param type $query
+     * @param string $start_date
+     * @param string $end_date
+     * @return type
+     */
+    public function scopeInEventFreeActive($query, string $start_date, string $end_date = null) {
+        $now = Carbon::now();
+        $yesterday = $now->copy()->yesterday();
+        $query = $query->whereHas('events', function($query) use ($start_date, $end_date, $now, $yesterday) {            
+            $dateformat = "DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d')";
+            $dateYesterday = "IF(hours_ini > hours_end, '" . $now->toDateString() . "', '" . $yesterday->toDateString() . "')";
+            $datetimeYesterday = "IF(hours_ini > hours_end, CONCAT('" . $now->toDateString() . " ', hours_end), CONCAT('" . $yesterday->toDateString() . " ', hours_end))";
+            $conditionB = "IF($dateYesterday = '" . $now->toDateString() . "' AND $datetimeYesterday >= '" . $now->toDateTimeString() . "', '" . $yesterday->toDateString() . "', '" . $now->toDateString() . "')";
+            $conditionActives = "IF($dateformat > '" . $yesterday->toDateString() . "', $dateformat, $conditionB)";
+        
+            $query = $query->where('bs_type_event_id', 1)->where('status', 1)->whereRaw("$conditionActives >= ?", [$yesterday->toDateString()]);
+            if (!is_null($start_date)) {
+                $query = $query->whereRaw("$conditionActives >= ?", [$start_date]);
+            }
+            if (!is_null($end_date)) {
+                $query = $query->whereRaw("$conditionActives <= ?", [$end_date]);
+            }            
+            return $query;
+        });        
+        return $query;
+    }
+
     public function scopeInTime($query, string $time) {
-        $now = Carbon::parse("2016-01-01 ".$time);
+        $now = Carbon::parse("2016-01-01 " . $time);
         $nextday = $now->copy()->addDay();
-        return $query->where(function($query) use ($now, $nextday){
+        return $query->where(function($query) use ($now, $nextday) {
                     return $query->where(DB::raw("CONCAT('" . $now->toDateString() . " ', hours_ini)"), "<=", $now->toDateTimeString())
-                            ->where(DB::raw("IF(hours_end > hours_ini, CONCAT('" . $now->toDateString() . " ', hours_end), CONCAT('" . $nextday->toDateString() . " ', hours_end))"), ">=", $now->toDateTimeString())
-                            ->orwhere(DB::raw("CONCAT('" . $now->toDateString() . " ', hours_ini)"), "<=", $nextday->toDateTimeString())
-                            ->where(DB::raw("IF(hours_end > hours_ini, CONCAT('" . $now->toDateString() . " ', hours_end), CONCAT('" . $nextday->toDateString() . " ', hours_end))"), ">=", $nextday->toDateTimeString());
+                                    ->where(DB::raw("IF(hours_end > hours_ini, CONCAT('" . $now->toDateString() . " ', hours_end), CONCAT('" . $nextday->toDateString() . " ', hours_end))"), ">=", $now->toDateTimeString())
+                                    ->orwhere(DB::raw("CONCAT('" . $now->toDateString() . " ', hours_ini)"), "<=", $nextday->toDateTimeString())
+                                    ->where(DB::raw("IF(hours_end > hours_ini, CONCAT('" . $now->toDateString() . " ', hours_end), CONCAT('" . $nextday->toDateString() . " ', hours_end))"), ">=", $nextday->toDateTimeString());
                 });
     }
 

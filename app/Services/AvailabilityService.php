@@ -2025,6 +2025,7 @@ class AvailabilityService
     {
         //Function Date Actual
         $date     = CalendarHelper::searchDate($microsite_id, $date);
+        
         $timezone = $date->timezoneName;
 
         $dateIni  = $date->copy()->firstOfMonth()->subDays(7);
@@ -2034,8 +2035,7 @@ class AvailabilityService
         
         $promotions = collect();
         $eventsFree = collect();
-        
-        
+                
         $eventsFree = $this->searchEventFree($microsite_id, $date->toDateString());
         
         $events = collect();

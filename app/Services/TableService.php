@@ -187,17 +187,19 @@ class TableService {
 //                        return $query->select(array('res_block.id', 'res_block.start_date', 'res_block.start_time', 'res_block.end_time', 'res_block.next_day'))->where('res_block.start_date', $fecha->toDateString());
 //                    }])->get();
 
-        $zones = \App\res_zone::whereIn('res_zone.id', $turnZoneIds)->where("res_zone.status", 1)->with(['tables.turns' => function($query) use($turnsIds) {
-                        return $query->whereIn('res_turn_id', $turnsIds)->where('res_turn_rule_id', 2);
+        $zones = \App\res_zone::whereIn('res_zone.id', $turnZoneIds)->where("res_zone.status", 1)->with(['tables' => function($query) use($turnsIds) {
+                        return $query->where('status', 1)->with(['turns' => function($query) use ($turnsIds) {
+                                        return $query->whereIn('res_turn_id', $turnsIds)->where('res_turn_rule_id', 2);
+                                    }]);
                     }, 'turnZone' => function($query) use($turnsIds) {
                         return $query->whereIn('res_turn_id', $turnsIds)->with('turn');
                     }])->get();
 
         return $zones;
     }
-    
+
     private function zoneAvailabilityByTruns($zoneId, $turnsIds) {
-        
+
         $zone = \App\res_zone::whereIn('res_zone.id', $turnZoneIds)->where("res_zone.status", 1)->with(['tables.turns' => function($query) use($turnsIds) {
                         return $query->whereIn('res_turn_id', $turnsIds)->where('res_turn_rule_id', 2);
                     }, 'turnZone' => function($query) use($turnsIds) {
@@ -206,7 +208,7 @@ class TableService {
 
         return $zone;
     }
-    
+
     /**
      * Obtener Los Ids de los turnos Habilitados para la fecha del mcalendario
      * @param int $microsite_id
@@ -227,7 +229,6 @@ class TableService {
         return $turnsIds;
     }
 
-
     public function searchAvailability($microsite_id, $num_guest, $date, $hour) {
         $turnsIds = $this->turnsIdsByDateCalendar($microsite_id, $date);
 //        $realdate = Helpers\CalendarHelper::realDateByHousInDate($microsite_id, $date, $hour);
@@ -236,15 +237,15 @@ class TableService {
         $zones = $this->zonesAvailabilityByTurns($turnsIds);
         return $this->searchAvailavilityByZone($zones[0], $turnEvent);
     }
-    
+
     public function tablesZoneAvailability($microsite_id, $date, $zoneId) {
-        $turnsIds = $this->turnsIdsByDateCalendar($microsite_id, $date);        
+        $turnsIds = $this->turnsIdsByDateCalendar($microsite_id, $date);
         /* Obtener Los Ids de los turnos Habilitados para la fecha */
         $turnEvent = $this->turnEvent($microsite_id, $date);
         $zones = $this->zoneAvailabilityByTruns($zoneId, $turnsIds);
         return $this->searchAvailavilityByZone($zones, $turnEvent);
     }
-    
+
     /**
      * Disponibilidad de todas las mesas en una fecha
      * @param type $microsite_id
@@ -252,13 +253,13 @@ class TableService {
      * @return type
      */
     public function tablesAvailability($microsite_id, $date) {
-        $turnsIds = $this->turnsIdsByDateCalendar($microsite_id, $date);        
+        $turnsIds = $this->turnsIdsByDateCalendar($microsite_id, $date);
         /* Obtener Los Ids de los turnos Habilitados para la fecha */
         $turnEvent = $this->turnEvent($microsite_id, $date);
         $zones = $this->zonesAvailabilityByTurns($turnsIds);
-        
+
         $newTables = collect();
-        foreach ($zones as  $zone) {
+        foreach ($zones as $zone) {
             $this->initAvailavilityTable();
             $this->enableTurnZone($zone->turnZone);
             foreach ($zone->tables as $table) {
@@ -321,9 +322,9 @@ class TableService {
     public function initAvailavilityTable() {
         $this->availavilityTable = [];
         for ($i = 0; $i < 120; $i++) {
-            
-            $nextday              = ($i < 96) ? 0 : 1;
-            
+
+            $nextday = ($i < 96) ? 0 : 1;
+
             $this->availavilityTable[] = [
                 "time" => $this->indexToTime($i),
                 "index" => $i,
