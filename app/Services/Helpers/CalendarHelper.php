@@ -15,7 +15,8 @@ namespace App\Services\Helpers;
  */
 use App\res_turn_calendar;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+use DB;
+use App\res_turn;
 
 class CalendarHelper {
 
@@ -130,35 +131,22 @@ class CalendarHelper {
         $now = Carbon::now();
         if (strcmp($date, $now->toDateString()) == 0 || is_null($date)) {
             $yesterday = $now->copy()->yesterday();
-            $dayOfWeek = $yesterday->dayOfWeek + 1;
 
-            $turnYesterday = res_turn_calendar::select(array(
-                                "res_turn.id",
-                                "res_turn_calendar.res_type_turn_id",
-                                "res_turn.hours_ini",
-                                "res_turn.hours_end",
-//                            DB::raw("dayofweek(res_turn_calendar.start_date) as dayOfWeek"),
-                                DB::raw("CONCAT('" . $yesterday->toDateString() . "',' ',start_time) AS start_datetime"),
-                                DB::raw("IF(end_time > start_time, CONCAT('" . $yesterday->toDateString() . "',' ',end_time), CONCAT('" . $now->toDateString() . "',' ',end_time)) AS end_datetime")
-                            ))
-                            ->join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
-                            ->where(DB::raw("dayofweek(start_date)"), $dayOfWeek)
-                            ->where("res_turn.ms_microsite_id", $microsite_id)
-                            ->where("start_date", "<=", $yesterday->toDateString())
-                            ->where("end_date", ">=", $yesterday->toDateString())
-                            /*->where(DB::raw("CONCAT('" . $yesterday->toDateString() . "',' ', start_time)"), "<=", $now->toDateTimeString())
-                            ->where(DB::raw("IF(end_time > start_time, CONCAT('" . $yesterday->toDateString() . "',' ',end_time), CONCAT('" . $now->toDateString() . "',' ',end_time))"), ">=", $now->toDateTimeString())*/
-                            ->orderBy("end_datetime", 'DESC')
-                            ->limit(1)->first();
+            $turnYesterday = res_turn_calendar::fromMicrosite($microsite_id, $yesterday->toDateString())
+                    ->where(DB::raw("IF(end_time > start_time, CONCAT('" . $yesterday->toDateString() . "',' ',end_time), CONCAT('" . $now->toDateString() . "',' ',end_time))"), ">=", $now->toDateTimeString())
+                    ->count();
 
-            if ($turnYesterday) {
-                $endDatetime = Carbon::parse($turnYesterday->end_datetime);
-                $inDate = $endDatetime->toDateString() <=> $now->toDateString();
-                $inDateTime = $endDatetime->toDateTimeString() <=> $now->toDateTimeString();
-                if ($inDate == 0 && $inDateTime != -1) {
-                    return $yesterday->toDateString();
-                }
+            if ($turnYesterday > 0) {
+                return $yesterday->toDateString();
             }
+
+            $turnYesterday = \App\res_turn::inEventFree($yesterday->toDateString())->where('ms_microsite_id', $microsite_id)
+                    ->where(DB::raw("IF(hours_end > hours_ini, CONCAT('" . $yesterday->toDateString() . " ', hours_ini), CONCAT('" . $now->toDateString() . " ',hours_end))"), ">=", $now->toDateTimeString())
+                    ->count();
+            if ($turnYesterday > 0) {
+                return $yesterday->toDateString();
+            }
+
             return $now->toDateString();
         }
         return $date;
@@ -187,7 +175,7 @@ class CalendarHelper {
                         ->where(DB::raw("CONCAT('" . $yesterday->toDateString() . "',' ',start_time)"), '<=', $now->toDateTimeString())
                         ->where(DB::raw("IF(end_time > start_time, CONCAT('" . $yesterday->toDateString() . "',' ',end_time), CONCAT('" . $now->toDateString() . "',' ',end_time))"), ">=", $now->toDateTimeString())
                         ->orderBy("end_datetime", 'DESC')->limit(1)->first();
-        
+
         if ($turnYesterday) {
             return $yesterday->toDateString();
         }
@@ -318,51 +306,76 @@ class CalendarHelper {
         }
         return $now->toDateString();
     }
-    
-    /*
-     * 
+
+   
+    /**
      * Retorna fecha y hora real si existe hori en el calendario.
+     * @param int $microsite_id
+     * @param string $date
+     * @param string $time
+     * @return string | boolean
      */
     static function getDatetimeCalendar(int $microsite_id, string $date, string $time) {
-        
-        $lastTurn = TurnsHelper::JoinCalendarByDate($microsite_id, $date);        
+
+//        $lastTurn = TurnsHelper::JoinCalendarByDate($microsite_id, $date);
+
         $now = Carbon::parse(trim($date) . " " . trim($time));
         $nextday = $now->copy()->addDay();
-        
-        foreach ($lastTurn as $turn) {
-            if (self::untilNextDay($turn->hours_end, $turn->hours_ini)) {
-                if (self::inRangeHours($now->toTimeString(), $turn->hours_ini, "23:59:59")) {
-                    return $now->toDateTimeString();
-                } else if (self::inRangeHours($now->toTimeString(), "00:00:00", $turn->hours_end)) {
-                    return $nextday->toDateTimeString();
-                }
+
+        $lastTurn = res_turn::inCalendar($date)->inTime($time)->where('ms_microsite_id', $microsite_id)->first();
+
+        if ($lastTurn) {
+            $comp = strcmp($lastTurn->hours_end, $lastTurn->hours_ini);
+            if ($comp == 1) {
+                return $now->toDateTimeString();
             } else {
-                if (self::inRangeHours($now->toTimeString(), $turn->hours_ini, $turn->hours_end)) {
+                $datetime_ini = $now->toDateString() . " " . $lastTurn->hours_ini;
+                $datetime_end = $now->toDateString() . " 23:59:59";
+                $compareIni = (strcmp($datetime_ini, $now->toDateTimeString()) != 1);
+                $compareEnd = (strcmp($datetime_end, $now->toDateTimeString()) != -1);
+                if ($compareIni && $compareEnd) {
                     return $now->toDateTimeString();
+                }
+
+                $datetime_ini = $nextday->toDateString() . " 00:00:00";
+                $datetime_end = $nextday->toDateString() . " " . $lastTurn->hours_end;
+                $compareIni = (strcmp($datetime_ini, $nextday->toDateTimeString()) != 1);
+                $compareEnd = (strcmp($datetime_end, $nextday->toDateTimeString()) != -1);
+                if ($compareIni && $compareEnd) {
+                    return $nextday->toDateTimeString();
                 }
             }
         }
-        
-        $lastTurn = TurnsHelper::JoinEventByDate($microsite_id, $date);
-        
-        foreach ($lastTurn as $turn) {
-            //return [$now, $lastTurn, self::untilNextDay($turn->hours_end, $turn->hours_ini), self::inRangeHours($now->toTimeString(), $turn->hours_ini, "23:59:59")];
-            if (self::untilNextDay($turn->hours_end, $turn->hours_ini)) {
-                if (self::inRangeHours($now->toTimeString(), $turn->hours_ini, "23:59:59")) {
-                    return $now->toDateTimeString();
-                } else if (self::inRangeHours($now->toTimeString(), "00:00:00", $turn->hours_end)) {
-                    return $nextday->toDateTimeString();
-                }
+
+
+        $lastTurn = res_turn::inEventFree($date)->inTime($time)->where('ms_microsite_id', $microsite_id)->first();
+
+        if ($lastTurn) {
+            $comp = strcmp($lastTurn->hours_end, $lastTurn->hours_ini);
+            if ($comp == 1) {
+                return $now->toDateTimeString();
             } else {
-                if (self::inRangeHours($now->toTimeString(), $turn->hours_ini, $turn->hours_end)) {
+                $datetime_ini = $now->toDateString() . " " . $lastTurn->hours_ini;
+                $datetime_end = $now->toDateString() . " 23:59:59";
+                $compareIni = (strcmp($datetime_ini, $now->toDateTimeString()) != 1);
+                $compareEnd = (strcmp($datetime_end, $now->toDateTimeString()) != -1);
+                if ($compareIni && $compareEnd) {
                     return $now->toDateTimeString();
+                }
+
+                $datetime_ini = $nextday->toDateString() . " 00:00:00";
+                $datetime_end = $nextday->toDateString() . " " . $lastTurn->hours_end;
+                $compareIni = (strcmp($datetime_ini, $nextday->toDateTimeString()) != 1);
+                $compareEnd = (strcmp($datetime_end, $nextday->toDateTimeString()) != -1);
+                if ($compareIni && $compareEnd) {
+                    return $nextday->toDateTimeString();
                 }
             }
         }
-        
+
         return false;
     }
-    
+
 //    static function existEvent(int $microsite_id, string $date, string $time) {
 //
 //        $now = Carbon::parse(trim($date) . " " . trim($time));
@@ -444,7 +457,7 @@ class CalendarHelper {
                         ->orderBy("end_datetime")->get();
 
         $collect = [];
-        
+
         if ($lastTurn->count() > 0) {
 
             $reservation = new \App\res_reservation();
@@ -502,7 +515,7 @@ class CalendarHelper {
                     $reservation->res_turn_id = $turn->id;
                     $diffHours = $diff;
                     if ($encontroHorario) {
-                        $reservation->datetime_input = Carbon::parse($reservation->date_reservation." ".$reservation->hours_reservation);
+                        $reservation->datetime_input = Carbon::parse($reservation->date_reservation . " " . $reservation->hours_reservation);
                         // $duration = TurnsHelper::sobremesa($reservation->res_turn_id, $guests);
                         break;
                     }
@@ -510,7 +523,7 @@ class CalendarHelper {
             }
             return $reservation;
         }
-        
+
         return false;
     }
 

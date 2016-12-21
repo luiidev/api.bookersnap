@@ -798,14 +798,20 @@ class AvailabilityService
         
         if ($otherDay) {
             $hourAvailability = isset($hourAuxLimitIni) ? $hourAuxLimitIni : Carbon::parse($date . " " . $hourInitOtherDay, $timezone);
+//            dd("HOLA :( 1");
         } else {
             $dateCompare = $timeDate->toDateString() <=> $now->toDateString();
             if ($dateCompare == 0) {
                 $hourAvailability = isset($hourAuxLimitIni) ? $hourAuxLimitIni : $this->dateMaxFormat(Carbon::now());
             } else if ($dateCompare > 0) {
                 $hourAvailability = isset($hourAuxLimitIni) ? $hourAuxLimitIni : $this->dateMaxFormat($hourQuery);
+            }else{
+//                $hourAvailability = isset($hourAuxLimitIni) ? $hourAuxLimitIni : $this->dateMaxFormat($hourQuery);
+//                dd(["HOLA :(  2", $timeDate, $now, $hourAuxLimitIni, $hourQuery]);
             }
+            
         }
+//        dd(["HOLA :(  3", $timeDate, $now, $hourAuxLimitIni, $hourAvailability]);
         // return $now->copy()->addMinutes($this->time_restriction);
         $newDate = $now->copy()->addMinutes($this->time_restriction);
         if ($newDate->toDateTimeString() >= $hourAvailability->toDateTimeString()) {
