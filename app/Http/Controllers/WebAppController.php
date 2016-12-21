@@ -70,7 +70,7 @@ class WebAppController extends Controller
             return $this->CreateResponse(true, 201, "", $data);
         });
     }
-    
+
     public function grid(Request $request)
     {
         return $this->TryCatch(function () use ($request) {
@@ -81,7 +81,6 @@ class WebAppController extends Controller
             } else {
                 $date = CalendarHelper::realDate($microsite_id);
             }
-            
             $dateTimeOpen  = CalendarHelper::realDateTimeOpen($microsite_id, $date);
             $dateTimeClose = CalendarHelper::realDateTimeClose($microsite_id, $date);
 
@@ -94,10 +93,10 @@ class WebAppController extends Controller
             $notes         = $this->notes($microsite_id, $date);
             $shifts        = $this->shifts($turnsIds, $notes);
             $status        = $this->status();
-            $availebility = $this->_TableService->tablesAvailability($microsite_id, $date);
+            $availebility  = $this->_TableService->tablesAvailabilityAll($microsite_id, $date);
 
             $data = [
-                "schedule"     => [
+                "schedule"           => [
                     "dateOpen"      => $date,
                     "datetimeOpen"  => $dateTimeOpen,
                     "datetimeClose" => $dateTimeClose,
@@ -109,7 +108,7 @@ class WebAppController extends Controller
                 "shifts"       => $shifts,
                 "blocks"       => $blocks,
                 "reservations" => $reservations,
-                "sourceTypes"  => $sourceTypes,                
+                "sourceTypes"  => $sourceTypes,   
             ];
             return $this->CreateResponse(true, 201, "", $data);
         });
@@ -129,12 +128,12 @@ class WebAppController extends Controller
 
             $dateTimeOpen  = CalendarHelper::realDateTimeOpen($microsite_id, $date);
             $dateTimeClose = CalendarHelper::realDateTimeClose($microsite_id, $date);
-            
+
             $turnsIds = $this->turnsIdsByDate($microsite_id, $date);
             $turns    = $this->turnsByIds($turnsIds);
             $zones    = $this->zonesIdsByTurnsIds($turnsIds);
 
-            $reservations = $this->bookReservations($microsite_id, $date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'),  $request->input('nstatus'), $request->input('page_size'));
+            $reservations = $this->bookReservations($microsite_id, $date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
 
             $configuration = $this->configuration($microsite_id);
             $servers       = $this->servers($microsite_id);
@@ -149,8 +148,8 @@ class WebAppController extends Controller
             $pax             = $this->paxReservations($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
             $mesasOcupadas   = $this->mesasOcupadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
             $mesasReservadas = $this->mesasReservadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
-            
-            $availebility = $this->_TableService->tablesAvailability($microsite_id, $date);
+
+            $availebility = $this->_TableService->tablesAvailabilityAll($microsite_id, $date);
 
             $reservaSentadas = $this->reservacionesSentadas($microsite_id, $date, $end_date, $request->input('search_text'), $request->input('sort'), $request->input('turns'), $request->input('sources'), $request->input('zones'), $request->input('nstatus'), $request->input('page_size'));
 
@@ -479,9 +478,9 @@ class WebAppController extends Controller
     private function queryReservation(&$reservations, $microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds)
     {
 
-        $turnIds   = ($turnIds) ? explode(",", $turnIds) : [];
-        $sourceIds = ($sourceIds) ? explode(",", $sourceIds) : [];
-        $zoneIds   = ($zoneIds) ? explode(",", $zoneIds) : [];
+        $turnIds    = ($turnIds) ? explode(",", $turnIds) : [];
+        $sourceIds  = ($sourceIds) ? explode(",", $sourceIds) : [];
+        $zoneIds    = ($zoneIds) ? explode(",", $zoneIds) : [];
         $nstatusIds = ($nstatusIds) ? explode(",", $nstatusIds) : [];
 
         if (strlen(trim($searchText)) > 0 || $sortBy == "guest.asc" || $sortBy == "guest.desc" || $sortBy === "guest") {
@@ -496,9 +495,9 @@ class WebAppController extends Controller
         }
 
         $reservations = $reservations->whereBetween("res.date_reservation", [$start_date, $end_date]);
-        
+
         if (count($nstatusIds) > 0) {
-            $reservations =  $reservations->whereNotIn("res.res_reservation_status_id", $nstatusIds);
+            $reservations = $reservations->whereNotIn("res.res_reservation_status_id", $nstatusIds);
         }
         if (count($turnIds) > 0) {
             $typeTurns    = \App\res_turn::whereIn('id', $turnIds)->groupBy('res_type_turn_id')->pluck('res_type_turn_id')->toArray();
