@@ -32,13 +32,14 @@ class ReservationService {
 
     public function getList(int $microsite_id, string $start_date, string $end_date = null, string $name = null, string $email = null, string $phone = null, array $statusIds = [], array $sourceIds = [], array $typeTurnIds = [], array $zoneIds = [], string $sort = null, int $pagesize = 100) {
 //        $start_date = CalendarHelper::realDate($microsite_id);
+        
         $end_date = (strcmp($end_date, $start_date) > 0) ? $end_date : $start_date;
 
         $reservations = res_reservation::with([
                     "tables" => function ($query) {
                         return $query->select("res_table.id", "res_zone_id", "name");
                     }, "status", "server", "source", "turn.typeTurn", "tags", "guestList", "guest", "guest.emails", "guest.phones"]);
-
+                    
 
         $reservations = !(isset($name) && strlen($name) > 0) ? $reservations : $reservations->whereHas('turn.typeTurn', function ($query) use($name) {
                     $query->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%$name%");
