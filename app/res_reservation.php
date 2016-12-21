@@ -63,12 +63,16 @@ class res_reservation extends Model {
     }
     
     
-    public function scopeWithRelationsFilter($query) {
-        return $query->with(["tables" => function ($query) {
-                        return $query->select("res_table.id", "name");
-                    }, "guest" => function ($query) {
-                        return $query->select("id", "first_name", "last_name")->with("emails", "phones");
-                    }, "source", "status", "tags", "turn.typeTurn", "server", "guestList", "emails", "event"]);
-    }
+    
+    /**
+     * Redefinicion de metodo save
+     * @param array $options
+     */
+    public function save(array $options = [])
+   {
+      // before save code 
+      parent::save();
+      // after save code
+   }
     
 }

@@ -9,6 +9,10 @@ use DB;
 
 class TurnsHelper {
 
+    public function calculeDatetime(string $date, string $hours_ini, string $hours_end, string $datetime) {
+        
+    }
+    
     public static function TypeTurnForHour(String $date, String $hour, $microsite_id) {
         $turn_calendar = res_turn_calendar::select("turn_calendar.*")
                 ->from("res_turn_calendar as turn_calendar")

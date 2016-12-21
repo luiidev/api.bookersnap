@@ -30,12 +30,13 @@ class AvailabilityController extends Controller
             
             $reservationTime = CalendarHelper::getDatetimeCalendar($microsite_id, $date, $hour);
             
+            $now = \Carbon\Carbon::now();
             if(!$reservationTime){
-                abort(500, "Este horario no existe");
+                abort(500, "Este horario no esta disponible :(");
             }
             $realDate = \Carbon\Carbon::parse($reservationTime);
-            $next_day = (strcmp($realDate->toDateString(), $date))?1:0;
-
+            $next_day = (strcmp($realDate->toDateString(), $date)==0)?0:1;
+            
             if (isset($zone_id)) {
                 $availability = $this->service->searchAvailabilityDay($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone, $event_id);
                 return $this->CreateJsonResponse(true, 200, "", $availability);

@@ -16,12 +16,12 @@ namespace App;
 use App\res_turn_calendar;
 use DB;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
-class res_turn extends Model
-{
+class res_turn extends Model {
 
-    protected $table    = "res_turn";
-    public $timestamps  = false;
+    protected $table = "res_turn";
+    public $timestamps = false;
     protected $fillable = [
         'id',
         'on_table',
@@ -42,69 +42,59 @@ class res_turn extends Model
         'date_upd',
         'user_add',
         'user_upd',
-        'ms_microsite_id',
+//        'ms_microsite_id',
     ];
 
     /* public function days() {
-    return $this->hasMany('App\res_day_turn_zone', 'res_turn_id');
-    } */
+      return $this->hasMany('App\res_day_turn_zone', 'res_turn_id');
+      } */
 
-    public function zones()
-    {
+    public function zones() {
         return $this->belongsToMany('App\res_zone', 'res_turn_zone', 'res_turn_id', 'res_zone_id');
     }
 
-    public function typeTurn()
-    {
+    public function typeTurn() {
         return $this->belongsTo('App\res_type_turn', 'res_type_turn_id');
     }
 
-    public function turnZone()
-    {
+    public function turnZone() {
         return $this->hasMany('App\res_turn_zone', 'res_turn_id');
         //return $this->belongsToMany('App\res_turn_zone', 'res_turn_id');
     }
 
-    public function turnTable()
-    {
+    public function turnTable() {
         return $this->hasMany('App\res_turn_table', 'res_turn_id');
     }
 
-    public function turnTime()
-    {
+    public function turnTime() {
         return $this->hasMany('App\res_turn_time', 'res_turn_id');
     }
 
-    public function availability()
-    {
+    public function availability() {
         return $this->hasMany('App\res_turn_zone', 'res_turn_id');
     }
 
-    public function weekDays()
-    {
+    public function weekDays() {
         return $this->hasMany(res_turn_calendar::class)
-            ->select("res_turn_id", DB::raw("dayofweek(start_date) as day"))
-            ->where("end_date", "9999-12-31")
-            ->groupBy("day");
+                        ->select("res_turn_id", DB::raw("dayofweek(start_date) as day"))
+                        ->where("end_date", "9999-12-31")
+                        ->groupBy("day");
     }
 
-    public function calendar()
-    {
-        return $this->hasMany('App\res_turn_calendar', 'res_turn_id')->where("end_date", ">=", date('Y-m-d'));
-    }
-
-    public function turnCalendar()
-    {
+    public function calendar() {
+//        return $this->hasMany('App\res_turn_calendar', 'res_turn_id')->where("end_date", ">=", date('Y-m-d'));
         return $this->hasMany('App\res_turn_calendar', 'res_turn_id');
     }
 
-    public function events()
-    {
+    public function turnCalendar() {
+        return $this->hasMany('App\res_turn_calendar', 'res_turn_id');
+    }
+
+    public function events() {
         return $this->hasMany('App\Entities\ev_event', 'res_turn_id');
     }
 
-    public function getWeekDaysAttribute()
-    {
+    public function getWeekDaysAttribute() {
         $this->addHidden(["weekDays"]);
         return $this->relations["weekDays"]->pluck("day");
     }
@@ -113,4 +103,43 @@ class res_turn extends Model
     //        $this->days()->delete();
     //        return parent::delete();
     //    }
+
+    /**
+     * Turnos configurados en el calendario en una fecha o rango de fecha
+     * @param object $query
+     * @param string $start_date
+     * @param string $end_date
+     * @return \App\Entities\ev_event
+     */
+    public function scopeInCalendar($query, string $start_date, string $end_date = null) {
+
+        return $query->whereHas('calendar', function($query) use ($start_date, $end_date) {
+                    if (is_null($end_date)) {
+                        $date = Carbon::parse($start_date);
+                        return $query->where("start_date", "<=", $start_date)->where("end_date", ">=", $start_date)->where(DB::raw("dayofweek(start_date)"), ($date->dayOfWeek + 1));
+                    } else {
+                        return $query->where("start_date", "<=", $start_date)->where("end_date", ">=", $start_date)
+                                        ->orWhere("start_date", "<=", $end_date)->where("end_date", ">=", $end_date);
+                    }
+                });
+    }
+
+    public function scopeInEventFree($query, string $start_date, string $end_date = null) {
+        $end_date = is_null($end_date) ? $start_date : $end_date;
+        return $query->whereHas('events', function($query) use ($start_date, $end_date) {
+                    return $query->where('bs_type_event_id', 1)->whereBetween(DB::raw("DATE_FORMAT(datetime_event, '%Y-%m-%d')"), [$start_date, $end_date]);
+                });
+    }
+    
+    public function scopeInTime($query, string $time) {
+        $now = Carbon::parse("2016-01-01 ".$time);
+        $nextday = $now->copy()->addDay();
+        return $query->where(function($query) use ($now, $nextday){
+                    return $query->where(DB::raw("CONCAT('" . $now->toDateString() . " ', hours_ini)"), "<=", $now->toDateTimeString())
+                            ->where(DB::raw("IF(hours_end > hours_ini, CONCAT('" . $now->toDateString() . " ', hours_end), CONCAT('" . $nextday->toDateString() . " ', hours_end))"), ">=", $now->toDateTimeString())
+                            ->orwhere(DB::raw("CONCAT('" . $now->toDateString() . " ', hours_ini)"), "<=", $nextday->toDateTimeString())
+                            ->where(DB::raw("IF(hours_end > hours_ini, CONCAT('" . $now->toDateString() . " ', hours_end), CONCAT('" . $nextday->toDateString() . " ', hours_end))"), ">=", $nextday->toDateTimeString());
+                });
+    }
+
 }

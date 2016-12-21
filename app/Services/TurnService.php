@@ -104,7 +104,7 @@ class TurnService {
                 ->where("end_date", ">=", $fecha->toDateString())
                 ->pluck('id');
 
-        $rows = res_turn::select(array(
+        $rows = res_turn::inCalendar($date)->select(array(
                     'id',
                     'name',
                     'res_type_turn_id',
@@ -114,7 +114,7 @@ class TurnService {
 //                    DB::raw("IF(hours_end > hours_ini, '" . $fecha->toDateString() . "', '" . $nextDay->toDateString() . "') AS date_end"),
 //                    DB::raw("CONCAT('" . $fecha->toDateString() . "',' ',hours_ini) AS start_datetime"),
 //                    DB::raw("IF(hours_end > hours_ini, CONCAT('" . $fecha->toDateString() . "',' ',hours_end), CONCAT('" . $nextDay->toDateString() . "',' ',hours_end)) AS end_datetime")
-                ))->where('ms_microsite_id', $microsite_id)->whereIn('id', $turnsIds);
+                ))->where('ms_microsite_id', $microsite_id);
         
         $rows = isset($type_turn) ? $rows->whereIn('res_type_turn_id', explode(",", $type_turn)) : $rows;
 
