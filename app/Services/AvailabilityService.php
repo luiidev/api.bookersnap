@@ -16,6 +16,7 @@ use App\Services\Helpers\CalendarHelper;
 use App\Services\TableService;
 use Carbon\Carbon;
 use DB;
+use App\res_turn;
 
 class AvailabilityService
 {
@@ -451,7 +452,7 @@ class AvailabilityService
             abort(500, "La configuracion del sitio no soporta la esa cantidad de usuario");
         }
 
-        $today    = Carbon::parse($date, $timezone);
+        $today    = Carbon::parse($date);
         $tomorrow = $today->copy()->addDay();
 
         //Valida si existe disponibilidad
@@ -809,8 +810,8 @@ class AvailabilityService
             } else if ($dateCompare > 0) {
                 $hourAvailability = isset($hourAuxLimitIni) ? $hourAuxLimitIni : $this->dateMaxFormat($hourQuery);
             }else{
-//                $hourAvailability = isset($hourAuxLimitIni) ? $hourAuxLimitIni : $this->dateMaxFormat($hourQuery);
-//                dd(["HOLA :(  2", $timeDate, $now, $hourAuxLimitIni, $hourQuery]);
+                $hourAvailability = clone $hourQuery;
+//                dd(["HOLA :(  2", $timeDate, $now, $hourAuxLimitIni, $hourQuery, $hourAvailability]);
             }
             
         }
@@ -2014,7 +2015,54 @@ class AvailabilityService
         }
         return $auxPeople->all();
     }
+    
+    public function hoursActives(int $microsite_id, string $date) {
+//        return $turn = res_turn_calendar::fromMicrosite($microsite_id, $date)->get();
+        $nowdate = Carbon::now();
+        
+        $nextday = Carbon::parse($date)->addDay()->toDateString();
+        
+        $datetime = "CONCAT('$date ', hours_ini)";
+        $nextdatetime = "IF(hours_ini > hours_end, CONCAT('$nextday ', hours_end), CONCAT('$date ', hours_end))";        
+        $indexIni = "CAST((HOUR($datetime)*4 +  MINUTE($datetime)/15) AS INT)";
+        $indexEnd = "CAST((HOUR($nextdatetime)*4 +  MINUTE($nextdatetime)/15) AS INT)";
+        
+        $turns = res_turn::inCalendar($date)->where('ms_microsite_id', $microsite_id)
+                ->select('*', DB::raw("$indexIni AS index_ini"), DB::raw("$indexEnd AS index_end"), DB::raw("$datetime AS start_datetime"), DB::raw("$nextdatetime AS end_datetime"))
+                ->get();
+        
+//        $function = function($index){
+//            
+//            if($index < 96){
+//                $hours = (int)($index/4);
+//                $minute = (int) ($index%4)*15;
+//                return str_pad($hours, 10, "-=", STR_PAD_LEFT);
+//            }
+//        }
 
+        $time = collect();
+        foreach ($turns as $turn) {
+            
+            $indexMin = $turn->index_ini;
+            if($nowdate->toDateString() == $date && strcmp($turn->end_datetime, $nowdate->toDateTimeString()) == 1){
+                $indexMax = $this->defineIndexHour($item['day'], $item['final']);
+            }
+            
+            $indexMax = $turn->index_end;
+            for ($i = $indexMin; $i <= $indexMax; $i++) {
+                $timeAux['index']       = $i;
+                $timeAux['next_day']    = $i >= 96 ? 1 : 0;
+                $timeAux['option']      = $this->timeForTable->indexToTime($i);
+                $timeAux['option_user'] = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $this->timeForTable->indexToTime($i))->format('g:i A');
+                $timeAux['event']       = null;
+                $timeAux['promotions']  = null;
+                $time->push($timeAux);
+            }
+        }
+        
+        return $time;
+    }
+    
     public function formatAvailability(int $microsite_id, $date)
     {
         //Function Date Actual
@@ -2026,33 +2074,105 @@ class AvailabilityService
         $dateFin  = $date->copy()->lastOfMonth()->addDays(14);
         $next_day = 0;
         
+//        return [$date->toDateString(),$this->hoursActives($microsite_id, $date->toDateString())];
         
         $promotions = collect();
         $eventsFree = collect();
                 
         $eventsFree = $this->searchEventFree($microsite_id, $date->toDateString());
         
-        $events = collect();
+//        $events = collect();
         
-        $promotions = ev_event::promotionFreeActive($date->toDateString())->with(['turns.days'])->where('ms_microsite_id', $microsite_id)->get();
+        $promotions = ev_event::promotionFreeActive($date->toDateString())->with(['turns' => function($query){            
+            $datetime = "CONCAT('0000-00-00 ', hours_ini_web)";
+            $nextdatetime = "IF(hours_ini_web > hours_end_web, CONCAT('0000-00-01 ', hours_end_web), CONCAT('0000-00-00 ', hours_end_web))";        
+            $indexIni = "CAST((HOUR($datetime)*4 +  MINUTE($datetime)/15) AS INT)";
+            $indexEnd = "CAST((HOUR($nextdatetime)*4 +  MINUTE($nextdatetime)/15) AS INT)";        
+            return $query->select('*', DB::raw("$indexIni AS index_ini"), DB::raw("IF(hours_ini_web > hours_end_web, ($indexEnd + 96), $indexEnd) AS index_end"));            
+        }])->where('ms_microsite_id', $microsite_id)->get()->map(function($item){
+            return [
+                "id" => $item->id,
+                "name" => $item->name,
+                "shortname" => substr($item->name, 0, 10),
+                "description" => $item->description,
+                "observation" => $item->observation,
+                "image" => $item->image,
+                "url_image" => ($item->image!=null || $item->image != "")?"http://bookersnap.com/archivo/reservatiopromotion/320x320/".$item->image:null,
+                "turns" => $item->turns,
+            ];
+        });
+        $promotionsdata = collect();
         
-        $eventsFree = ev_event::eventFreeActive($date->toDateString())->with(['turn' => function($query){
-            return $query->select('*', DB::raw("IF()"));
-        }])->where('ms_microsite_id', $microsite_id)->get();
+        foreach ($promotions as  $prom) {
+            if(count($prom['turns']) == 0){
+                unset($prom['turns']);
+                $prom['index_ini'] = 0;
+                $prom['index_end'] = 119;
+                $promotionsdata->push($prom);
+            }else{
+                $promaux = $prom;
+                foreach ($prom['turns'] as $turn){
+                    unset($promaux['turns']);
+                    $promaux['index_ini'] = $turn['index_ini'];
+                    $promaux['index_end'] = $turn['index_end'];
+                    $promotionsdata->push($promaux);
+                }
+            }
+        }
         
-//        return [$date->toDateString(), $promotions, $eventsFree];
+        $eventsFree = ev_event::eventFreeActive($date->toDateString())->with(['turn' => function($query){            
+            $datetime = "CONCAT('0000-00-00 ', hours_ini)";
+            $nextdatetime = "IF(hours_ini > hours_end, CONCAT('0000-00-01 ', hours_end), CONCAT('0000-00-00 ', hours_end))";        
+            $indexIni = "CAST((HOUR($datetime)*4 +  MINUTE($datetime)/15) AS INT)";
+            $indexEnd = "CAST((HOUR($nextdatetime)*4 +  MINUTE($nextdatetime)/15) AS INT)";        
+            return $query->select('*', DB::raw("$indexIni AS index_ini"), DB::raw("IF(hours_ini > hours_end, ($indexEnd + 96), $indexEnd) AS index_end"));
+        }])->where('ms_microsite_id', $microsite_id)->get()->map(function($item){
+            return [
+                "id" => $item->id,
+                "name" => $item->name,
+                "shortname" => substr($item->name, 0, 10),
+                "description" => $item->description,
+                "observation" => $item->observation,
+                "image" => $item->image,
+                "index_ini" => $item->turn->index_ini,
+                "index_end" => $item->turn->index_end,
+                "url_image" => ($item->image!=null || $item->image != "")?"http://bookersnap.com/archivo/eventos/800x800/".$item->image:null,
+            ];
+        });
+        
+        $events = collect(array_merge($promotionsdata->toArray(), $eventsFree->toArray()));
+        
+//        return [$date->toDateString(), $promotions, $eventsFree, $events, $promotionsdata, $eventsFree];
         
         $zones = $this->searchZones($microsite_id, $date->toDateString(), $timezone);
         
+        
         try {
+            
             $hours = $this->getHours($microsite_id, $date->toDateString(), $timezone);
-            $hours = $hours->map(function($item) use ($promotions, $eventsFree){
+            $hours = $hours->map(function($item) use ($promotionsdata, $eventsFree){
+                $index = $item['index'];
                 
-                if($item['event'] != null && $eventsFree->count() > 0){
-                    $item['events'] = $eventsFree->where('id', $item['event'])->all();
-                }else if(is_array($item['promotions']) && @$promotions){
-                    $item['events'] = $promotions->whereIn('id', $item['promotions'])->all();
-                }
+                $event = $eventsFree->reject(function($value, $key) use ($index){
+                                return !($value['index_ini'] <= $index && $value['index_end'] >= $index);
+                            });
+                            
+                if($event->count() > 0){
+                    $item['events'] = $event->all();
+                }else if($promotionsdata->count() > 0){
+                    
+                    $promosAll = $promotionsdata->reject(function($value, $key) use ($index){
+                                return !($value['index_ini'] <= $index && $value['index_end'] >= $index);
+                            });
+                    if($promosAll->count() > 0){
+                        $item['events'] = $promosAll->all();
+                    }
+                }                
+//                if($item['event'] != null && $eventsFree->count() > 0){
+//                    $item['events'] = $eventsFree->where('id', $item['event'])->all();
+//                }else if(is_array($item['promotions']) && @$promotions){
+//                    $item['events'] = $promotions->whereIn('id', $item['promotions'])->all();
+//                }
                 
                 unset($item['event']);
                 unset($item['promotions']);

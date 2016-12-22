@@ -192,24 +192,45 @@ class CalendarHelper {
     static function searchDate(int $microsite_id, $date) {
         
         $datenow = Carbon::now();
+        $compareDate = strcmp($date, $datenow->toDateString());
         
-        $turncalendar = (strcmp($datenow->toDateString(), $date) == 1)?res_turn_calendar::fromMicrositeActives($microsite_id, $date, $date)->orderBy('start_date')->first():null;        
+        if(($compareDate == 1)){
+            $turncalendar = res_turn_calendar::fromMicrosite($microsite_id, $date)->orderBy('start_date')->first();
+            $startDateTurnCalendar = ($turncalendar)?$date: null;
+        }else{
+            $turncalendar = res_turn_calendar::fromMicrositeActives($microsite_id, $datenow, $datenow)->orderBy('start_date')->first();
+            $startDateTurnCalendar = ($turncalendar)?$turncalendar->start_date: null;
+        }
+               
         if(!$turncalendar){
             $turncalendar = res_turn_calendar::fromMicrositeActives($microsite_id)->orderBy('start_date')->first();
+            $startDateTurnCalendar = ($turncalendar)?$turncalendar->start_date: null;
         }
-        $startDateTurnCalendar = ($turncalendar)?$turncalendar->start_date: null;
         
         
-        $eventFree = (strcmp($datenow->toDateString(), $date) == 1) ? ev_event::eventFreeActive($date, $date)->select('id','name',DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"))->orderBy('datetime_event')->first():null;
+        
+        $eventFree = ($compareDate != 1) ? ev_event::eventFreeActive($datenow->toDateString(), $datenow->toDateString())->select('id','name',DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"))->orderBy('datetime_event')->first():ev_event::eventFreeActive($date, $date)->select('id','name',DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"))->orderBy('datetime_event')->first();
+        
         if(!$eventFree){
             $eventFree = ev_event::eventFreeActive()->select('id','name',DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"))->orderBy('datetime_event')->first();
         }
-        
+
         $startDateTurnEvent = ($eventFree)?$eventFree->start_date: null;
+        
+        
         
         $dateFinal = null;
         if(!is_null($startDateTurnCalendar) && !is_null($startDateTurnEvent)){
-            $dateFinal = (strcmp($startDateTurnCalendar, $startDateTurnEvent) != 1) ? $startDateTurnCalendar:$startDateTurnEvent;
+            
+            $dateMiddle = Carbon::parse($date);
+            $dateCal = Carbon::parse($startDateTurnCalendar);
+            $dateEv = Carbon::parse($startDateTurnEvent);
+//            return [$dateCal, $dateEv, $dateMiddle, $dateMiddle->diffInDays($dateCal), $dateMiddle->diffInDays($dateEv), $turncalendar, $eventFree];
+//            if(($dateMiddle->diffInDays($dateCal) == 1){
+//                
+//            }
+            $dateFinal = ($dateMiddle->diffInDays($dateCal) < $dateMiddle->diffInDays($dateEv)) ? $startDateTurnCalendar:$startDateTurnEvent;
+            
         }else if(!is_null($startDateTurnCalendar)){
             $dateFinal =  $startDateTurnCalendar;
         }else if(!is_null($startDateTurnEvent)){
