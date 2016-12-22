@@ -66,7 +66,7 @@ class res_turn_calendar extends Model {
         $optionA = "ADDDATE('" . $now->toDateString() . "', INTERVAL (dayofweek(start_date) - " . ($now->dayOfWeek + 1) . ") DAY)";
         $optionB = "ADDDATE('" . $now->toDateString() . "', INTERVAL (7 + dayofweek(start_date) - " . ($now->dayOfWeek + 1 ) . ") DAY)";
         $conditionFutures = "IF(start_date < '" . $now->toDateString() . "', IF($condition, $optionA , $optionB), start_date)";
-        $conditionYesterday = "IF(CONCAT('" . $now->toDateString() . " ', res_turn_calendar.end_time) >= '" . $now->toDateTimeString() . "', '" . $yesterday->toDateString() . "', '" . $now->toDateString() . "')";
+        $conditionYesterday = "IF(CONCAT('" . $now->toDateString() . " ', res_turn_calendar.end_time) >= '" . $now->toDateTimeString() . "', '" . $now->toDateString() . "', '" . $yesterday->toDateString() . "')";
         $conditionActives = "IF(start_date <= '" . $yesterday->toDateString() . "' AND dayofweek(start_date) = " . ($yesterday->dayOfWeek + 1) . ", $conditionYesterday, $conditionFutures)";
 
         $query = $query->select('*', DB::raw("$conditionActives AS start_date"))->whereHas('turn', function($query) use($microsite_id, $yesterday, $now) {

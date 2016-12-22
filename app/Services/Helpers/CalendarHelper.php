@@ -202,7 +202,7 @@ class CalendarHelper {
         if(!$eventFree){
             $eventFree = ev_event::eventFreeActive()->select('id','name',DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"))->orderBy('datetime_event')->first();
         }
-        
+
         $startDateTurnEvent = ($eventFree)?$eventFree->start_date: null;
         
         $dateFinal = null;

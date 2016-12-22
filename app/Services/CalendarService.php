@@ -31,6 +31,11 @@ class CalendarService
     {
         if (is_null($day)) {
             $calendar = new Calendar($year, $month);
+            $date = Carbon::parse("$year-$month-01");
+            $startDate = $date->copy()->subDay(14);
+            $endDate = $date->copy()->lastOfMonth()->addDay(14);
+            $calendar->setFixDate($startDate, $endDate);
+//           
             //return Helpers\CalendarHelper::searchDate($microsite_id);
             $turns = res_turn_calendar::fromMicrosite($microsite_id, $calendar->FIRST_DATE, $calendar->END_DATE);
         } else {

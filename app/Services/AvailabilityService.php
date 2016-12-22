@@ -16,6 +16,7 @@ use App\Services\Helpers\CalendarHelper;
 use App\Services\TableService;
 use Carbon\Carbon;
 use DB;
+use App\res_turn;
 
 class AvailabilityService
 {
@@ -457,7 +458,7 @@ class AvailabilityService
             abort(500, "La configuracion del sitio no soporta la esa cantidad de usuario");
         }
 
-        $today    = Carbon::parse($date, $timezone);
+        $today    = Carbon::parse($date);
         $tomorrow = $today->copy()->addDay();
 
         //Valida si existe disponibilidad
@@ -815,8 +816,8 @@ class AvailabilityService
             } else if ($dateCompare > 0) {
                 $hourAvailability = isset($hourAuxLimitIni) ? $hourAuxLimitIni : $this->dateMaxFormat($hourQuery);
             }else{
-//                $hourAvailability = isset($hourAuxLimitIni) ? $hourAuxLimitIni : $this->dateMaxFormat($hourQuery);
-//                dd(["HOLA :(  2", $timeDate, $now, $hourAuxLimitIni, $hourQuery]);
+                $hourAvailability = clone $hourQuery;
+//                dd(["HOLA :(  2", $timeDate, $now, $hourAuxLimitIni, $hourQuery, $hourAvailability]);
             }
             
         }
@@ -2020,7 +2021,54 @@ class AvailabilityService
         }
         return $auxPeople->all();
     }
+    
+    public function hoursActives(int $microsite_id, string $date) {
+//        return $turn = res_turn_calendar::fromMicrosite($microsite_id, $date)->get();
+        $nowdate = Carbon::now();
+        
+        $nextday = Carbon::parse($date)->addDay()->toDateString();
+        
+        $datetime = "CONCAT('$date ', hours_ini)";
+        $nextdatetime = "IF(hours_ini > hours_end, CONCAT('$nextday ', hours_end), CONCAT('$date ', hours_end))";        
+        $indexIni = "CAST((HOUR($datetime)*4 +  MINUTE($datetime)/15) AS INT)";
+        $indexEnd = "CAST((HOUR($nextdatetime)*4 +  MINUTE($nextdatetime)/15) AS INT)";
+        
+        $turns = res_turn::inCalendar($date)->where('ms_microsite_id', $microsite_id)
+                ->select('*', DB::raw("$indexIni AS index_ini"), DB::raw("$indexEnd AS index_end"), DB::raw("$datetime AS start_datetime"), DB::raw("$nextdatetime AS end_datetime"))
+                ->get();
+        
+//        $function = function($index){
+//            
+//            if($index < 96){
+//                $hours = (int)($index/4);
+//                $minute = (int) ($index%4)*15;
+//                return str_pad($hours, 10, "-=", STR_PAD_LEFT);
+//            }
+//        }
 
+        $time = collect();
+        foreach ($turns as $turn) {
+            
+            $indexMin = $turn->index_ini;
+            if($nowdate->toDateString() == $date && strcmp($turn->end_datetime, $nowdate->toDateTimeString()) == 1){
+                $indexMax = $this->defineIndexHour($item['day'], $item['final']);
+            }
+            
+            $indexMax = $turn->index_end;
+            for ($i = $indexMin; $i <= $indexMax; $i++) {
+                $timeAux['index']       = $i;
+                $timeAux['next_day']    = $i >= 96 ? 1 : 0;
+                $timeAux['option']      = $this->timeForTable->indexToTime($i);
+                $timeAux['option_user'] = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $this->timeForTable->indexToTime($i))->format('g:i A');
+                $timeAux['event']       = null;
+                $timeAux['promotions']  = null;
+                $time->push($timeAux);
+            }
+        }
+        
+        return $time;
+    }
+    
     public function formatAvailability(int $microsite_id, $date)
     {
         //Function Date Actual
@@ -2032,6 +2080,7 @@ class AvailabilityService
         $dateFin  = $date->copy()->lastOfMonth()->addDays(14);
         $next_day = 0;
         
+//        return [$date->toDateString(),$this->hoursActives($microsite_id, $date->toDateString())];
         
         $promotions = collect();
         $eventsFree = collect();
