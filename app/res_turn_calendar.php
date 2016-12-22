@@ -33,14 +33,14 @@ class res_turn_calendar extends Model {
         $query = $query->whereHas('turn', function($query) use($microsite_id) {
             $query->where('ms_microsite_id', $microsite_id);
         });
-        if (is_null($end_date)) {
+        if (is_null($end_date) || $start_date == $end_date) {
             $date = Carbon::parse($start_date);
             $query = $query->where("start_date", "<=", $start_date)
                     ->where("end_date", ">=", $start_date)
                     ->where(DB::raw("dayofweek(start_date)"), ($date->dayOfWeek + 1));
         } else {
             $query = $query->where(function($query) use($start_date, $end_date) {
-                return $query->where("start_date", "<=", $start_date)->where("end_date", ">=", $start_date)
+                return $query->where("start_date", "<=", $start_date)->where("end_date", ">=", $end_date)
                                 ->orWhere("start_date", "<=", $end_date)->where("start_date", ">=", $end_date)
                                 ->orWhere("start_date", ">=", $start_date)->where("start_date", "<=", $end_date);
             });
@@ -68,8 +68,10 @@ class res_turn_calendar extends Model {
         $conditionFutures = "IF(start_date < '" . $now->toDateString() . "', IF($condition, $optionA , $optionB), start_date)";
         $conditionYesterday = "IF(CONCAT('" . $now->toDateString() . " ', res_turn_calendar.end_time) >= '" . $now->toDateTimeString() . "', '" . $yesterday->toDateString() . "', '" . $now->toDateString() . "')";
         $conditionActives = "IF(start_date <= '" . $yesterday->toDateString() . "' AND dayofweek(start_date) = " . ($yesterday->dayOfWeek + 1) . ", $conditionYesterday, $conditionFutures)";
+        
+        $replacestartdate = "IF(start_date <= '" . $yesterday->toDateString() . "' AND dayofweek(start_date) = " . ($yesterday->dayOfWeek + 1) . ", '".$yesterday->toDateString()."' , $conditionFutures)";
 
-        $query = $query->select('*', DB::raw("$conditionActives AS start_date"))->whereHas('turn', function($query) use($microsite_id, $yesterday, $now) {
+        $query = $query->select('*', DB::raw("$replacestartdate AS start_date"))->whereHas('turn', function($query) use($microsite_id, $yesterday, $now) {
                     $query->where('ms_microsite_id', $microsite_id)->where(function($query) use ($yesterday, $now) {
                         return $query->whereRaw("res_turn.hours_ini > res_turn.hours_end")
                                         ->where(DB::raw("dayofweek(res_turn_calendar.start_date)"), ($yesterday->dayOfWeek + 1))

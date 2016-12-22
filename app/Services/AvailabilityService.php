@@ -266,13 +266,7 @@ class AvailabilityService
     //Busca todas las zonas disponibles en un dia
     public function searchZones(int $microsite_id, string $date, string $timezone)
     {
-        $zones  = $this->calendarService->getZones($microsite_id, $date, $date);        
-//        if($zones->isEmpty()){
-//            $events =  $this->searchEventFree($microsite_id, $date)->pluck('turn.id');
-//            if ($zones->isEmpty()) {
-//                $zones  = $this->calendarService->getZones($microsite_id, $date, "9999-12-31");
-//            }
-//        }
+        $zones  = $this->calendarService->getZones($microsite_id, $date, $date);
         
         return $zones->map(function($item){
             return [
@@ -2042,14 +2036,15 @@ class AvailabilityService
         
         $promotions = ev_event::promotionFreeActive($date->toDateString())->with(['turns.days'])->where('ms_microsite_id', $microsite_id)->get();
         
-        $eventsFree = ev_event::eventFreeActive($date->toDateString())->with('turn')->where('ms_microsite_id', $microsite_id)->get();
+        $eventsFree = ev_event::eventFreeActive($date->toDateString())->with(['turn' => function($query){
+            return $query->select('*', DB::raw("IF()"));
+        }])->where('ms_microsite_id', $microsite_id)->get();
         
 //        return [$date->toDateString(), $promotions, $eventsFree];
         
         $zones = $this->searchZones($microsite_id, $date->toDateString(), $timezone);
         
-        try
-        {
+        try {
             $hours = $this->getHours($microsite_id, $date->toDateString(), $timezone);
             $hours = $hours->map(function($item) use ($promotions, $eventsFree){
                 
@@ -2058,15 +2053,14 @@ class AvailabilityService
                 }else if(is_array($item['promotions']) && @$promotions){
                     $item['events'] = $promotions->whereIn('id', $item['promotions'])->all();
                 }
-
-//                unset($item['event']);
-//                unset($item['promotions']);
+                
+                unset($item['event']);
+                unset($item['promotions']);
 
                 return $item;
             });
         } catch (\Exception $e) {
-            $hours = [];
-            
+            $hours = [];            
         }
         
 
