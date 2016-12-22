@@ -269,7 +269,7 @@ class TurnService {
 
             DB::BeginTransaction();
             $turn->save();
-
+            unset($turn_zones);
             $turn_zones = array();
             foreach ($request->turn_zone as $value) {
                 $this->saveTurnTables(@$value["tables"], $turn->hours_ini, $turn->hours_end, $turn->id);
