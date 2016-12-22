@@ -266,13 +266,13 @@ class AvailabilityService
     //Busca todas las zonas disponibles en un dia
     public function searchZones(int $microsite_id, string $date, string $timezone)
     {
-        return $zones  = $this->calendarService->getZones($microsite_id, $date);        
-        if($zones->isEmpty()){
-            $events =  $this->searchEventFree($microsite_id, $date)->pluck('turn.id');
-            if ($zones->isEmpty()) {
-                $zones  = $this->calendarService->getZones($microsite_id, $date, "9999-12-31");
-            }
-        }
+        $zones  = $this->calendarService->getZones($microsite_id, $date, $date);        
+//        if($zones->isEmpty()){
+//            $events =  $this->searchEventFree($microsite_id, $date)->pluck('turn.id');
+//            if ($zones->isEmpty()) {
+//                $zones  = $this->calendarService->getZones($microsite_id, $date, "9999-12-31");
+//            }
+//        }
         
         return $zones->map(function($item){
             return [

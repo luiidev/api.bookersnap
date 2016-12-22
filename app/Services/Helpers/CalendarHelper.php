@@ -141,7 +141,7 @@ class CalendarHelper {
                 return $yesterday->toDateString();
             }
 
-            $turnYesterday = \App\res_turn::inEventFree($yesterday->toDateString())->where('ms_microsite_id', $microsite_id)
+            $turnYesterday = res_turn::inEventFree($yesterday->toDateString(), $yesterday->toDateString())->where('ms_microsite_id', $microsite_id)
                     ->where(DB::raw("IF(hours_end > hours_ini, CONCAT('" . $yesterday->toDateString() . " ', hours_ini), CONCAT('" . $now->toDateString() . " ',hours_end))"), ">=", $now->toDateTimeString())
                     ->count();
             if ($turnYesterday > 0) {

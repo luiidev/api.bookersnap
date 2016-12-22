@@ -47,8 +47,8 @@ class res_turn_calendar extends Model {
         }
 
         return $query;
-    }    
-    
+    }
+
     /**
      * Horaios programados en el calendario para fechas mayores a la fecha actual puede tambien ser filtrado por un rango de fechas $start_date y $end_date
      * @param Model $query
@@ -57,6 +57,7 @@ class res_turn_calendar extends Model {
      * @param string $end_date
      * @return Model
      */
+
     public function scopeFromMicrositeActives($query, int $microsite_id, string $start_date = null, string $end_date = null) {
         $now = Carbon::now();
         $yesterday = $now->copy()->yesterday();
@@ -70,20 +71,23 @@ class res_turn_calendar extends Model {
 
         $query = $query->select('*', DB::raw("$conditionActives AS start_date"))->whereHas('turn', function($query) use($microsite_id, $yesterday, $now) {
                     $query->where('ms_microsite_id', $microsite_id)->where(function($query) use ($yesterday, $now) {
-                        return $query->whereRaw("res_turn.hours_ini > res_turn.hours_end")->where(DB::raw("dayofweek(res_turn_calendar.start_date)"), ($yesterday->dayOfWeek + 1))
-                                        ->where(DB::raw("CONCAT('" . $now->toDateString() . " ', res_turn.hours_end)"), ">=", $yesterday->toDateTimeString())
+                        return $query->whereRaw("res_turn.hours_ini > res_turn.hours_end")
+                                        ->where(DB::raw("dayofweek(res_turn_calendar.start_date)"), ($yesterday->dayOfWeek + 1))
+                                        ->where('res_turn_calendar.start_date', "<=", $yesterday->toDateString())
+                                        ->where('res_turn_calendar.end_date', ">=", $yesterday->toDateString())
+                                        ->where(DB::raw("CONCAT('" . $now->toDateString() . " ', res_turn.hours_end)"), ">=", $now->toDateTimeString())
                                         ->orWhere('res_turn_calendar.end_date', '>=', $now->toDateString());
                     });
-                })->whereRaw("$conditionActives >= ?", [$yesterday->toDateString()]);
+                });
                 
-        if(!is_null($start_date)){
+        if (!is_null($start_date)) {
             $query = $query->whereRaw("$conditionActives >= ?", [$start_date]);
-        }        
-        if(!is_null($end_date)){
+        }
+        if (!is_null($end_date)) {
             $query = $query->whereRaw("$conditionActives <= ?", [$end_date]);
         }
         return $query;
-        /*query select para test de datos*/
+        /* query select para test de datos */
         //$query = $query->select('res_turn_calendar.*', DB::raw("dayofweek(start_date) AS dayofweek"), DB::raw("($now->dayOfWeek + 1) AS dayofweekNow"), DB::raw("($yesterday->dayOfWeek + 1) AS dayofweekYesterady"), DB::raw("'" . $now->toDateTimeString() . "' AS DatetimeNow"), DB::raw("CONCAT('" . $yesterday->toDateString() . " ', res_turn_calendar.end_time) AS DateYesterady"), DB::raw("CONCAT('" . $now->toDateString() . " ', res_turn_calendar.end_time) AS DateNow"), DB::raw("(start_date <= '" . $yesterday->toDateString() . "') AS PAST"), DB::raw("dayofweek(start_date) <= " . ($yesterday->dayOfWeek + 1) . " AS RESULT"), DB::raw("$conditionActives AS start_date_active"));
     }
 
