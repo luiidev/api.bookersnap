@@ -1962,6 +1962,8 @@ class AvailabilityService
         }
 
         $aux             = $calendar->get();
+                
+        
         $dateTimeClose   = collect($aux)->sortBy('date')->where('date', $yesterday->toDateString())->pop();
         $deleteYesterday = false;
         if (@$dateTimeClose && ($dateTimeClose['start_time'] <=> $dateTimeClose['end_time']) > 0) {
@@ -2065,14 +2067,15 @@ class AvailabilityService
     
     public function formatAvailability(int $microsite_id, $date)
     {
+        
         //Function Date Actual
-        $date     = CalendarHelper::searchDate($microsite_id, $date);
+        $date     = CalendarHelper::searchDate($microsite_id, $date);        
         
         $timezone = $date->timezoneName;
 
         $dateIni  = $date->copy()->firstOfMonth()->subDays(7);
         $dateFin  = $date->copy()->lastOfMonth()->addDays(14);
-        $next_day = 0;
+        $next_day = 0;        
         
 //        return [$date->toDateString(),$this->hoursActives($microsite_id, $date->toDateString())];
         
@@ -2180,10 +2183,10 @@ class AvailabilityService
                 return $item;
             });
         } catch (\Exception $e) {
+//            return [$e->getFile(),$e->getLine(), $e->getMessage()];
             $hours = [];            
         }
         
-
         $daysDisabled = $this->getDaysDisabled($microsite_id, $dateIni->toDateString(), $dateFin->toDateString(), $timezone);
         $people       = $this->getPeople($microsite_id);
 
