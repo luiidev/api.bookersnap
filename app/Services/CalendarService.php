@@ -30,7 +30,12 @@ class CalendarService
     public function getList(int $microsite_id, int $year, int $month, int $day = null)
     {
         if (is_null($day)) {
-            $calendar = new Calendar($year, $month);
+            $calendar  = new Calendar($year, $month);
+            $date      = Carbon::parse("$year-$month-01");
+            $startDate = $date->copy()->subDay(14);
+            $endDate   = $date->copy()->lastOfMonth()->addDay(14);
+            $calendar->setFixDate($startDate, $endDate);
+//
             //return Helpers\CalendarHelper::searchDate($microsite_id);
             $turns = res_turn_calendar::fromMicrosite($microsite_id, $calendar->FIRST_DATE, $calendar->END_DATE);
         } else {
@@ -303,7 +308,7 @@ class CalendarService
         $date     = CalendarHelper::realDate($microsite_id, $date);
         $date_end = (strcmp($date_end, $date) > 0) ? $date_end : $date;
 
-        $turnIds          = res_turn_calendar::fromMicrositeActives($microsite_id, $date, $date_end)->orderBy('start_date')->pluck('res_turn_id')->toArray();
+        $turnIds          = res_turn_calendar::fromMicrosite($microsite_id, $date, $date_end)->orderBy('start_date')->pluck('res_turn_id')->toArray();
         $turnIdsEventfree = res_turn::inEventFreeActive($date, $date_end)->where('ms_microsite_id', $microsite_id)->pluck('id')->toArray();
 
         $turncollectIds = collect(array_merge($turnIds, $turnIdsEventfree));

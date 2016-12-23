@@ -124,10 +124,17 @@ class res_turn extends Model {
                 });
     }
 
-    public function scopeInEventFree($query, string $start_date, string $end_date = null) {
-        $end_date = is_null($end_date) ? $start_date : $end_date;
+    public function scopeInEventFree($query, string $start_date = null, string $end_date = null) {
+
         return $query->whereHas('events', function($query) use ($start_date, $end_date) {
-                    return $query->where('bs_type_event_id', 1)->whereBetween(DB::raw("DATE_FORMAT(datetime_event, '%Y-%m-%d')"), [$start_date, $end_date]);
+                    $query = $query->where('bs_type_event_id', 1);
+                    if (!is_null($start_date)) {
+                        $query = $query->where(DB::raw("DATE_FORMAT(datetime_event, '%Y-%m-%d')"), ">=",[$start_date]);
+                    }
+                    if (!is_null($end_date)) {
+                        $query = $query->where(DB::raw("DATE_FORMAT(datetime_event, '%Y-%m-%d')"), "<=",[$end_date]);
+                    }
+                    return $query;
                 });
     }
 
@@ -141,22 +148,22 @@ class res_turn extends Model {
     public function scopeInEventFreeActive($query, string $start_date, string $end_date = null) {
         $now = Carbon::now();
         $yesterday = $now->copy()->yesterday();
-        $query = $query->whereHas('events', function($query) use ($start_date, $end_date, $now, $yesterday) {            
+        $query = $query->whereHas('events', function($query) use ($start_date, $end_date, $now, $yesterday) {
             $dateformat = "DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d')";
             $dateYesterday = "IF(hours_ini > hours_end, '" . $now->toDateString() . "', '" . $yesterday->toDateString() . "')";
             $datetimeYesterday = "IF(hours_ini > hours_end, CONCAT('" . $now->toDateString() . " ', hours_end), CONCAT('" . $yesterday->toDateString() . " ', hours_end))";
             $conditionB = "IF($dateYesterday = '" . $now->toDateString() . "' AND $datetimeYesterday >= '" . $now->toDateTimeString() . "', '" . $yesterday->toDateString() . "', '" . $now->toDateString() . "')";
             $conditionActives = "IF($dateformat > '" . $yesterday->toDateString() . "', $dateformat, $conditionB)";
-        
+
             $query = $query->where('bs_type_event_id', 1)->where('status', 1)->whereRaw("$conditionActives >= ?", [$yesterday->toDateString()]);
             if (!is_null($start_date)) {
                 $query = $query->whereRaw("$conditionActives >= ?", [$start_date]);
             }
             if (!is_null($end_date)) {
                 $query = $query->whereRaw("$conditionActives <= ?", [$end_date]);
-            }            
+            }
             return $query;
-        });        
+        });
         return $query;
     }
 

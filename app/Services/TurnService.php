@@ -269,7 +269,7 @@ class TurnService {
 
             DB::BeginTransaction();
             $turn->save();
-
+            unset($turn_zones);
             $turn_zones = array();
             foreach ($request->turn_zone as $value) {
                 $this->saveTurnTables(@$value["tables"], $turn->hours_ini, $turn->hours_end, $turn->id);
@@ -458,7 +458,9 @@ class TurnService {
 
     public function getListTable(int $turn_id, int $zone_id) {
 
-        $turn = res_turn::where('id', $turn_id)->first();
+        $turn = res_turn::whereHas('turnZone',function($query) use ($turn_id){
+            return $query->where('id', $turn_id);
+        })->first();
 
         if ($turn != null) {
             $EnableTimesForTable = new \App\Domain\EnableTimesForTable();

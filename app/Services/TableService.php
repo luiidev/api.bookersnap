@@ -7,9 +7,7 @@ use App\Entities\Block;
 use App\Entities\ev_event;
 use App\res_reservation;
 use App\res_table;
-use App\res_turn_calendar;
 use App\Services\CalendarService;
-use App\Services\Helpers\CalendarHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -322,11 +320,7 @@ class TableService
      */
     public function tablesAvailabilityAll($microsite_id, $date)
     {
-
-        $date = CalendarHelper::realDate($microsite_id, $date);
-        //return $turnsIds = $this->turnsIdsByDateCalendar($microsite_id, $date);
-
-        $turnsIds = res_turn_calendar::fromMicrositeActives($microsite_id, $date, $date)->orderBy('start_date')->pluck('res_turn_id')->toArray();
+        $turnsIds = $this->turnsIdsByDateCalendar($microsite_id, $date);
         /* Obtener Los Ids de los turnos Habilitados para la fecha */
         $turnEvent = $this->turnEvent($microsite_id, $date);
         $zones     = $this->zonesAvailabilityByTurnsAll($turnsIds);

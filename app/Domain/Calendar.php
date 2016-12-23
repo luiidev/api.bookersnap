@@ -82,15 +82,21 @@ class Calendar
 
     protected function firstDateTime(string $date)
     {
-        list($year, $month, $day) = explode('-', $date);
-        $startDatetime            = \Carbon\Carbon::create($year, $month, $day, null, null, null);
+        $startDatetime            = \Carbon\Carbon::parse($date);
         // $res                      = $this->FIRST_DATETIME->diff($startDatetime);
         $compare = strcmp($startDatetime->toDateTimeString(), $this->FIRST_DATETIME->toDateTimeString());
         // if ($res->invert == 1) {
         if ($compare <= 0) {
-            $dayOfWeek = $startDatetime->dayOfWeek;
+//            $dayOfWeek = $startDatetime->dayOfWeek;
             // $startDatetime = \Carbon\Carbon::create($this->FIRST_DATETIME->year, $this->FIRST_DATETIME->month, $this->FIRST_DATETIME->day)->addDay($dayOfWeek);
-            $startDatetime = $this->FIRST_DATETIME->copy()->addDay($dayOfWeek);
+            if($this->FIRST_DATETIME->dayOfWeek < $startDatetime->dayOfWeek){
+                $difday = $startDatetime->dayOfWeek - $this->FIRST_DATETIME->dayOfWeek;
+                $startDatetime = $this->FIRST_DATETIME->copy()->addDay($difday);
+            }else{
+                $difday = $this->FIRST_DATETIME->dayOfWeek - $startDatetime->dayOfWeek;
+                $startDatetime = $this->FIRST_DATETIME->copy()->addDay(7 - $difday);
+            }
+            
         }
         return $startDatetime;
     }

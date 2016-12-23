@@ -102,13 +102,13 @@ class WebAppController extends Controller
                     "datetimeClose" => $dateTimeClose,
                 ],
                 "availabilityTables" => $availebility,
-                "config"       => $configuration,
-                "status"       => $status,
-                "turns"        => $turns,
-                "shifts"       => $shifts,
-                "blocks"       => $blocks,
-                "reservations" => $reservations,
-                "sourceTypes"  => $sourceTypes,   
+                "config"             => $configuration,
+                "status"             => $status,
+                "turns"              => $turns,
+                "shifts"             => $shifts,
+                "blocks"             => $blocks,
+                "reservations"       => $reservations,
+                "sourceTypes"        => $sourceTypes,
             ];
             return $this->CreateResponse(true, 201, "", $data);
         });

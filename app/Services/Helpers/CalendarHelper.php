@@ -141,7 +141,7 @@ class CalendarHelper {
                 return $yesterday->toDateString();
             }
 
-            $turnYesterday = \App\res_turn::inEventFree($yesterday->toDateString())->where('ms_microsite_id', $microsite_id)
+            $turnYesterday = res_turn::inEventFree($yesterday->toDateString(), $yesterday->toDateString())->where('ms_microsite_id', $microsite_id)
                     ->where(DB::raw("IF(hours_end > hours_ini, CONCAT('" . $yesterday->toDateString() . " ', hours_ini), CONCAT('" . $now->toDateString() . " ',hours_end))"), ">=", $now->toDateTimeString())
                     ->count();
             if ($turnYesterday > 0) {
@@ -191,29 +191,96 @@ class CalendarHelper {
      */
     static function searchDate(int $microsite_id, $date) {
         
-        $turncalendar = res_turn_calendar::fromMicrositeActives($microsite_id, $date, $date)->orderBy('start_date')->first();        
-        if(!$turncalendar){
-            $turncalendar = res_turn_calendar::fromMicrositeActives($microsite_id)->orderBy('start_date')->first();
+        $datenow = Carbon::now();
+        $date = (strcmp($date, $datenow->toDateString())== -1)? $datenow->toDateString():$date;
+        
+        $dateSearch = Carbon::parse($date);
+        $nextdate = $dateSearch->copy()->addDay()->toDateString();
+        $dateyesterday = $dateSearch->copy()->subDay()->toDateString();
+        
+        $turncalendar = null;
+        $startDateTurnCalendar = null;
+        
+        if(strcmp($datenow->toDateString(), $dateSearch->toDateString()) == 0){
+            /**
+             * Buscando Turnos del un dia anterior a la fecha.
+             */
+            $datetime = "IF(start_time > end_time, CONCAT('$date ', end_time), CONCAT('$dateyesterday ', end_time))";
+            $turncalendar = res_turn_calendar::fromMicrosite($microsite_id, $dateyesterday)->where(DB::raw($datetime), ">=", $datenow->toDateTimeString())->first();
+            $startDateTurnCalendar = ($turncalendar)? $dateyesterday: null;
+            
+            if(!$turncalendar){
+                /**
+                 * Buscando si existen horarios activos para la fecha.
+                 */
+                $datetime = "IF(start_date > end_date, CONCAT('$nextdate ', end_time), CONCAT('$date ', end_time))";
+                $turncalendar = res_turn_calendar::fromMicrosite($microsite_id, $date)->orderBy('start_date', 'DESC')->where(DB::raw($datetime), ">=", $datenow->toDateTimeString())->first();            
+                $startDateTurnCalendar = ($turncalendar)? $date: null;
+            }   
         }
-        $startDateTurnCalendar = ($turncalendar)?$turncalendar->start_date: null;
         
+        if(!$turncalendar){
+           /**
+            * Buscando si existen horarios activos para la fecha.
+            */
+           $datetime = "IF(start_date > end_date, CONCAT('$nextdate ', end_time), CONCAT('$date ', end_time))";
+           $turncalendar = res_turn_calendar::fromMicrosite($microsite_id, $date)->first();            
+           $startDateTurnCalendar = ($turncalendar)? $date: null;
+        }        
         
-        $eventFree = ev_event::eventFreeActive($date, $date)->select('id','name',DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"))->orderBy('datetime_event')->first();
+        if(!$turncalendar){
+            /**
+             * Buscar el turno mas proximo a la fecha actual.
+             */
+            $turncalendar = res_turn_calendar::fromMicrositeActives($microsite_id)->orderBy('start_date')->first();
+            $startDateTurnCalendar = ($turncalendar)?$turncalendar->start_date_real: null;
+        }
+        
+        $dateCalendar = Carbon::parse($startDateTurnCalendar);
+        $diff = $dateSearch->diffInDays($dateCalendar);
+        if($diff == 0 || $diff == 1){
+            /**
+             * Se encontro la fecha buscada o un dia anterios
+             */
+            return Carbon::parse($startDateTurnCalendar);
+        }
+        return Carbon::parse($startDateTurnCalendar);
+        
+        $dateEvent = "DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d')";
+        $eventFree = ev_event::eventFreeActive($datenow->toDateString(), $datenow->toDateString())->select('*', DB::raw("$dateEvent AS start_date"))
+                ->where('ms_microsite_id', $microsite_id)->with('turn')->orderBy('datetime_event')->first();
+        $startDateTurnEvent = ($eventFree)?$eventFree->start_date: null;
+        
+        return [$turncalendar, $eventFree, $diff, $startDateTurnCalendar, $startDateTurnEvent];
+        
+        $eventFree =  ev_event::eventFreeActive($date, $date)->select('id','name',DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"))->orderBy('datetime_event')->first();
+        
         if(!$eventFree){
             $eventFree = ev_event::eventFreeActive()->select('id','name',DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"))->orderBy('datetime_event')->first();
         }
-        
+
         $startDateTurnEvent = ($eventFree)?$eventFree->start_date: null;
+        
+        return [$turncalendar, $eventFree];
         
         $dateFinal = null;
         if(!is_null($startDateTurnCalendar) && !is_null($startDateTurnEvent)){
-            $dateFinal = (strcmp($startDateTurnCalendar, $startDateTurnEvent) != 1) ? $startDateTurnCalendar:$startDateTurnEvent;
+            
+            $dateMiddle = Carbon::parse($date);
+            $dateCal = Carbon::parse($startDateTurnCalendar);
+            $dateEv = Carbon::parse($startDateTurnEvent);
+//            return [$dateCal, $dateEv, $dateMiddle, $dateMiddle->diffInDays($dateCal), $dateMiddle->diffInDays($dateEv), $turncalendar, $eventFree];
+//            if(($dateMiddle->diffInDays($dateCal) == 1){
+//                
+//            }
+            $dateFinal = ($dateMiddle->diffInDays($dateCal) < $dateMiddle->diffInDays($dateEv)) ? $startDateTurnCalendar:$startDateTurnEvent;
+            
         }else if(!is_null($startDateTurnCalendar)){
             $dateFinal =  $startDateTurnCalendar;
         }else if(!is_null($startDateTurnEvent)){
             $dateFinal =  $startDateTurnEvent;
-        }
-        
+        }        
+//        return [$turncalendar, $eventFree];
         if(!is_null($dateFinal)){
             return Carbon::parse($dateFinal);
         }
