@@ -7,6 +7,7 @@ use App\Http\Requests\AvailabilityRequest;
 use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
 use App\Services\Helpers\CalendarHelper;
+use Carbon\Carbon;
 
 class AvailabilityController extends Controller
 {
@@ -30,11 +31,13 @@ class AvailabilityController extends Controller
             
             $reservationTime = CalendarHelper::getDatetimeCalendar($microsite_id, $date, $hour);
             
-            $now = \Carbon\Carbon::now();
             if(!$reservationTime){
                 abort(500, "Este horario no esta disponible :(");
             }
-            $realDate = \Carbon\Carbon::parse($reservationTime);
+            
+            $now = Carbon::now();
+            $realDate = Carbon::parse($reservationTime);
+            
             $next_day = (strcmp($realDate->toDateString(), $date)==0)?0:1;
             
             if (isset($zone_id)) {
