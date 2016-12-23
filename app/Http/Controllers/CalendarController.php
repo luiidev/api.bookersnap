@@ -34,11 +34,11 @@ class CalendarController extends Controller
     {
         $service = $this->_CalendarService;
         return $this->TryCatch(function () use ($request, $service) {
-            
+
             $microsite_id = $request->route('microsite_id');
-            $date = $request->route('date');                
-            $data = $service->getListShift($microsite_id, $date);
-            
+            $date         = $request->route('date');
+            $data         = $service->getListShift($microsite_id, $date);
+
             return $this->CreateResponse(true, 201, "", $data);
         });
     }
@@ -128,18 +128,18 @@ class CalendarController extends Controller
         $service = $this->_CalendarService;
 
         return $this->TryCatch(function () use ($request, $service) {
-            
+
             $microsite_id = $request->route("microsite_id");
-            
+
             $date_ini = $request->route("date");
             $date_end = $request->input("end");
-            
+
             if (Validator::make(["date" => $date_ini], ["date" => "date"])->fails()) {
                 abort(406, "La fecha de consulta no es valida");
             }
-            
+
             $zones = $service->getZones($microsite_id, $date_ini, $date_end);
-            
+
             return $this->CreateResponse(true, 200, "", $zones);
         });
     }
