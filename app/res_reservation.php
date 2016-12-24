@@ -4,6 +4,7 @@ namespace App;
 
 use App\Entities\ev_event;
 use Illuminate\Database\Eloquent\Model;
+use App\res_turn;
 
 class res_reservation extends Model {
 
@@ -49,8 +50,7 @@ class res_reservation extends Model {
         return $this->hasMany('App\res_reservation_email', "res_reservation_id");
     }
 
-    public function event()
-    {
+    public function event() {
         return $this->belongsTo(ev_event::class, "ev_event_id");
     }
 
@@ -61,18 +61,19 @@ class res_reservation extends Model {
                         return $query->select("id", "first_name", "last_name")->with("emails", "phones");
                     }, "source", "status", "tags", "turn.typeTurn", "server", "guestList", "emails", "event"]);
     }
-    
-    
-    
+
     /**
      * Redefinicion de metodo save
      * @param array $options
      */
-    public function save(array $options = [])
-   {
-      // before save code 
-      parent::save();
-      // after save code
-   }
-    
+    public function save(array $options = []) {
+        
+        // before save code
+        $turn = res_turn::TurnReservation($this->ms_microsite_id, $this->date_reservation, $this->hours_reservation)->first();
+        $this->res_turn_id = ($turn) ? $turn->id : null;
+         
+        parent::save();
+        // after save code
+    }
+
 }

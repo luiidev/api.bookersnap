@@ -170,7 +170,7 @@ class TableReservationService extends Service
         $reservation->email                     = $email;
         $reservation->user_add                  = $this->req->_bs_user_id;
         $reservation->ms_microsite_id           = $this->microsite_id;
-        $reservation->res_turn_id               = $reservationInit->res_turn_id;
+//        $reservation->res_turn_id               = $reservationInit->res_turn_id;
 
         if ($this->req->status_id < self::_ID_STATUS_RESERVATION_SEATED) {
 //            if ($action == "create") {

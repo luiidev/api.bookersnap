@@ -307,9 +307,8 @@ class CalendarService
     {
         $date     = CalendarHelper::realDate($microsite_id, $date);
         $date_end = (strcmp($date_end, $date) > 0) ? $date_end : $date;
-        
-        $turnIds = res_turn_calendar::fromMicrosite($microsite_id, $date, $date_end)->orderBy('start_date')->pluck('res_turn_id')->toArray();        
-        
+              
+        $turnIds = res_turn_calendar::fromMicrosite($microsite_id, $date, $date_end)->orderBy('start_date')->pluck('res_turn_id')->toArray();
         $turnIdsEventfree = res_turn::inEventFreeActive($date, $date_end)->where('ms_microsite_id', $microsite_id)->pluck('id')->toArray();
         
         $turncollectIds = collect(array_merge($turnIds, $turnIdsEventfree));
