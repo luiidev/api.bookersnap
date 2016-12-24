@@ -89,6 +89,7 @@ class ev_event extends Model {
         return $query;
     }
 
+    
     /**
      * Eventos Grastuitos activos en una fecha o rango de fecha
      * @param type $query

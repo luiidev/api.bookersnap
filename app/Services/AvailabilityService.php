@@ -2031,7 +2031,7 @@ class AvailabilityService
             return [
                 "id" => $item->id,
                 "name" => $item->name,
-                "description" => $item->description,
+                "description" => strip_tags($item->description),
                 "observation" => $item->observation,
                 "image" => ($item->image!=null || $item->image != "")?"http://bookersnap.com/archivo/reservatiopromotion/320x320/".$item->image:null,
                 "turns" => collect($item->turns),
@@ -2048,7 +2048,7 @@ class AvailabilityService
             return [
                 "id" => $item->id,
                 "name" => $item->name,
-                "description" => $item->description,
+                "description" => strip_tags($item->description),
                 "observation" => $item->observation,
                 "turn" => $item->turn,
                 "image" => ($item->image!=null || $item->image != "")?"http://bookersnap.com/archivo/eventos/800x800/".$item->image:null,
@@ -2141,7 +2141,7 @@ class AvailabilityService
             return [
                 "id" => $item->id,
                 "name" => $item->name,
-                "description" => $item->description,
+                "description" => strip_tags($item->description),
                 "observation" => $item->observation,
                 "image" => ($item->image!=null || $item->image != "")?$imagepath.$item->image:null,
             ];

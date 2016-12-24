@@ -140,7 +140,7 @@ class AvailabilityController extends Controller
     {
         return $this->TryCatch(function () use ($request) {
             $microsite_id = $request->route('microsite_id');
-            $date = $request->input('date', \Carbon\Carbon::now()->toDateString());
+            $date = $request->input('date', \Carbon\Carbon::now()->toDateString());            
             $people = $this->service->formatAvailability($microsite_id, $date);
             return $this->CreateJsonResponse(true, 200, "", $people);
         });
