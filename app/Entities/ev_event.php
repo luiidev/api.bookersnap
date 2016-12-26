@@ -11,6 +11,9 @@ class ev_event extends Model {
     protected $table = "ev_event";
     protected $hidden = ['ms_microsite_id', 'date_add', 'date_upd', 'date_del', 'user_add', 'user_upd', 'user_del'];
 
+    const _ID_EVENT_FREE = 1;
+    const _ID_PROMOTION_FREE = 3;
+
     public function type() {
         return $this->belongsTo('App\Entities\bs_type_event', 'bs_type_event_id');
     }
@@ -40,23 +43,53 @@ class ev_event extends Model {
     //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 
     /**
-     * Promocion Grastuita activas en una fecha o rango de fecha
-     * @param type $query
-     * @param type $start_date
-     * @param type $end_date
-     * @return type
+     * Eventos Gratuitos
      */
-    public function scopePromotionFreeActive($query, $start_date = null) {
-        $datenow = \Carbon\Carbon::parse($start_date);
-        return $query->where('ev_event.bs_type_event_id', 3)->where('ev_event.status', 1)
-                        ->doesntHave('turns')
-                        ->orWhereHas('turns', function($query) use ($datenow) {
-                            return $query->whereHas('days', function($query) use ($datenow) {
-                                        return $query->where('res_day_turn_promotion.day', $datenow->dayOfWeek);
-                                    });
-                        });
+    public function scopeEventFree($query) {
+        return $query->where('ev_event.bs_type_event_id', self::_ID_EVENT_FREE);
     }
 
+    /**
+     * Promociones Gratuitas
+     */
+    public function scopePromotionFree($query) {
+        return $query->where('ev_event.bs_type_event_id', self::_ID_PROMOTION_FREE);
+    }
+
+    /**
+     * Eventos activo en una fecha
+     * @param type $query
+     * @param type $date
+     * @return type
+     */
+    public function scopeEnableInDate($query, $date = null) {
+
+        $datenow = !is_null($date) ? Carbon::parse($date) : Carbon::now();
+
+        $query = $query->where(function($query) use ($datenow) {
+            $query = $query->promotionFree();
+            $query = $query->doesntHave('turns');   // para promciones que se aplican todos los dias de la semana.         
+            $query = $query->orWhereHas('turns', function($query) use ($datenow) {
+                $query = $query->whereHas('days', function($query) use ($datenow) {
+                    $query = $query->where('res_day_turn_promotion.day', $datenow->dayOfWeek);
+                    return $query;
+                });
+                return $query;
+            });
+            return $query;
+        });
+
+        $query = $query->orWhere(function($query) use ($datenow) {
+            $query = $query->eventFree();
+            $query = $query->whereHas('turn', function($query) use ($datenow) {
+                $query = $query->where(DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d')"), $datenow->toDateString());
+                return $query;
+            });
+        });
+        return $query;
+    }
+
+    
     /**
      * Eventos Grastuitos activos en una fecha o rango de fecha
      * @param type $query
@@ -70,7 +103,7 @@ class ev_event extends Model {
 
         $now = Carbon::now();
         $yesterday = $now->copy()->yesterday();
-        
+
         $query = $query->where('ev_event.bs_type_event_id', 1)->where('ev_event.status', 1)->whereHas('turn', function($query) use ($now, $yesterday) {
             $dateformat = "DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d')";
             $datetimeformat = "CONCAT('" . $now->toDateString() . " ', res_turn.hours_end)";
@@ -87,7 +120,6 @@ class ev_event extends Model {
             $query = $query->where(DB::raw($dateformat), "<=", $end_date);
         }
         return $query;
-        
     }
-    
+
 }
