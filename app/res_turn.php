@@ -17,6 +17,7 @@ use App\res_turn_calendar;
 use DB;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 
 class res_turn extends Model {
 
@@ -45,6 +46,19 @@ class res_turn extends Model {
 //        'ms_microsite_id',
     ];
 
+    /**
+     * The "booting" method of the model.
+     *
+     * @return void
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        static::addGlobalScope('state', function (Builder $builder) {
+            $builder->where('status', '<>', 2);
+        });
+    }
+    
     /* public function days() {
       return $this->hasMany('App\res_day_turn_zone', 'res_turn_id');
       } */
@@ -130,15 +144,29 @@ class res_turn extends Model {
      * @param string $time
      * @return type
      */
-    public function scopeTurnReservation($query, int $microsite_id, string $date, string $time = null) {
-
-        $datenow = Carbon::parse($date . " " . $time);
+    public function scopeTurnReservationOld($query, int $microsite_id, string $date, string $time = null, string $sort = "ASC") {
+        
+        $datetime = is_null($time)? $date: ($date . " " . $time);
+        $datenow = Carbon::parse($datetime);
         $nextday = $datenow->copy()->addDay();
-        $datetimeopen = "CONCAT('" . $datenow->toDateString() . " ', hours_ini)";
-        $optionA = "CONCAT('" . $datenow->toDateString() . " ', hours_end)";
-        $optionB = "CONCAT('" . $nextday->toDateString() . " ', hours_end)";
-        $datetiomeclose = "IF(hours_ini < hours_end, $optionA, $optionB)";
-
+        
+        $timenow = $datenow->toTimeString();
+        $datestringNow = $datenow->toDateString();
+        $datetimestringNow = $datenow->toDateTimeString();
+        $datestringNextday = $nextday->toDateString();
+        $datetimestringNextday = $nextday->toDateTimeString();  
+        
+        $datetimeopen = "CONCAT('$datestringNow ', hours_ini)";
+        $datetimecloseNow = "CONCAT('$datestringNow ', hours_end)";
+        $datetimecloseNextday = "CONCAT('$datestringNextday ', hours_end)";
+        $datetiomeclose = "IF(hours_ini < hours_end, $datetimecloseNow, $datetimecloseNextday)";     
+        
+        $datetimenow = "IF(hours_ini < hours_end, '$datetimestringNow', '$datetimestringNextday')";
+//        $datetimenow = "IF(hours_ini > hours_end ,'$datetimestringNextday', '$datetimestringNow')";
+        
+//        $conditionA = "(hours_ini < hours_end AND '00:00:00' < '$timenow' AND hours_end > '$timenow')";
+//        $conditionB = "(hours_ini < hours_end AND '00:00:00' < '$timenow' AND hours_end > '$timenow')";
+        
         $query = $query->where(function($query) use($datenow) {
             $query = $query->where(function($query) use($datenow) {
                 $query = $query->InCalendar($datenow->toDateString());
@@ -150,9 +178,56 @@ class res_turn extends Model {
             });
             return $query;
         });
-
-        $query = $query->whereRaw("$datetiomeclose >= ?", [$datenow->toDateTimeString()]);
-        $query = $query->where("ms_microsite_id", $microsite_id)->select("*", DB::raw("$datetiomeclose AS DATETIMECLOSE"))->orderBy("DATETIMECLOSE", "ASC");
+        if(!is_null($time)){
+            $query = $query->whereRaw("$datetiomeclose >= $datetimenow");
+//            $query = $query->whereRaw("$datetiomeclose >= ?", [$datenow->toDateTimeString()]);
+        }
+        $sort = strtoupper($sort);
+        $sort = ($sort == "DESC")?$sort:"ASC";
+        $query = $query->where("ms_microsite_id", $microsite_id)->select("*", DB::raw("$datetimenow AS __DATETIME_NOW"),DB::raw("$datetimeopen AS __DATETIME_OPEN"), DB::raw("$datetiomeclose AS __DATETIME_CLOSE"))->orderBy("__DATETIME_CLOSE", $sort);
+        return $query;
+    }
+    
+    /**
+     * Lista de turnos que se usan para reservar en una fecha ordenados por horario
+     * @param type $query
+     * @param int $microsite_id
+     * @param string $date
+     * @param string $time
+     * @return type
+     */
+    public static function scopeTurnReservation($query, int $microsite_id, string $date, string $sort = "ASC") {
+        
+        $datenow = Carbon::parse($date);
+        $nextday = $datenow->copy()->addDay();
+        
+        $timenow = $datenow->toTimeString();
+        $datestringNow = $datenow->toDateString();
+        $datetimestringNow = $datenow->toDateTimeString();
+        $datestringNextday = $nextday->toDateString();
+        $datetimestringNextday = $nextday->toDateTimeString();  
+        
+        $datetimeopen = "CONCAT('$datestringNow ', hours_ini)";
+        $datetimecloseNow = "CONCAT('$datestringNow ', hours_end)";
+        $datetimecloseNextday = "CONCAT('$datestringNextday ', hours_end)";
+        $datetiomeclose = "IF(hours_ini < hours_end, $datetimecloseNow, $datetimecloseNextday)";        
+        $datetimenow = "IF(hours_ini < hours_end, '$datetimestringNow', '$datetimestringNextday')";
+        
+        $query = $query->where(function($query) use($datenow) {
+            $query = $query->where(function($query) use($datenow) {
+                $query = $query->InCalendar($datenow->toDateString());
+                return $query;
+            });
+            $query = $query->orwhere(function($query) use($datenow) {
+                $query = $query->InEventFree($datenow->toDateString(), $datenow->toDateString());
+                return $query;
+            });
+            return $query;
+        });
+        
+        $sort = strtoupper($sort);
+        $sort = ($sort == "DESC")?$sort:"ASC";
+        $query = $query->where("ms_microsite_id", $microsite_id)->select("*", DB::raw("$datetimenow AS __DATETIME_NOW"),DB::raw("$datetimeopen AS __DATETIME_OPEN"), DB::raw("$datetiomeclose AS __DATETIME_CLOSE"))->orderBy("__DATETIME_CLOSE", $sort);
         return $query;
     }
 

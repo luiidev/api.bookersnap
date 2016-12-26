@@ -138,6 +138,8 @@ class AvailabilityController extends Controller
 
     public function getFormatAvailability(Request $request)
     {
+        return $turn = \App\res_reservation::getTurnReservation($request->route("microsite_id"), $request->input("date"), $request->input("hours"));
+        
         return $this->TryCatch(function () use ($request) {
             $microsite_id = $request->route('microsite_id');
             $date = $request->input('date', \Carbon\Carbon::now()->toDateString());            

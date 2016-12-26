@@ -172,18 +172,18 @@ class TableReservationService extends Service
         $reservation->ms_microsite_id           = $this->microsite_id;
 //        $reservation->res_turn_id               = $reservationInit->res_turn_id;
 
-        if ($this->req->status_id < self::_ID_STATUS_RESERVATION_SEATED) {
-//            if ($action == "create") {
-                $reservation->datetime_input  = trim($reservationInit->date_reservation) . ' ' . trim($reservation->hours_reservation);
-                $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $reservation->hours_duration);
-//            }
-        } else if ($this->req->status_id == self::_ID_STATUS_RESERVATION_SEATED) {
-            $reservation->datetime_input  = $now->toDateTimeString();
-            $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $reservation->hours_duration);
-        } else if ($this->req->status_id == self::_ID_STATUS_RESERVATION_RELEASED || $this->req->status_id == self::_ID_STATUS_RESERVATION_CANCELED || $this->req->status_id == self::_ID_STATUS_RESERVATION_ABSENT) {            
-            $reservation->datetime_input  = ($action == "create") ? $now->toDateTimeString():$reservation->datetime_input;
-            $reservation->datetime_output = $now->toDateTimeString();
-        }
+//        if ($this->req->status_id < self::_ID_STATUS_RESERVATION_SEATED) {
+////            if ($action == "create") {
+//                $reservation->datetime_input  = trim($reservationInit->date_reservation) . ' ' . trim($reservation->hours_reservation);
+//                $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $reservation->hours_duration);
+////            }
+//        } else if ($this->req->status_id == self::_ID_STATUS_RESERVATION_SEATED) {
+//            $reservation->datetime_input  = $now->toDateTimeString();
+//            $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $reservation->hours_duration);
+//        } else if ($this->req->status_id == self::_ID_STATUS_RESERVATION_RELEASED || $this->req->status_id == self::_ID_STATUS_RESERVATION_CANCELED || $this->req->status_id == self::_ID_STATUS_RESERVATION_ABSENT) {            
+//            $reservation->datetime_input  = ($action == "create") ? $now->toDateTimeString():$reservation->datetime_input;
+//            $reservation->datetime_output = $now->toDateTimeString();
+//        }
         
         $reservation->status_standing = (is_array($this->req->tables) && count($this->req->tables) > 0) ? 0:1;
         
