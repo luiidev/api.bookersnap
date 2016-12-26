@@ -17,7 +17,12 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 
 class res_source_type extends Model {
-
+    
+    const _ID_HOSSTES = 1;
+    const _ID_PORTAL = 2;
+    const _ID_PHONE = 3;
+    const _ID_WEB = 4;
+    
     protected $table = "res_source_type";
     public $timestamps = false;
     

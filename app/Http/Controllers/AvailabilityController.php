@@ -137,7 +137,7 @@ class AvailabilityController extends Controller
     }
 
     public function getFormatAvailability(Request $request)
-    {
+    {        
         return $this->TryCatch(function () use ($request) {
             $microsite_id = $request->route('microsite_id');
             $date = $request->input('date', \Carbon\Carbon::now()->toDateString());            

@@ -17,6 +17,7 @@
             <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Services/TableReservationService.php</file>
             <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Http/Controllers/TableReservationController.php</file>
             <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Http/Controllers/AvailabilityController.php</file>
+            <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Http/Controllers/ReservationTemporalController.php</file>
         </group>
     </open-files>
 </project-private>

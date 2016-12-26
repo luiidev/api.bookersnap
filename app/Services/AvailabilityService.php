@@ -2069,8 +2069,10 @@ class AvailabilityService
                                 return !($value['turn']['index_ini'] <= $index && $value['turn']['index_end'] >= $index);
                             });
                             
+                $evcollect = collect();
+                
                 if($event->count() > 0){
-                    $evcollect = collect();
+                    
                     foreach ($event->all() as $key => $prom) {
                         unset($prom['turn']);
                         unset($prom['turns']);
@@ -2091,7 +2093,7 @@ class AvailabilityService
                             });
                             
                     if($promosAll->count() > 0){
-                        $evcollect = collect();
+                        
                         foreach ($promosAll->all() as $key => $prom) {
                             unset($prom['turn']);
                             unset($prom['turns']);
@@ -2100,6 +2102,8 @@ class AvailabilityService
                         }
                         $item['events'] = $evcollect;
                     }
+                }else{
+                    $item['events'] = $evcollect;
                 }
                 
                 unset($item['event']);
