@@ -2136,9 +2136,9 @@ class AvailabilityService
         $hours = $result["hours"];
         $eventIds = $result["event_ids"];
         
-        if($hours->count() == 0){
-            abort(500, "No hay horas disponible esta fecha");
-        }
+//        if($hours->count() == 0){
+//            abort(500, "No hay horas disponible esta fecha");
+//        }
         
         $events = ev_event::whereIn('id', $eventIds)->get()->map(function($item){            
             $imagepath = ($item->bs_type_event_id == ev_event::_ID_EVENT_FREE)?"http://bookersnap.com/archivo/eventos/800x800/":"http://bookersnap.com/archivo/reservatiopromotion/320x320/"; 
