@@ -17,7 +17,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class res_reservation_status extends Model {
 
+    const  _ID_RESERVED = 1;
+    const  _ID_CONFIRMED = 2;
+    const  _ID_WAITING = 3;
+    const  _ID_SITTING = 4;
+    const  _ID_RELEASED = 5;
+    const  _ID_CANCELED = 6;
+    const  _ID_ABSENT = 7;
+    
     protected $table = "res_reservation_status";
     public $timestamps = false;
     protected $hidden = ['date_add', 'date_upd', 'date_del', 'user_add', 'user_upd', 'user_del'];
+    
+    
 }
