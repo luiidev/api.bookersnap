@@ -20,7 +20,7 @@ class res_reservation extends Model {
 
     protected $table = "res_reservation";
     protected $hidden = ["ms_microsite_id", "bs_user_id", "date_upd", "user_add"];
-
+    
     public function status() {
         return $this->belongsTo('App\res_reservation_status', 'res_reservation_status_id');
     }

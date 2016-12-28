@@ -43,6 +43,7 @@ class Kernel extends HttpKernel
      *
      * @var array
      */
+    
     protected $routeMiddleware = [
         'auth' => \App\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
@@ -53,5 +54,7 @@ class Kernel extends HttpKernel
         'setLocale' => \App\Http\Middleware\SetLocaleMiddleware::class,
         'setTimeZone' => \App\Http\Middleware\SetTimeZoneMiddleware::class,
         'ACL' => \App\Http\Middleware\AclMiddleware::class,
+        
+        'auth.api' => \App\Http\Middleware\ACLTempApiMicrosite::class,
     ];
 }

@@ -103,35 +103,64 @@ class AvailabilityService
     {
         $now = Carbon::now();
         
-        $enddate = "CONCAT('$date ', end_time)";
-        $datetime = "IF(start_time < end_time, $enddate, ADDDATE($enddate, INTERVAL 1 DAY))";
         
-        $lastTurn = res_turn_calendar::fromMicrositeActives($microsite_id, $date, $date)->orderBy('start_date');
+        $date = "2016-12-27";
         
-        if(strcmp($date, $now->toDateString()) == 0){
-            $lastTurn = $lastTurn->whereRaw("$datetime >= ?",[$now->toDateTimeString()]);
+        $yesterday = $now->copy()->subDay()->toDateString();
+        
+        $horarioDeMadrugadaDeAyer = false;
+                
+        if(strcmp($date, $yesterday) == 0){        
+            /* turnos de Ayer en el calendario */
+            $lastTurn = res_turn_calendar::fromMicrosite($microsite_id, $date, $date)->orderBy('start_date');
+            $lastTurn = $lastTurn->whereRaw("start_date = ?",[$date])->whereRaw("start_time > end_time")->get();
+            
+            /* turnos de Ayer en eventos */
+            $eventFree = ev_event::eventFreeActive($date, $date)->select('*', DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"));
+            $eventFree = $eventFree->where('ms_microsite_id', $microsite_id)->whereHas('turn', function($query){
+                $query->whereRaw("hours_ini > hours_end");
+            })->with(['turn'])->whereRaw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') = ?", [$date])->orderBy('datetime_event')->get();
+            
+            if($lastTurn->count() >0 || $eventFree->count() > 0){
+                $horarioDeMadrugadaDeAyer = true;
+            }
+            
         }
+        
+        if(strcmp($date, $now->toDateString()) >= 0 && !$horarioDeMadrugadaDeAyer){            
+            /* turnos de Hoy en el calendario */
+            $enddate = "CONCAT('$date ', end_time)";
+            $datetime = "IF(start_time < end_time, $enddate, ADDDATE($enddate, INTERVAL 1 DAY))";
+            
+            $lastTurn = res_turn_calendar::fromMicrosite($microsite_id, $date, $date)->orderBy('start_date');
+            $lastTurn = $lastTurn->whereRaw("$datetime >= ?",[$now->toDateTimeString()])->get();
+            
+            /* turnos de Hoy en eventos */
+            $eventFree = ev_event::eventFreeActive($date, $date)->select('*', DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"));
+            $eventFree = $eventFree->where('ms_microsite_id', $microsite_id)->with(['turn'])->orderBy('datetime_event')->get();            
+        }
+        
+//        return [$date, $horarioDeMadrugadaDeAyer, $lastTurn];
+        
         unset($hours);
         $hours = collect();
-        $indexMinReal =  $this->timeForTable->timeToIndex($now->toTimeString(), false);
+        $indexMinReal =  $this->timeForTable->timeToIndex($now->toTimeString(), false);        
+        $indexMinRealAnt = $indexMinReal;
         
-        $lastTurn = $lastTurn->get();
         foreach ($lastTurn as $item) {
 
             $indexMin = $this->timeForTable->timeToIndex($item->start_time);
-            $indexMax = $this->timeForTable->timeToIndex($item->end_time);
-
-            $indexMax = ($indexMax>$indexMin)? $indexMax:$indexMax + 96;
-
-            if($now->toDateString() == $date){
-                $optionA = $indexMinReal >= $indexMin && $indexMinReal < 96;
-                $optionB = $indexMinReal >= 0 && $indexMinReal <= $indexMax;
-                $indexMin = ($indexMax < $indexMin && ($optionA || $optionB) && $indexMinReal > $indexMin)?$indexMinReal :$indexMin;
-            }
-
+            $indexMax = $this->timeForTable->timeToIndex($item->end_time);            
+            $indexMax = ($indexMax < $indexMin) ?$indexMax + 96 :$indexMax;
+            
+            $indexMinReal = ($horarioDeMadrugadaDeAyer) ? $indexMinReal + 96 : $indexMinReal;
+            $indexMin = ($indexMinReal >= $indexMin) ?$indexMinReal :$indexMin;
+            
             for ($i = $indexMin; $i <= $indexMax; $i++) {
                 $timeAux = [];
                 $timeAux['index']       = $i;
+//                $timeAux['min_max']       = [$indexMin, $indexMax, $date, $indexMinReal, @$horarioDeMadrugadaDeAyer];
+                $timeAux['index_real']  = $indexMinReal;
                 $timeAux['next_day']    = $i >= 96 ? 1 : 0;
                 $timeAux['option']      = $this->timeForTable->indexToTime($i);
                 $timeAux['option_user'] = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $this->timeForTable->indexToTime($i))->format('g:i A');
@@ -141,8 +170,7 @@ class AvailabilityService
             }
         }
         
-        $eventFree = ev_event::eventFreeActive($date, $date)->select('*', DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"))
-                ->where('ms_microsite_id', $microsite_id)->with(['turn'])->orderBy('datetime_event')->get();
+//        return [$lastTurn, @$horarioDeMadrugadaDeAyer, @$indexMinRealAnt, @$indexMinReal, @$indexMin, @$indexMax, $hours];        
         
         if($eventFree){
             
@@ -152,17 +180,15 @@ class AvailabilityService
                 $indexMin = $this->timeForTable->timeToIndex($item->hours_ini);
                 $indexMax = $this->timeForTable->timeToIndex($item->hours_end);
 
-                $indexMax = ($indexMax>$indexMin)? $indexMax:$indexMax + 96;
-
-                if($now->toDateString() == $date){
-                    $optionA = $indexMinReal >= $indexMin && $indexMinReal < 96;
-                    $optionB = $indexMinReal >= 0 && $indexMinReal <= $indexMax;
-                    $indexMin = ($indexMax < $indexMin && ($optionA || $optionB) && $indexMinReal > $indexMin)?$indexMinReal :$indexMin;
-                }
-
+                $indexMax = ($indexMax < $indexMin) ?$indexMax + 96 :$indexMax;          
+                $indexMinReal = ($horarioDeMadrugadaDeAyer) ? $indexMinReal + 96 : $indexMinReal;
+                $indexMin = ($indexMinReal >= $indexMin) ?$indexMinReal :$indexMin;
+                
+//                return [$indexMin, $indexMax, $date, $indexMinReal];
                 for ($i = $indexMin; $i <= $indexMax; $i++) {
                     $timeAux = [];
                     $timeAux['index']       = $i;
+//                    $timeAux['min_max']       = [$indexMin, $indexMax, $date, $indexMinReal];
                     $timeAux['next_day']    = $i >= 96 ? 1 : 0;
                     $timeAux['option']      = $this->timeForTable->indexToTime($i);
                     $timeAux['option_user'] = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $this->timeForTable->indexToTime($i))->format('g:i A');
