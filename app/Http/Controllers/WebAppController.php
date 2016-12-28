@@ -579,6 +579,9 @@ class WebAppController extends Controller
             "num_guest",
             "note",
             "res_server_id",
+            "num_people_1",
+            "num_people_2",
+            "num_people_3"
         );
         return \App\res_reservation::select($get)->withRelations()->where("ms_microsite_id", $microsite_id)->find($reservation_id);
     }

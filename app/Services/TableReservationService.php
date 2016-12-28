@@ -83,6 +83,10 @@ class TableReservationService extends Service
             $guest->find_out = $this->req->guest["find_out"];
         }
 
+        if (isset($this->req->guest["birthdate"])) {
+            $guest->birthdate = $this->req->guest["birthdate"];
+        }
+
         $guest->user_add        = $this->req->_bs_user_id;
         $guest->ms_microsite_id = $this->microsite_id;
 
@@ -161,6 +165,9 @@ class TableReservationService extends Service
         $reservation->res_reservation_status_id = $this->req->status_id;
         $reservation->status_released           = 0;
         $reservation->num_guest                 = $this->req->covers;
+        $reservation->num_people_1              = $this->req->guests["men"];
+        $reservation->num_people_2              = $this->req->guests["women"];
+        $reservation->num_people_3              = $this->req->guests["children"];
         $reservation->date_reservation          = $this->req->date;
         $reservation->hours_reservation         = $reservationInit->hours_reservation;
         $reservation->hours_duration            = $this->req->duration;
