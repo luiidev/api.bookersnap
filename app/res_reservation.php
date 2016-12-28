@@ -2,16 +2,18 @@
 
 namespace App;
 
-use App\Entities\ev_event;
-use Illuminate\Database\Eloquent\Model;
-use App\res_turn;
-use App\res_reservation_status;
 use App\Entities\bs_type_event;
-use App\res_source_type;
-use App\res_turn_time;
-use DB;
-use Carbon\Carbon;
+use App\Entities\bs_user;
+use App\Entities\ev_event;
+use App\Entities\res_configuration;
 use App\Services\Helpers\DateTimesHelper;
+use App\res_reservation_status;
+use App\res_source_type;
+use App\res_turn;
+use App\res_turn_time;
+use Carbon\Carbon;
+use DB;
+use Illuminate\Database\Eloquent\Model;
 
 class res_reservation extends Model {
 
@@ -61,6 +63,11 @@ class res_reservation extends Model {
         return $this->belongsTo(ev_event::class, "ev_event_id");
     }
 
+    public function user_notifications()
+    {
+        return $this->belongsToMany(bs_user::class, "res_notifications");
+    }
+
     public function scopeWithRelations($query) {
         
         return $query->with(["tables" => function ($query) {
@@ -96,6 +103,7 @@ class res_reservation extends Model {
     private function beforeSave(array $options = []) {
         
         $reservation = res_reservation::find($this->id);
+        $configuration = res_configuration::where("ms_microsite_id", $this->ms_microsite_id)->first();
         
         $turn = self::getTurnReservation($this->ms_microsite_id, $this->date_reservation, $this->hours_reservation);
         $this->res_turn_id = ($turn) ? $turn->id : null;
@@ -106,6 +114,48 @@ class res_reservation extends Model {
         if (is_null($this->hours_duration)) {
             $turn_time = res_turn_time::where("res_turn_id", $this->res_turn_id)->where('num_guests', $this->num_guests)->first();
             $this->hours_duration = ($turn_time) ? $turn_time->time : res_turn_time::_TIME_DEFAULT;
+        }
+
+        if ($configuration->status_people_1 || $configuration->status_people_1 || $configuration->status_people_1) {
+            if ($reservation) {
+                if ( $reservation->res_reservation_status_id != $this->res_reservation_status_id ) {
+                    if ( in_array ($this->res_reservation_status_id,  [1, 2, 3]) ) {
+                        $this->num_people_1              = 0;
+                        $this->num_people_2              = 0;
+                        $this->num_people_3              = 0;
+                    }
+                } else {
+                    $suma = $this->num_people_1 + $this->num_people_2 + $this->num_people_3;
+                    if ($suma == 0) {
+                        if ( $this->res_reservation_status_id == 4 )  {
+                            $this->res_reservation_status_id = 1;
+                            $this->num_people_1              = 0;
+                            $this->num_people_2              = 0;
+                            $this->num_people_3              = 0;
+                        }
+                    } else {
+                        if ( in_array ($this->res_reservation_status_id,  [1, 2, 3]) ) {
+                            $this->res_reservation_status_id = 4;
+                        }
+                    }
+                }
+            } else {
+                $suma = $this->num_people_1 + $this->num_people_2 + $this->num_people_3;
+                if ($suma == 0) {
+                    if ( !in_array ($this->res_reservation_status_id,  [1, 2, 3]) ) {
+                        $this->res_reservation_status_id = 1;
+                        $this->num_people_1              = 0;
+                        $this->num_people_2              = 0;
+                        $this->num_people_3              = 0;
+                    }
+                } else {
+                    if ( in_array ($this->res_reservation_status_id,  [1, 2, 3]) ) {
+                        $this->num_people_1              = 0;
+                        $this->num_people_2              = 0;
+                        $this->num_people_3              = 0;
+                    }
+                }
+            }
         }
         
         if($reservation){

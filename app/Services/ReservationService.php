@@ -23,35 +23,35 @@ class ReservationService {
 
     public function get(int $microsite_id, int $reservation_id) {
         $rows = res_reservation::where('ms_microsite_id', $microsite_id)
-                        ->where('id', $reservation_id)->with(["tables" => function ($query) {
-                        return $query->select("res_table.id", "res_zone_id", "name");
-                    }, "guest", "server", "source", "status", "turn.typeTurn", "tags", "guestList"])->first();
+        ->where('id', $reservation_id)->with(["tables" => function ($query) {
+            return $query->select("res_table.id", "res_zone_id", "name");
+        }, "guest", "server", "source", "status", "turn.typeTurn", "tags", "guestList"])->first();
 
         return $rows;
     }
 
     public function getList(int $microsite_id, string $start_date, string $end_date = null, string $name = null, string $email = null, string $phone = null, array $statusIds = [], array $sourceIds = [], array $typeTurnIds = [], array $zoneIds = [], string $sort = null, int $pagesize = 100) {
 //        $start_date = CalendarHelper::realDate($microsite_id);
-        
+
         $end_date = (strcmp($end_date, $start_date) > 0) ? $end_date : $start_date;
 
         $reservations = res_reservation::with([
-                    "tables" => function ($query) {
-                        return $query->select("res_table.id", "res_zone_id", "name");
-                    }, "status", "server", "source", "turn.typeTurn", "tags", "guestList", "guest", "guest.emails", "guest.phones"]);
-                    
+            "tables" => function ($query) {
+                return $query->select("res_table.id", "res_zone_id", "name");
+            }, "status", "server", "source", "turn.typeTurn", "tags", "guestList", "guest", "guest.emails", "guest.phones"]);
+
 
         $reservations = !(isset($name) && strlen($name) > 0) ? $reservations : $reservations->whereHas('turn.typeTurn', function ($query) use($name) {
-                    $query->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%$name%");
-                });
+            $query->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%$name%");
+        });
 
         $reservations = (count(@$typeTurnIds) == 0) ? $reservations : $reservations->whereHas('turn', function ($query) use($typeTurnIds) {
-                    $query->whereIn('res_type_turn_id', $typeTurnIds);
-                });
+            $query->whereIn('res_type_turn_id', $typeTurnIds);
+        });
 
         $reservations = (count(@$zoneIds) == 0) ? $reservations : $reservations->whereHas('tables', function ($query) use($zoneIds) {
-                    $query->whereIn('res_zone_id', $zoneIds);
-                });
+            $query->whereIn('res_zone_id', $zoneIds);
+        });
 
         $reservations = (count(@$nostatusIds) == 0) ? $reservations : $reservations->where('res_reservation_status_id', '<>', $nostatusIds);
         $reservations = (count(@$sourceIds) == 0) ? $reservations : $reservations->where('res_source_type_id', $sourceIds);
@@ -68,9 +68,9 @@ class ReservationService {
         $end_date = (strcmp($end_date, $start_date) > 0) ? $end_date : $start_date;
 
         $reservations = res_reservation::select("res.*")->with([
-                    "tables" => function ($query) {
-                        return $query->select("res_table.id", "res_zone_id", "name");
-                    }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList"])->from("res_reservation as res");
+            "tables" => function ($query) {
+                return $query->select("res_table.id", "res_zone_id", "name");
+            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList"])->from("res_reservation as res");
 
         $reservations = $reservations->whereRaw("res.date_reservation BETWEEN ? AND ?", array($start_date, $end_date));
 
@@ -219,16 +219,30 @@ class ReservationService {
     /**
       Actualizamos algunos datos de la reserva
      * */
-    public function patch(array $data, int $microsite_id) {
-        $reservation = new res_reservation();
+      public function patch(array $data, int $microsite_id) {
+        // $reservation = new res_reservation();
 
         $id = $data['id'];
-        unset($data['id']);
-        unset($data['timezone']);
-        unset($data['key']);
-        unset($data['_bs_user_id']);
 
-        $reservation->where('id', $id)->where('ms_microsite_id', $microsite_id)->update($data);
+        $reservation = res_reservation::where('id', $id)->where('ms_microsite_id', $microsite_id)->first();
+
+        if ( isset($data["res_reservation_status_id"]) ) {
+            $reservation->res_reservation_status_id = $data["res_reservation_status_id"];
+        }
+
+        if ( isset($data["num_people_1"]) ) {
+            $reservation->num_people_1 = $data["num_people_1"];
+        }
+
+        if ( isset($data["num_people_2"]) ) {
+            $reservation->num_people_2 = $data["num_people_2"];
+        }
+
+        if ( isset($data["num_people_3"]) ) {
+            $reservation->num_people_3 = $data["num_people_3"];
+        }
+
+        $reservation->save();
 
         $res = res_reservation::withRelations()->where('id', $id)->where('ms_microsite_id', $microsite_id)->first();
 
