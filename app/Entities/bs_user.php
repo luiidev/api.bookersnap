@@ -2,6 +2,7 @@
 
 namespace App\Entities;
 
+use App\res_reservation;
 use Illuminate\Database\Eloquent\Model;
 
 class bs_user extends Model
@@ -34,6 +35,11 @@ class bs_user extends Model
     public function getUrlphotoAttribute()
     {
         return $this->urlPath . $this->photo;
+    }
+
+    public function res_notifications()
+    {
+        return $this->belongsToMany(res_reservation::class, "res_notifications");
     }
 
 }
