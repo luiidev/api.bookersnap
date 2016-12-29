@@ -106,7 +106,7 @@ class AvailabilityController extends Controller
         
         $now = Carbon::now();
         $date_ini     = $request->date_ini;
-        $date_fin     = $request->date_end;  
+        $date_fin     = $request->date_fin;  
 
         return $this->TryCatch(function () use ($microsite_id, $date_ini, $date_fin) {
             $days = $this->service->getDays($microsite_id, $date_ini, $date_fin);
@@ -121,7 +121,7 @@ class AvailabilityController extends Controller
         
         $microsite_id = $request->route('microsite_id');
         $date_ini     = $request->date_ini;
-        $date_fin     = $request->date_end;        
+        $date_fin     = $request->date_fin;        
         
         return $this->TryCatch(function () use ($microsite_id, $date_ini, $date_fin) {
             $daysDisabled = $this->service->getDaysDisabled($microsite_id, $date_ini, $date_fin);

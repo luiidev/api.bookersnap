@@ -2132,9 +2132,11 @@ class AvailabilityService
         $date     = CalendarHelper::searchDate($microsite_id, $date);
         
         $timezone = $date->timezoneName;
-
-        $dateIni  = $date->copy()->firstOfMonth()->subDays(7);
-        $dateFin  = $date->copy()->lastOfMonth()->addDays(14);
+        
+        $firstmonth = $date->copy()->firstOfMonth();
+        $dateIni  = $firstmonth->subDays($firstmonth->dayOfWeek + 1);
+        $lastofmonth = $date->copy()->lastOfMonth();
+        $dateFin  = $lastofmonth->addDays(14 - $lastofmonth->dayOfWeek);
         $next_day = 0;        
         
         $result = $this->hoursWithEvenst($microsite_id, $date);        
@@ -2163,7 +2165,14 @@ class AvailabilityService
         $daysDisabled = $this->getDaysDisabled($microsite_id, $dateIni->toDateString(), $dateFin->toDateString());
         $people       = $this->getPeople($microsite_id);
 
-        return ["date" => $date->toDateString(), "people" => $people, "daysDisabled" => $daysDisabled, "hours" => $hours, "zones" => $zones, 'events' => $events];
+        return [
+            "date" => $date->toDateString(), 
+            "people" => $people, 
+            "daysDisabled" => $daysDisabled,
+            "hours" => $hours, 
+            "zones" => $zones, 
+            'events' => $events
+        ];
         
     }
 
