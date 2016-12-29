@@ -1864,8 +1864,7 @@ class AvailabilityService
     public function getDays(int $microsite_id, string $dateIni, string $dateFin)
     {
         
-        $res = \App\res_turn_calendar::FromMicrositeActives($microsite_id, $dateIni, $dateFin)->orderBy('start_date', "ASC")->get();
-        
+        $res = \App\res_turn_calendar::fromMicrosite($microsite_id, $dateIni, $dateFin)->orderBy('start_date', "ASC")->get();
         if($res){
             $firstturn = $res->first();
             $dateIni = $firstturn->start_date;
@@ -1874,7 +1873,7 @@ class AvailabilityService
         $calendar = new Calendar(2016, 12);
         $calendar->setFixDate(Carbon::parse($dateIni), Carbon::parse($dateFin));
         
-        $turns = $res->map(function ($item) use ($calendar){            
+        $turns = $res->map(function ($item) use ($calendar){       
             $data = (object) [
                     'start_time' => $item->start_time,
                     'end_time'   => $item->end_time,
@@ -1904,77 +1903,7 @@ class AvailabilityService
         $result = $dataturns->pluck('date')->unique()->sort()->values();
         
         return $result;
-        
-        
-        // $dateFake = Carbon::create(2016, 11, 29, 03, 45, null);
-        // Carbon::setTestNow($dateFake);
-        $now = Carbon::now();
-        $dateIni = Carbon::parse($dateIni);
-
-        $yesterday = Carbon::yesterday();
-        $compare   = $yesterday->toDateTimeString() <=> $dateIni->toDateTimeString();
-        $dateIni   = ($compare >= 0) ? $yesterday : $dateIni;
-
-        $dateFin = Carbon::parse($dateFin)->addDay();
-        
-        return [$dateIni, $dateFin];
-        
-        $calendar = new Calendar(2016, 12);
-        
-        
-        
-        $calendar->setFixDate($dateIni, $dateFin);
-        
-        $res = \App\res_turn_calendar::FromMicrositeActives($microsite_id, $dateIni->toDateString(), $dateFin->toDateString())->get();
-        return $res;
        
-        
-        $turns = \App\res_turn_calendar::join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
-                ->where("res_turn.ms_microsite_id", $microsite_id)
-                ->where(function($query) use ($calendar) {
-                    return $query->where("start_date", "<=", $calendar->FIRST_DATE)->where("end_date", ">=", $calendar->FIRST_DATE)
-                            ->orWhere("start_date", "<=", $calendar->END_DATE)->where("start_date", ">=", $calendar->END_DATE)
-                            ->orWhere("start_date", ">=", $calendar->FIRST_DATE)->where("start_date", "<=", $calendar->END_DATE);
-                })->get()->map(function ($item) {
-                    return (object) [
-                        'start_time' => $item->start_time,
-                        'end_time'   => $item->end_time,
-                        'start_date' => $item->start_date,
-                        'end_date'   => $item->end_date,
-                    ];
-            });
-            
-//        return $turns = res_turn_calendar::with("turn")
-//            ->whereRaw('res_turn_id in (select res_turn_id from res_turn where ms_microsite_id = ' . $microsite_id . ')')
-//            ->get()
-//            ->map(function ($item) {
-//                return (object) [
-//                    'start_time' => $item->start_time,
-//                    'end_time'   => $item->end_time,
-//                    'start_date' => $item->start_date,
-//                    'end_date'   => $item->end_date,
-//                ];
-//            });
-
-        foreach ($turns as $turn) {
-            $calendar->generateByWeekDay($turn, $turn->start_date, $turn->end_date);
-        }
-
-        $aux             = $calendar->get();
-                
-        
-        $dateTimeClose   = collect($aux)->sortBy('date')->where('date', $yesterday->toDateString())->pop();
-        $deleteYesterday = false;
-        if (@$dateTimeClose && ($dateTimeClose['start_time'] <=> $dateTimeClose['end_time']) > 0) {
-            $configuration   = $this->configurationService->getConfiguration($microsite_id);
-            $now             = Carbon::now()->addMinutes($configuration->time_restriction);
-            $dateClose       = Carbon::parse($dateTimeClose['date'] . " " . $dateTimeClose['end_time'])->addDay();
-            $deleteYesterday = $now > $dateClose ? true : false;
-        }        
-        
-        $result = collect($aux)->pluck('date')->unique()->sort();
-        $deleteYesterday ? $result->shift() : false;
-        return $result->values()->all();
     }
     
     public function getDaysDisabled(int $microsite_id, string $dateIni, string $dateFin)
