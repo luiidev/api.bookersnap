@@ -194,7 +194,7 @@ class CalendarHelper {
         $datenow = Carbon::now();
         $date = (strcmp($date, $datenow->toDateString())== -1)? $datenow->toDateString():$date; 
         
-        // Buscar el turno en la fecha.
+        // Buscar el turno en la fecha.        
         $turncalendar = res_turn_calendar::fromMicrositeActives($microsite_id, $date, $date)->orderBy('start_date')->first();     
         if(!$turncalendar){
             // Buscar el turno mas proximos.

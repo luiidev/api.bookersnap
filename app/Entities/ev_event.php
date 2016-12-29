@@ -118,6 +118,7 @@ class ev_event extends Model {
                 $datetimeEndReal = "IF(res_turn.hours_ini < res_turn.hours_end, $datetimeEnd, ADDDATE($datetimeEnd, INTERVAL 1 DAY))";
                 $condistions = "((($dateEvent = ? OR $dateEvent = ?) AND  $datetimeEndReal >= ?) OR $dateEvent > ?)";
                 $query = $query->whereRaw("$condistions", [$yesterday->toDateString(), $now->toDateString(), $now->toDateTimeString(), $start_date]);
+                $query = $query->orwhereRaw("$dateEvent >= ?", [$start_date]);
             }else{
                 $query = $query->whereRaw("$dateEvent >= ?", [$start_date]);
             }
