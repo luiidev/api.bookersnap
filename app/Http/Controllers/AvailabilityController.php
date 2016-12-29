@@ -30,7 +30,7 @@ class AvailabilityController extends Controller
             $event_id     = $request->event_id;
             
             $reservationTime = CalendarHelper::getDatetimeCalendar($microsite_id, $date, $hour);
-            
+//            return [$reservationTime];
             if(!$reservationTime){
                 abort(500, "Este horario no esta disponible :(");
             }
@@ -103,25 +103,28 @@ class AvailabilityController extends Controller
     public function getDays(Request $request)
     {
         $microsite_id = $request->route('microsite_id');
+        
+        $now = Carbon::now();
         $date_ini     = $request->date_ini;
-        $date_fin     = $request->date_fin;
-        $timezone     = $request->timezone;
+        $date_fin     = $request->date_end;  
 
-        return $this->TryCatch(function () use ($microsite_id, $date_ini, $date_fin, $timezone) {
-            $days = $this->service->getDays($microsite_id, $date_ini, $date_fin, $timezone);
+        return $this->TryCatch(function () use ($microsite_id, $date_ini, $date_fin) {
+            $days = $this->service->getDays($microsite_id, $date_ini, $date_fin);
             return $this->CreateJsonResponse(true, 200, "", $days);
         });
     }
 
     public function getDaysDisabled(Request $request)
     {
+        
+        $now = Carbon::now();
+        
         $microsite_id = $request->route('microsite_id');
         $date_ini     = $request->date_ini;
-        $date_fin     = $request->date_fin;
-        $timezone     = $request->timezone;
-
-        return $this->TryCatch(function () use ($microsite_id, $date_ini, $date_fin, $timezone) {
-            $daysDisabled = $this->service->getDaysDisabled($microsite_id, $date_ini, $date_fin, $timezone);
+        $date_fin     = $request->date_end;        
+        
+        return $this->TryCatch(function () use ($microsite_id, $date_ini, $date_fin) {
+            $daysDisabled = $this->service->getDaysDisabled($microsite_id, $date_ini, $date_fin);
             return $this->CreateJsonResponse(true, 200, "", $daysDisabled);
         });
     }

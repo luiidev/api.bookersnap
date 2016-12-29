@@ -86,7 +86,7 @@ class Calendar
         // $res                      = $this->FIRST_DATETIME->diff($startDatetime);
         $compare = strcmp($startDatetime->toDateTimeString(), $this->FIRST_DATETIME->toDateTimeString());
         // if ($res->invert == 1) {
-        if ($compare <= 0) {
+        if ($compare < 0) {
 //            $dayOfWeek = $startDatetime->dayOfWeek;
             // $startDatetime = \Carbon\Carbon::create($this->FIRST_DATETIME->year, $this->FIRST_DATETIME->month, $this->FIRST_DATETIME->day)->addDay($dayOfWeek);
             if($this->FIRST_DATETIME->dayOfWeek < $startDatetime->dayOfWeek){

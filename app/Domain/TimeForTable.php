@@ -20,9 +20,14 @@ class TimeForTable
 
     /*
      */
-    public static function timeToIndex(string $time)
+    public static function timeToIndex(string $time, $left = true)
     {
-        return date("H", strtotime($time)) * 4 + (date("i", strtotime($time))) / 15;
+        if($left){
+            return date("H", strtotime($time)) * 4 + (int)((date("i", strtotime($time))) / 15);
+        }else{ 
+            $index = date("H", strtotime($time)) * 4 + (int)((date("i", strtotime($time))) / 15);
+            return (((date("i", strtotime($time))) % 15) > 0)?$index+1:$index;
+        }
     }
 
     public static function indexToTime($index)

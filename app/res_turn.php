@@ -243,10 +243,12 @@ class res_turn extends Model {
         return $query->whereHas('calendar', function($query) use ($start_date, $end_date) {
                     if (is_null($end_date)) {
                         $date = Carbon::parse($start_date);
-                        return $query->where("start_date", "<=", $start_date)->where("end_date", ">=", $start_date)->where(DB::raw("dayofweek(start_date)"), ($date->dayOfWeek + 1));
+                        $query = $query->where("start_date", "<=", $start_date)->where("end_date", ">=", $start_date)->where(DB::raw("dayofweek(start_date)"), ($date->dayOfWeek + 1));
+                        return $query;
                     } else {
-                        return $query->where("start_date", "<=", $start_date)->where("end_date", ">=", $start_date)
-                                        ->orWhere("start_date", "<=", $end_date)->where("end_date", ">=", $end_date);
+                        $query = $query->where("start_date", "<=", $start_date)->where("end_date", ">=", $start_date);
+                        $query = $query->orWhere("start_date", "<=", $end_date)->where("end_date", ">=", $end_date);
+                        return $query;
                     }
                 });
     }

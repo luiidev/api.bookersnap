@@ -101,123 +101,80 @@ class AvailabilityService
     //Retorna todas las horas disponibles en un dia
     public function getHours(int $microsite_id, string $date, string $timezone)
     {
-        $dateC         = Carbon::parse($date, $timezone);
-        $configuration = $this->configurationService->getConfiguration($microsite_id);
-
-        $nowC = Carbon::now($timezone)->addMinutes($configuration->time_restriction);
-        $diff = $dateC->toDateString() <=> $nowC->toDateString();
-
-        $dateCompare = $dateC->toDateString() <=> $nowC->toDateString();
-
-        $zone_id = isset($zone_id) ? $zone_id : $this->calendarService->getZones($microsite_id, $date, $date)->pluck('id')->toArray();
+        $now = Carbon::now();
+        $enddate = "CONCAT('$date ', end_time)";
+        $datetime = "IF(start_time < end_time, $enddate, ADDDATE($enddate, INTERVAL 1 DAY))";
         
-        $enable  = false;
-        if (is_array($zone_id)) {
-            foreach ($zone_id as $id) {
-                $aTablesE = $this->searchTablesEventFree($dateC, $dateC->copy()->addDay(), $microsite_id, $id);
-                $aTablesN = $this->searchTablesReservation($dateC->toDateString(), $microsite_id, $id);
-                if ($aTablesN['availability']->count() > 0) {
-                    $enable = true;
-                    break;
-                }
-            }
-            if (!$enable) {
-                return abort(500, "No existe turnos disponibles para " . $dateC->formatLocalized('%A %d %B %Y'));
-            }
-        } else {
-            $aTablesE = $this->searchTablesEventFree($dateC, $dateC->copy()->addDay(), $microsite_id, $zone_id);
-            $aTablesN = $this->searchTablesReservation($dateC->toDateString(), $microsite_id, $zone_id);
-            if ($aTablesN['availability']->count() == 0) {
-                return abort(500, "No existe turnos disponibles para " . $dateC->formatLocalized('%A %d %B %Y'));
-            }
-
+        $lastTurn = res_turn_calendar::fromMicrositeActives($microsite_id, $date, $date)->orderBy('start_date');
+        
+        if(strcmp($date, $now->toDateString()) == 0){
+            $lastTurn = $lastTurn->whereRaw("$datetime >= ?",[$now->toDateTimeString()]);
         }
-        $availabilityTablesInit = $aTablesE['availability']->count() > 0 ? $this->algoritmoTables($date, $timezone, $aTablesE, $aTablesN) : $aTablesN;
-        $initAux                = $dateCompare == 0 ? $this->dateMaxFormat($nowC)->toTimeString() : $availabilityTablesInit['hourIni'];
-
-        $limitAux = $availabilityTablesInit['indexLimit']->reject(function ($item) use ($initAux) {
-            if ($item['day'] == 0) {
-                if (($initAux <=> $item['final']) == 1) {
-                    return true;
-                } else {
-                    return false;
-                }
-            } else {
-                return false;
+        
+        $hours = collect();
+        $indexMinReal =  $this->timeForTable->timeToIndex($now->toTimeString(), false);
+        
+        $lastTurn = $lastTurn->get();
+                
+        foreach ($lastTurn as $item) {
+            
+            $indexMin = $this->timeForTable->timeToIndex($item->start_time);
+            $indexMax = $this->timeForTable->timeToIndex($item->end_time);
+            
+            $indexMax = ($indexMax>$indexMin)? $indexMax:$indexMax + 96;
+            
+            if($now->toDateString() == $date){
+                $optionA = $indexMinReal >= $indexMin && $indexMinReal < 96;
+                $optionB = $indexMinReal >= 0 && $indexMinReal <= $indexMax;
+                $indexMin = ($indexMax < $indexMin && ($optionA || $optionB))?$indexMinReal + 96:$indexMinReal;
             }
-        })->values();
-
-        $limitAux->transform(function ($item) use ($initAux) {
-            if (($initAux <=> $item['init']) >= 0 && ($initAux <=> $item['final']) <= 0) {
-                $item['init'] = $initAux;
-            }
-            return $item;
-        });
-
-        $auxNext = collect();
-        $limitAux->transform(function ($item, $key) use ($auxNext) {
-            return $this->timeIndexEvent($item, $key, $auxNext);
-        });
-        $auxNext;
-        if (!$auxNext->isEmpty()) {
-            $keyAux   = $auxNext[0]['index'];
-            $limitAux = $limitAux->forget($keyAux);
-            foreach ($auxNext as $next) {
-                $limitAux->splice($keyAux, 0, [$next]);
-            }
-        }
-
-        $time = collect();
-        $limitAux->each(function ($item) use ($time, $dateC, $timezone) {
-            $compare = $item['init'] <=> $item['final'];
-            if ($compare <= 0) {
-
-            }
-            $indexMin = $this->defineIndexHour($item['day'], $item['init']);
-            $indexMax = $this->defineIndexHour($item['day'], $item['final']);
+            
             for ($i = $indexMin; $i <= $indexMax; $i++) {
+                $timeAux = [];
                 $timeAux['index']       = $i;
                 $timeAux['next_day']    = $i >= 96 ? 1 : 0;
                 $timeAux['option']      = $this->timeForTable->indexToTime($i);
-                $timeAux['option_user'] = Carbon::createFromFormat('Y-m-d H:i:s', $dateC->toDateString() . " " . $this->timeForTable->indexToTime($i), $timezone)->format('g:i A');
+                $timeAux['option_user'] = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $this->timeForTable->indexToTime($i))->format('g:i A');
                 $timeAux['event']       = null;
                 $timeAux['promotions']  = null;
-                $time->push($timeAux);
+                $hours->push($timeAux);
             }
-        });
+            
+        }
+//        
+        $eventFree = ev_event::eventFreeActive($date, $date)->select('*', DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"))
+                ->where('ms_microsite_id', $microsite_id)->with(['turn'])->orderBy('datetime_event')->get();
+        
+        if($eventFree){
+            
+            foreach ($eventFree as $event) {
+                
+                $item = $event->turn;
+                $indexMin = $this->timeForTable->timeToIndex($item->hours_ini);
+                $indexMax = $this->timeForTable->timeToIndex($item->hours_end);
 
-        if ($diff < 0) {
-            $hour  = $this->dateMaxFormat($nowC);
-            $index = $this->defineIndexHour(1, $hour->toTimeString());
-            $time  = $time->reject(function ($item) use ($index) {
-                if ($item['index'] >= $index) {
-                    return false;
-                } else {
-                    return true;
+                $indexMax = ($indexMax>$indexMin)? $indexMax:$indexMax + 96;
+
+                if($now->toDateString() == $date){
+                    $optionA = $indexMinReal >= $indexMin && $indexMinReal < 96;
+                    $optionB = $indexMinReal >= 0 && $indexMinReal <= $indexMax;
+                    $indexMin = ($indexMax < $indexMin && ($optionA || $optionB))?$indexMinReal + 96:$indexMinReal;
                 }
-            });
-        }
-        // return $time;
 
-        //Agrega evento gratuito y promociones a las horas disponibles en una fecha determinada
-        $events = $this->searchAllEvent($microsite_id, $date, "00:00:00", $timezone, 0, 1);
-        if ($events->count() > 0) {
-            $indexEvents = $events->map(function ($item) {
-                $aux['id']       = $item['id'];
-                $aux['type']     = $item['bs_type_event_id'];
-                $dayAux          = ($item['hourMax']->toDateString() <=> $item['hourMin']->toDateString()) == 0 ? $item['day'] : 0;
-                $aux['indexMin'] = $this->defineIndexHour($dayAux, $item['hourMin']);
-                $aux['indexMax'] = $this->defineIndexHour($item['day'], $item['hourMax']);
-                return $aux;
-            })->sortBy('index')->values();
-            $time = $time->map(function ($item) use ($indexEvents) {
-                $result             = $this->selectHourEvent($item['index'], $indexEvents);
-                $item['event']      = $result['event'];
-                $item['promotions'] = count($result['promotions']) > 0 ? $result['promotions'] : null;
-                return $item;
-            });
-        }
-        return $time->isEmpty() ? abort(500, "No existe horarios disponibles " . $dateC->formatLocalized('%A %d %B %Y')) : $time;
+                for ($i = $indexMin; $i <= $indexMax; $i++) {
+                    $timeAux = [];
+                    $timeAux['index']       = $i;
+                    $timeAux['next_day']    = $i >= 96 ? 1 : 0;
+                    $timeAux['option']      = $this->timeForTable->indexToTime($i);
+                    $timeAux['option_user'] = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $this->timeForTable->indexToTime($i))->format('g:i A');
+                    $timeAux['event']       = null;
+                    $timeAux['promotions']  = null;
+                    $hours->push($timeAux);
+                }
+
+            }
+        }        
+        return $hours->unique()->sortBy('index')->values();
     }
 
     public function selectHourEvent($index, $indexEvents)
@@ -1906,6 +1863,49 @@ class AvailabilityService
 
     public function getDays(int $microsite_id, string $dateIni, string $dateFin)
     {
+        
+        $res = \App\res_turn_calendar::FromMicrositeActives($microsite_id, $dateIni, $dateFin)->orderBy('start_date', "ASC")->get();
+        
+        if($res){
+            $firstturn = $res->first();
+            $dateIni = $firstturn->start_date;
+        }
+        
+        $calendar = new Calendar(2016, 12);
+        $calendar->setFixDate(Carbon::parse($dateIni), Carbon::parse($dateFin));
+        
+        $turns = $res->map(function ($item) use ($calendar){            
+            $data = (object) [
+                    'start_time' => $item->start_time,
+                    'end_time'   => $item->end_time,
+                    'start_date' => $item->start_date,
+                    'end_date'   => $item->end_date,
+                ];
+            $calendar->generateByWeekDay($data, $item->start_date, $item->end_date);
+            return $data;
+        });
+        
+        $dates = $calendar->get();
+        $dataturns = collect($dates);
+        
+        $now = Carbon::now();
+        if(strcmp($dateIni, $now->toDateString()) <= 0){ 
+                       
+            $configuration   = $this->configurationService->getConfiguration($microsite_id);
+            $now             = $now->addMinutes($configuration->time_restriction);
+            
+            $dataturns = $dataturns->reject(function($item) use ($now){                
+                $enddatetime = Carbon::parse($item["date"]." ".$item["end_time"]);
+                $enddatetime = ($item["start_time"] < $item["end_time"])? $enddatetime:$enddatetime->addDay();
+                $condition = ($item["date"] == $now->toDateString() && $enddatetime->toDateTimeString() <= $now->toDateTimeString());
+                return $condition;
+            });
+        }
+        $result = $dataturns->pluck('date')->unique()->sort()->values();
+        
+        return $result;
+        
+        
         // $dateFake = Carbon::create(2016, 11, 29, 03, 45, null);
         // Carbon::setTestNow($dateFake);
         $now = Carbon::now();
@@ -1916,10 +1916,18 @@ class AvailabilityService
         $dateIni   = ($compare >= 0) ? $yesterday : $dateIni;
 
         $dateFin = Carbon::parse($dateFin)->addDay();
-
+        
+        return [$dateIni, $dateFin];
+        
         $calendar = new Calendar(2016, 12);
         
+        
+        
         $calendar->setFixDate($dateIni, $dateFin);
+        
+        $res = \App\res_turn_calendar::FromMicrositeActives($microsite_id, $dateIni->toDateString(), $dateFin->toDateString())->get();
+        return $res;
+       
         
         $turns = \App\res_turn_calendar::join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
                 ->where("res_turn.ms_microsite_id", $microsite_id)
@@ -1927,8 +1935,7 @@ class AvailabilityService
                     return $query->where("start_date", "<=", $calendar->FIRST_DATE)->where("end_date", ">=", $calendar->FIRST_DATE)
                             ->orWhere("start_date", "<=", $calendar->END_DATE)->where("start_date", ">=", $calendar->END_DATE)
                             ->orWhere("start_date", ">=", $calendar->FIRST_DATE)->where("start_date", "<=", $calendar->END_DATE);
-                })
-                        ->get()->map(function ($item) {
+                })->get()->map(function ($item) {
                     return (object) [
                         'start_time' => $item->start_time,
                         'end_time'   => $item->end_time,
@@ -1969,7 +1976,7 @@ class AvailabilityService
         $deleteYesterday ? $result->shift() : false;
         return $result->values()->all();
     }
-
+    
     public function getDaysDisabled(int $microsite_id, string $dateIni, string $dateFin)
     {
         $daysactives = $this->getDays($microsite_id, $dateIni, $dateFin);
@@ -2120,10 +2127,9 @@ class AvailabilityService
     }
     
     public function formatAvailability(int $microsite_id, $date)
-    {
-        
+    {        
         //Function Date Actual
-        $date     = CalendarHelper::searchDate($microsite_id, $date);        
+        $date     = CalendarHelper::searchDate($microsite_id, $date);
         
         $timezone = $date->timezoneName;
 
