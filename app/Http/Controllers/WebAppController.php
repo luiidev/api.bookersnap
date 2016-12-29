@@ -445,10 +445,7 @@ class WebAppController extends Controller
 
     public function bookReservations($microsite_id, $date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds, $page_size = 30)
     {
-        $reservations = \App\res_reservation::select("res.*")->with([
-            "tables" => function ($query) {
-                return $query->select("res_table.id", "res_zone_id", "name");
-            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList", "emails", "event"])->from("res_reservation as res")->where("res.wait_list", 0);
+        $reservations = \App\res_reservation::withRelations()->from("res_reservation as res")->where("res.wait_list", 0);
 
         $this->queryReservation($reservations, $microsite_id, $date, $date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds);
         //return $reservations->toSql();
@@ -460,10 +457,7 @@ class WebAppController extends Controller
 
     public function searchReservations($microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds, $page_size = 30)
     {
-        $reservations = \App\res_reservation::select("res.*")->with([
-            "tables" => function ($query) {
-                return $query->select("res_table.id", "res_zone_id", "name");
-            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList", "emails", "event"])->from("res_reservation as res")->where("res.wait_list", 0);
+        $reservations = \App\res_reservation::withRelations()->from("res_reservation as res")->where("res.wait_list", 0);
 
         $this->queryReservation($reservations, $microsite_id, $start_date, $end_date, $searchText, $sortBy, $turnIds, $sourceIds, $zoneIds, $nstatusIds);
         //return $reservations->toSql();
@@ -579,6 +573,9 @@ class WebAppController extends Controller
             "num_guest",
             "note",
             "res_server_id",
+            "num_people_1",
+            "num_people_2",
+            "num_people_3"
         );
         return \App\res_reservation::select($get)->withRelations()->where("ms_microsite_id", $microsite_id)->find($reservation_id);
     }
@@ -659,18 +656,12 @@ class WebAppController extends Controller
 
     private function reservationsByDate(int $microsite_id, string $date)
     {
-        return \App\res_reservation::select("res.*")->with([
-            "tables" => function ($query) {
-                return $query->select("res_table.id", "res_zone_id", "name");
-            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList"])->from("res_reservation as res")->where("res.date_reservation", $date)->get();
+        return \App\res_reservation::WithRelations()->from("res_reservation as res")->where("res.date_reservation", $date)->get();
     }
 
     private function reservationsByRangeDate(int $microsite_id, string $dateTimeOpen, string $dateTimeClose)
     {
-        return \App\res_reservation::select("res.*")->with([
-            "tables" => function ($query) {
-                return $query->select("res_table.id", "res_zone_id", "name");
-            }, "guest", "guest.emails", "guest.phones", "server", "source", "status", "turn.typeTurn", "tags", "guestList"])->from("res_reservation as res")->whereRaw("CONCAT(res.date_reservation, ' ', res.hours_reservation) BETWEEN ? AND ?", array($dateTimeOpen, $dateTimeClose))->get();
+        return \App\res_reservation::WithRelations()->from("res_reservation as res")->whereRaw("CONCAT(res.date_reservation, ' ', res.hours_reservation) BETWEEN ? AND ?", array($dateTimeOpen, $dateTimeClose))->get();
     }
 
     private function configuration(int $microsite_id)

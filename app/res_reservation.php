@@ -6,6 +6,7 @@ use App\Entities\ev_event;
 use Illuminate\Database\Eloquent\Model;
 use App\res_turn;
 use App\res_reservation_status;
+use App\Entities\bs_type_event;
 use App\res_source_type;
 use App\res_turn_time;
 use DB;
@@ -61,11 +62,23 @@ class res_reservation extends Model {
     }
 
     public function scopeWithRelations($query) {
+        
         return $query->with(["tables" => function ($query) {
                         return $query->select("res_table.id", "name");
                     }, "guest" => function ($query) {
                         return $query->select("id", "first_name", "last_name")->with("emails", "phones");
-                    }, "source", "status", "tags", "turn.typeTurn", "server", "guestList", "emails", "event"]);
+                    }, "source", "status", "tags", "turn.typeTurn", "server", "guestList", "emails", "event" => function($query){
+                        
+                        $optionEvent = "CONCAT('".bs_type_event::_BASEURL_IMG_EVENT."', image)";
+                        $optionPromotion = "CONCAT('".bs_type_event::_BASEURL_IMG_PROMOTION."', image)"; 
+                        $optionEventThumb = "CONCAT('".bs_type_event::_BASEURL_IMG_THUMB_EVENT."', image)";
+                        $optionPromotionThumb = "CONCAT('".bs_type_event::_BASEURL_IMG_THUMB_PROMOTION."', image)";                   
+                        $url_image = "IF(bs_type_event_id = ".bs_type_event::_ID_PROMOTION_FREE.", $optionPromotion, IF(bs_type_event_id = ".bs_type_event::_ID_EVENT_FREE.", $optionEvent, ''))";
+                        $url_image_thumb = "IF(bs_type_event_id = ".bs_type_event::_ID_PROMOTION_FREE.", $optionPromotionThumb, IF(bs_type_event_id = ".bs_type_event::_ID_EVENT_FREE.", $optionEventThumb, ''))";
+                        
+                        return $query->select("id", "name", "description", "observation", "image", DB::raw("$url_image AS url_image"), DB::raw("$url_image_thumb AS url_image_thumb"));
+                        
+                    }]);
     }
 
     /**

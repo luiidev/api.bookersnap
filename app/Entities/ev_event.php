@@ -89,7 +89,6 @@ class ev_event extends Model {
         return $query;
     }
 
-    
     /**
      * Eventos Grastuitos activos en una fecha o rango de fecha
      * @param type $query
@@ -99,26 +98,37 @@ class ev_event extends Model {
      */
     public function scopeEventFreeActive($query, $start_date = null, $end_date = null) {
 
-        $end_date = is_null($end_date) ? $start_date : $end_date;
-
         $now = Carbon::now();
+        $isdatenow = false;
+        if (!is_null($start_date) && strcmp($start_date, $now->toDateString()) > 0) {
+            $now->parse($start_date);
+        } else {
+            $isdatenow = true;
+            $start_date = $now->toDateString();
+        }
+
         $yesterday = $now->copy()->yesterday();
 
-        $query = $query->where('ev_event.bs_type_event_id', 1)->where('ev_event.status', 1)->whereHas('turn', function($query) use ($now, $yesterday) {
-            $dateformat = "DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d')";
-            $datetimeformat = "CONCAT('" . $now->toDateString() . " ', res_turn.hours_end)";
-            return $query->where(DB::raw($dateformat), $yesterday->toDateString())->whereRaw("res_turn.hours_ini > res_turn.hours_end")->where(DB::raw($datetimeformat), ">=", $now->toDateTimeString())
-                            ->orWhere(DB::raw($dateformat), ">=", $now->toDateString());
-        });
+        $query = $query->where('ev_event.bs_type_event_id', 1)->where('ev_event.status', 1)->whereHas('turn', function($query) use ($now, $yesterday, $start_date, $end_date, $isdatenow) {
+                        
+            $dateEvent = "DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d')";
+            
+            if($isdatenow){                    
+                $datetimeEnd = "CONCAT($dateEvent, ' ', res_turn.hours_end)";
+                $datetimeEndReal = "IF(res_turn.hours_ini < res_turn.hours_end, $datetimeEnd, ADDDATE($datetimeEnd, INTERVAL 1 DAY))";
+                $condistions = "((($dateEvent = ? OR $dateEvent = ?) AND  $datetimeEndReal >= ?) OR $dateEvent > ?)";
+                $query = $query->whereRaw("$condistions", [$yesterday->toDateString(), $now->toDateString(), $now->toDateTimeString(), $start_date]);
+            }else{
+                $query = $query->whereRaw("$dateEvent >= ?", [$start_date]);
+            }
+            
+            if (!is_null($end_date)) {
+                $query = $query->whereRaw("$dateEvent <= ?", [$end_date]);
+            }
 
-        if (!is_null($start_date)) {
-            $dateformat = "DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d')";
-            $query = $query->where(DB::raw($dateformat), ">=", $start_date);
-        }
-        if (!is_null($end_date)) {
-            $dateformat = "DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d')";
-            $query = $query->where(DB::raw($dateformat), "<=", $end_date);
-        }
+            return $query;
+        });
+        
         return $query;
     }
 
