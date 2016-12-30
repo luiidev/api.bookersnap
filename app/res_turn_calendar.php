@@ -79,10 +79,10 @@ class res_turn_calendar extends Model
             return $query;
         });
 
-        $query = $query->where(function ($query) use ($yesterday, $now, $nextday, $istoday) {
+        $query = $query->where(function ($query) use ($yesterday, $now, $nextday, $istoday, $start_date, $end_date) {
 
             if ($istoday) {
-                /* Horarios del dia de ayer que esta activos hoy*/
+                /* Horarios del dia de ayer que esta activos hoy */
                 $query = $query->whereRaw("start_time > end_time")
                     ->whereRaw("dayofweek(start_date) = ?", [($yesterday->dayOfWeek + 1)])
                     ->where('start_date', "<=", $yesterday->toDateString())
@@ -97,7 +97,6 @@ class res_turn_calendar extends Model
 
                 /* Horarios activos el dia siguiente */
                 $query = $query->orWhere('end_date', '>', $nextday->toDateString());
-
             } else {
 
                 /* Horarios activos a partir de una fecha */
@@ -105,7 +104,6 @@ class res_turn_calendar extends Model
             }
 
             return $query;
-
         });
 
         $datetimeEnd = "IF(start_time > end_time, ADDDATE(CONCAT(end_date, ' ',end_time), INTERVAL 1 DAY), CONCAT(end_date, ' ',end_time))";
@@ -115,7 +113,7 @@ class res_turn_calendar extends Model
         $optionB          = "ADDDATE('" . $now->toDateString() . "', INTERVAL (7 + dayofweek(start_date) - " . ($now->dayOfWeek + 1) . ") DAY)";
         $conditionFutures = "IF(start_date < '" . $now->toDateString() . "', IF($condition, $optionA , $optionB), start_date)";
 
-        $conditionYesterday = "IF((start_time >= end_time) AND CONCAT('" . $now->toDateString() . " ', end_time) >= '" . $now->toDateTimeString() . "', '" . $now->toDateString() . "', '" . $yesterday->toDateString() . "')";
+        $conditionYesterday = "IF((start_time >= end_time) AND CONCAT('" . $now->toDateString() . " ', end_time) >= '" . $now->toDateTimeString() . "', '" . $yesterday->toDateString() . "', '" . $yesterday->copy()->subDay()->toDateString() . "')";
         $startDateActive    = "IF(start_date <= '" . $yesterday->toDateString() . "' AND dayofweek(start_date) = " . ($yesterday->dayOfWeek + 1) . ", $conditionYesterday, $conditionFutures)";
 
         $condition         = "dayofweek(start_date) >= " . ($yesterday->dayOfWeek + 1);
@@ -123,16 +121,40 @@ class res_turn_calendar extends Model
         $optionB           = "ADDDATE('" . $yesterday->toDateString() . "', INTERVAL (7 + dayofweek(start_date) - " . ($yesterday->dayOfWeek + 1) . ") DAY)";
         $realdateyesterday = "IF(start_date < '" . $yesterday->toDateString() . "', IF($condition, $optionA , $optionB), start_date)";
 
+//        $startDateActive = "IF(start_date <= '" . $yesterday->toDateString() . "' AND dayofweek(start_date) = " . ($yesterday->dayOfWeek + 1) . ", $conditionYesterday, $conditionFutures)";
+
         if (!is_null($start_date)) {
-            $query = $query->whereRaw("$startDateActive >= ?", [$start_date]);
+            if (strcmp($datenow->toDateString(), $start_date) == 0) {
+                $condYesterday = "IF((start_time > end_time) AND CONCAT('" . $now->toDateString() . " ', end_time) >= '" . $now->toDateTimeString() . "',  '" . $now->toDateString() . "', '" . $yesterday->toDateString() . "')";
+                $startActive   = "IF(start_date <= '" . $yesterday->toDateString() . "' AND dayofweek(start_date) = " . ($yesterday->dayOfWeek + 1) . ", $condYesterday, $conditionFutures)";
+                $query         = $query->whereRaw("CONCAT($startActive, ' ', end_time) >= ?", [$datenow->toDateTimeString()]);
+            } else {
+                $query = $query->whereRaw("$startDateActive >= ?", [$start_date]);
+            }
         }
         if (!is_null($end_date)) {
             $query = $query->whereRaw("$startDateActive <= ?", [$end_date]);
         }
-
         /* query select para test de datos */
-        $query = $query->select('*', DB::raw("$realdateyesterday AS start_date"));
-//        $query = $query->select('res_turn_calendar.*', DB::raw("dayofweek(start_date) AS dayofweek"), DB::raw("($now->dayOfWeek + 1) AS dayofweekNow"), DB::raw("($yesterday->dayOfWeek + 1) AS dayofweekYesterady"), DB::raw("'" . $now->toDateTimeString() . "' AS DatetimeNow"), DB::raw("CONCAT('" . $yesterday->toDateString() . " ', res_turn_calendar.end_time) AS DateYesterady"), DB::raw("CONCAT('" . $now->toDateString() . " ', res_turn_calendar.end_time) AS DateNow"), DB::raw("(start_date <= '" . $yesterday->toDateString() . "') AS PAST"), DB::raw("dayofweek(start_date) <= " . ($yesterday->dayOfWeek + 1) . " AS RESULT"), DB::raw("$conditionActives AS start_date_active"));
+        $query = $query->select('*', DB::raw("$startDateActive AS start_date"));
+//        $query = $query->select('res_turn_calendar.*',
+        //                DB::raw("'" . $now->toDateString() . "' AS HOY"),
+        //                DB::raw("'" . $yesterday->toDateString() . "' AS AYER"),
+        //                DB::raw("'" . $datenow->toDateString() . "' AS DATENOW"),
+        //                DB::raw("CONCAT($startActive, ' ', end_time) AS CONAT_YESTERDAY"),
+        //                DB::raw("$startActive AS left_yesterday_result"),
+        //                DB::raw("IF((start_time > end_time) AND CONCAT('" . $now->toDateString() . " ', end_time) >= '" . $now->toDateTimeString() . "',  '" . $now->toDateString() . "', '" . $yesterday->toDateString() . "') AS start_date_active_lll"),
+        //                DB::raw("IF(start_date <= '" . $yesterday->toDateString() . "', 'start_date <= " . $yesterday->toDateString() . "', 'start_date > " . $yesterday->toDateString() . "') AS left_yesterday"),
+        //                DB::raw("$condYesterday AS condition_yesterday"),
+        //                DB::raw("dayofweek(start_date) AS dayofweek"),
+        //                DB::raw("($now->dayOfWeek + 1) AS dayofweekNow"),
+        //                DB::raw("($yesterday->dayOfWeek + 1) AS dayofweekYesterady"),
+        //                DB::raw("'" . $now->toDateTimeString() . "' AS DatetimeNow"),
+        //                DB::raw("CONCAT('" . $yesterday->toDateString() . " ', res_turn_calendar.end_time) AS DateYesterady"),
+        //                DB::raw("CONCAT('" . $now->toDateString() . " ', res_turn_calendar.end_time) AS DateNow"),
+        //                DB::raw("(start_date <= '" . $yesterday->toDateString() . "') AS PAST"),
+        //                DB::raw("dayofweek(start_date) <= " . ($yesterday->dayOfWeek + 1) . " AS RESULT"),
+        //                DB::raw("$startDateActive AS start_date_active"));
         return $query;
     }
 

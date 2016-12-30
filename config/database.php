@@ -65,6 +65,21 @@ return [
             'strict'    => false,
             'engine'    => null,
         ],
+        
+        # Our secondary database connection
+        'mysql_old' => [
+            'driver'    => 'mysql',
+            'host'      => 'localhost',
+            'port' => env('DB_PORT', '3306'),
+            'database'  => 'bookersn_database',
+            'username'  => 'root',
+            'password'  => '',
+            'charset'   => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+            'prefix'    => '',
+            'strict' => false,
+            'engine' => null,
+        ],
 
         'pgsql'  => [
             'driver'   => 'pgsql',

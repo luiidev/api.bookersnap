@@ -235,20 +235,35 @@ class ReservationService
      * */
     public function patch(array $data, int $microsite_id)
     {
-        $reservation = new res_reservation();
+        // $reservation = new res_reservation();
 
         $id = $data['id'];
-        unset($data['id']);
-        unset($data['timezone']);
-        unset($data['key']);
-        unset($data['_bs_user_id']);
 
-        $reservation->where('id', $id)->where('ms_microsite_id', $microsite_id)->update($data);
+        $reservation = res_reservation::where('id', $id)->where('ms_microsite_id', $microsite_id)->first();
+
+        if (isset($data["res_reservation_status_id"])) {
+            $reservation->res_reservation_status_id = $data["res_reservation_status_id"];
+        }
+
+        if (isset($data["num_people_1"])) {
+            $reservation->num_people_1 = $data["num_people_1"];
+        }
+
+        if (isset($data["num_people_2"])) {
+            $reservation->num_people_2 = $data["num_people_2"];
+        }
+
+        if (isset($data["num_people_3"])) {
+            $reservation->num_people_3 = $data["num_people_3"];
+        }
+
+        $reservation->save();
 
         $res = res_reservation::withRelations()->where('id', $id)->where('ms_microsite_id', $microsite_id)->first();
 
         return $res;
     }
+
     //Actualizamos la reservacion desde el grid
     public function updateByGrid(array $params, int $microsite_id)
     {
