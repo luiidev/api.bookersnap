@@ -102,10 +102,7 @@ class AvailabilityService
     public function getHours(int $microsite_id, string $date, string $timezone)
     {
         $now = Carbon::now();
-        
-        
-        $date = "2016-12-27";
-        
+                
         $yesterday = $now->copy()->subDay()->toDateString();
         
         $horarioDeMadrugadaDeAyer = false;
