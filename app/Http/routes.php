@@ -67,7 +67,6 @@ function routeMesas()
         Route::delete('blocks/{block_id}', 'BlockController@delete');
         Route::post('blocks', 'BlockController@insert');
         Route::put('blocks/{block_id}', 'BlockController@update');
-        
 
         //-----------------------------------------------------
         // MICROSITE::SERVERS
@@ -97,7 +96,7 @@ function routeMesas()
 
         //-----------------------------------------------------
         // MICROSITE::CALENDAR
-        //-----------------------------------------------------        
+        //-----------------------------------------------------
         Route::get('calendar/{date}', 'CalendarController@index');
         Route::get('calendar/{date}/zones', 'CalendarController@getZones');
         Route::get('calendar/{date}/shifts', 'CalendarController@listShift');
@@ -156,6 +155,7 @@ function routeMesas()
         Route::patch('reservations/{reservation_id}', 'ReservationController@patch');
         Route::delete('reservations/{reservation_id}', 'ReservationController@delete');
         Route::post('reservations/{reservation_id}/send-email', 'ReservationController@sendEmail');
+        Route::post('reservations/{reservation_id}/grid', 'ReservationController@updateGrid');
 
         //-----------------------------------------------------
         // MICROSITE:: RESERVATION

@@ -4,29 +4,31 @@ namespace App\Services;
 
 use App\Entities\ms_microsite;
 use App\Entities\res_table_reservation_temp;
-use App\Services\Helpers\CalendarHelper;
-use App\Services\Helpers\DateTimesHelper;
-use App\Services\Helpers\TurnsHelper;
 use App\res_guest;
 use App\res_guest_email;
 use App\res_guest_phone;
 use App\res_reservation;
 use App\res_reservation_guestlist;
+use App\res_table_reservation;
 use App\res_turn_time;
+use App\Services\Helpers\CalendarHelper;
+use App\Services\Helpers\DateTimesHelper;
+use App\Services\Helpers\TurnsHelper;
 use Carbon\Carbon;
+use DB;
 use Illuminate\Contracts\Encryption\DecryptException;
 
 class TableReservationService extends Service
 {
     private $guest;
 
-    const  _ID_SOURCE_RESERVATION_HOSTESS = 1;
-    const  _ID_SOURCE_RESERVATION_WEB = 4;
-    const  _ID_STATUS_RESERVATION_RESERVED = 1;
-    const  _ID_STATUS_RESERVATION_SEATED = 4;
-    const  _ID_STATUS_RESERVATION_RELEASED = 5;
-    const  _ID_STATUS_RESERVATION_CANCELED = 6;
-    const  _ID_STATUS_RESERVATION_ABSENT = 7;
+    const _ID_SOURCE_RESERVATION_HOSTESS  = 1;
+    const _ID_SOURCE_RESERVATION_WEB      = 4;
+    const _ID_STATUS_RESERVATION_RESERVED = 1;
+    const _ID_STATUS_RESERVATION_SEATED   = 4;
+    const _ID_STATUS_RESERVATION_RELEASED = 5;
+    const _ID_STATUS_RESERVATION_CANCELED = 6;
+    const _ID_STATUS_RESERVATION_ABSENT   = 7;
 
     public function showByCrypt()
     {
@@ -43,7 +45,6 @@ class TableReservationService extends Service
         }
     }
 
-
     public function cancelReserveWeb()
     {
         try {
@@ -54,7 +55,7 @@ class TableReservationService extends Service
                 ->where("ms_microsite_id", $this->microsite_id)
                 ->where("id", $id)
                 ->update([
-                    "res_reservation_status_id" => self::_ID_STATUS_RESERVATION_CANCELED
+                    "res_reservation_status_id" => self::_ID_STATUS_RESERVATION_CANCELED,
                 ]);
             return "";
         } catch (DecryptException $e) {
@@ -132,9 +133,9 @@ class TableReservationService extends Service
 
     private function update_input_output(&$reservation)
     {
-        $now = Carbon::now();
+        $now                          = Carbon::now();
         $reservation->datetime_input  = $now->toDateTimeString();
-        $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input,$reservation->hours_duration);
+        $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $reservation->hours_duration);
     }
 
     private function save_reservation(res_reservation $reservation, $action)
@@ -152,14 +153,14 @@ class TableReservationService extends Service
             }
         }
 
-        $now     = Carbon::now();
-        //$turn = TurnsHelper::TypeTurnWithHourForHour($this->req->date, $this->req->hour, $this->microsite_id);        
+        $now = Carbon::now();
+        //$turn = TurnsHelper::TypeTurnWithHourForHour($this->req->date, $this->req->hour, $this->microsite_id);
         $reservationInit = CalendarHelper::CalculeTimesReservation($this->microsite_id, $this->req->date, $this->req->hour);
-        if(!$reservationInit){
+        if (!$reservationInit) {
             abort(500, "No hay reservaciones para esta fecha");
-        }        
-        //$duration                     = ($action == "create") ? $this->req->duration : $reservation->hours_duration;        
-        
+        }
+        //$duration                     = ($action == "create") ? $this->req->duration : $reservation->hours_duration;
+
         $reservation->res_guest_id              = $guest_id;
         $reservation->res_source_type_id        = self::_ID_SOURCE_RESERVATION_HOSTESS;
         $reservation->res_reservation_status_id = $this->req->status_id;
@@ -180,23 +181,23 @@ class TableReservationService extends Service
 //        $reservation->res_turn_id               = $reservationInit->res_turn_id;
 
 //        if ($this->req->status_id < self::_ID_STATUS_RESERVATION_SEATED) {
-////            if ($action == "create") {
-//                $reservation->datetime_input  = trim($reservationInit->date_reservation) . ' ' . trim($reservation->hours_reservation);
-//                $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $reservation->hours_duration);
-////            }
-//        } else if ($this->req->status_id == self::_ID_STATUS_RESERVATION_SEATED) {
-//            $reservation->datetime_input  = $now->toDateTimeString();
-//            $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $reservation->hours_duration);
-//        } else if ($this->req->status_id == self::_ID_STATUS_RESERVATION_RELEASED || $this->req->status_id == self::_ID_STATUS_RESERVATION_CANCELED || $this->req->status_id == self::_ID_STATUS_RESERVATION_ABSENT) {            
-//            $reservation->datetime_input  = ($action == "create") ? $now->toDateTimeString():$reservation->datetime_input;
-//            $reservation->datetime_output = $now->toDateTimeString();
-//        }
-        
-        $reservation->status_standing = (is_array($this->req->tables) && count($this->req->tables) > 0) ? 0:1;
-        
+        ////            if ($action == "create") {
+        //                $reservation->datetime_input  = trim($reservationInit->date_reservation) . ' ' . trim($reservation->hours_reservation);
+        //                $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $reservation->hours_duration);
+        ////            }
+        //        } else if ($this->req->status_id == self::_ID_STATUS_RESERVATION_SEATED) {
+        //            $reservation->datetime_input  = $now->toDateTimeString();
+        //            $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $reservation->hours_duration);
+        //        } else if ($this->req->status_id == self::_ID_STATUS_RESERVATION_RELEASED || $this->req->status_id == self::_ID_STATUS_RESERVATION_CANCELED || $this->req->status_id == self::_ID_STATUS_RESERVATION_ABSENT) {
+        //            $reservation->datetime_input  = ($action == "create") ? $now->toDateTimeString():$reservation->datetime_input;
+        //            $reservation->datetime_output = $now->toDateTimeString();
+        //        }
+
+        $reservation->status_standing = (is_array($this->req->tables) && count($this->req->tables) > 0) ? 0 : 1;
+
         $reservation->save();
-        
-        if(is_array($this->req->tables)){
+
+        if (is_array($this->req->tables)) {
             $tables = array();
             foreach ($this->req->tables as $value) {
                 $tables[$value] = array("num_people" => 0);
@@ -239,7 +240,7 @@ class TableReservationService extends Service
             "res_server_id",
         );
 
-        $reservation = res_reservation::select($get)->withRelations()->where("ms_microsite_id", $this->microsite_id)->find($this->reservation);       
+        $reservation = res_reservation::select($get)->withRelations()->where("ms_microsite_id", $this->microsite_id)->find($this->reservation);
         return $reservation;
     }
 
@@ -261,7 +262,7 @@ class TableReservationService extends Service
 
     public function quickEdit()
     {
-        
+
         $reservation = res_reservation::find($this->reservation);
 
         $reservation->num_guest                 = $this->req->covers;
@@ -275,7 +276,7 @@ class TableReservationService extends Service
         if ($this->req->status_id == self::_ID_STATUS_RESERVATION_SEATED) {
             $this->update_input_output($reservation);
         } else if ($this->req->status_id == self::_ID_STATUS_RESERVATION_RELEASED || $this->req->status_id == self::_ID_STATUS_RESERVATION_CANCELED || $this->req->status_id == self::_ID_STATUS_RESERVATION_ABSENT) {
-            $now = Carbon::now();
+            $now                          = Carbon::now();
             $reservation->datetime_output = $now->toDateTimeString();
         }
 
@@ -296,17 +297,17 @@ class TableReservationService extends Service
     }
 
     public function quickCreate()
-    {                
+    {
         $num_guest = $this->req->guests["men"] + $this->req->guests["women"] + $this->req->guests["children"];
         // if (@$this->req->guests["total"]) {
         //     $num_guest = ($num_guest == 0) ? $this->req->guests["total"] : $num_guest;
         // }
         $reservationInit = CalendarHelper::CalculeTimesReservationNow($this->microsite_id);
-        
-        if(!$reservationInit){
+
+        if (!$reservationInit) {
             abort(500, "No puedes crear reservaciones rápidas en este tiempo");
         }
-        
+
         $realDate = CalendarHelper::realDate($this->microsite_id);
 //        $turn     = TurnsHelper::TypeTurnWithHourForHour($realDate, $time, $this->microsite_id);
         $duration = res_turn_time::where("res_turn_id", $reservationInit->res_turn_id)->where("num_guests", $num_guest)->first();
@@ -328,35 +329,36 @@ class TableReservationService extends Service
 
 //        $reservation->datetime_input  = Carbon::now()->toDateTimeString();
         $reservation->datetime_input  = $reservationInit->date_reservation . " " . $reservationInit->hours_reservation;
-        $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input,$reservation->hours_duration);
+        $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $reservation->hours_duration);
 
         $reservation->save();
 
         $reservation->tables()->attach($this->req->table_id, ["num_people" => $num_guest]);
-        
+
         $data = res_reservation::withRelations()->find($reservation->id);
 
         return $data;
     }
-    
-    public function releasedReservations(int $microsite_id, int $reservation_id, int $table_id) {
-        
-        $realDate = CalendarHelper::realDate($microsite_id);
-        $datetimeOpen = CalendarHelper::realDateTimeOpen($microsite_id, $realDate);
+
+    public function releasedReservations(int $microsite_id, int $reservation_id, int $table_id)
+    {
+
+        $realDate      = CalendarHelper::realDate($microsite_id);
+        $datetimeOpen  = CalendarHelper::realDateTimeOpen($microsite_id, $realDate);
         $datetimeClose = CalendarHelper::realDateTimeClose($microsite_id, $realDate);
         /* Liberar reservaciones que estan ocupando esta mesa */
         $resId = res_reservation::join('res_table_reservation', "res_reservation.id", "=", "res_table_reservation.res_reservation_id")
-                ->where('res_reservation.ms_microsite_id', $microsite_id)
-                ->whereRaw("CONCAT(res_reservation.date_reservation, ' ', res_reservation.hours_reservation) BETWEEN ? AND ?", array($datetimeOpen, $datetimeClose))
-                ->where('res_table_reservation.res_reservation_id','!=', $reservation_id)
-                ->where('res_table_reservation.res_table_id', $table_id)
-                ->where('res_reservation.res_reservation_status_id', self::_ID_STATUS_RESERVATION_SEATED)
-                ->pluck('res_reservation.id');
-        
+            ->where('res_reservation.ms_microsite_id', $microsite_id)
+            ->whereRaw("CONCAT(res_reservation.date_reservation, ' ', res_reservation.hours_reservation) BETWEEN ? AND ?", array($datetimeOpen, $datetimeClose))
+            ->where('res_table_reservation.res_reservation_id', '!=', $reservation_id)
+            ->where('res_table_reservation.res_table_id', $table_id)
+            ->where('res_reservation.res_reservation_status_id', self::_ID_STATUS_RESERVATION_SEATED)
+            ->pluck('res_reservation.id');
+
         $result = res_reservation::whereIn('id', $resId)->update(['res_reservation_status_id' => self::_ID_STATUS_RESERVATION_RELEASED]);
-        
-        if($result > 0){
-           return res_reservation::withRelations()->whereIn('id', $resId)->get(); 
+
+        if ($result > 0) {
+            return res_reservation::withRelations()->whereIn('id', $resId)->get();
         }
         return false;
     }
@@ -372,7 +374,7 @@ class TableReservationService extends Service
         if ($reservation !== null) {
 
             // Actualizar reservacion
-            if($reservation->res_reservation_status_id != self::_ID_STATUS_RESERVATION_SEATED){
+            if ($reservation->res_reservation_status_id != self::_ID_STATUS_RESERVATION_SEATED) {
                 $reservation->res_reservation_status_id = self::_ID_STATUS_RESERVATION_SEATED;
                 $this->update_input_output($reservation);
             }
@@ -500,7 +502,8 @@ class TableReservationService extends Service
         return array($data);
     }
 
-    public function storeFromWeb() {
+    public function storeFromWeb()
+    {
         $this->create_guest_case();
 
         $email = $phone = $guest_id = null;
@@ -514,23 +517,23 @@ class TableReservationService extends Service
             }
         }
 
-        $now     = Carbon::now();
+        $now = Carbon::now();
 
         $temporal = res_table_reservation_temp::where("token", $this->req->token)->where("expire", ">", $now)->orderBy("id", "desc")->first();
 
         if ($temporal === null) {
-            abort(422 ,  "La reservacion no existe o expiro el tiempo de reservacion.");
+            abort(422, "La reservacion no existe o expiro el tiempo de reservacion.");
         }
 
         // $date = !$temporal->next_day ? $temporal->date : Carbon::parse($temporal->date)->addDay(1, "days")->toDateString();
         $reservationInit = CalendarHelper::CalculeTimesReservation($this->microsite_id, $temporal->date, $temporal->hour);
 
-        $turn = TurnsHelper::TypeTurnWithHourForHour($temporal->date, $temporal->hour, $this->microsite_id);
+        $turn     = TurnsHelper::TypeTurnWithHourForHour($temporal->date, $temporal->hour, $this->microsite_id);
         $duration = res_turn_time::where("res_turn_id", $turn->turn_id)->where("num_guests", $temporal->num_guest)->first();
 
-        $reservation = new res_reservation();
+        $reservation                            = new res_reservation();
         $reservation->res_guest_id              = $guest_id;
-        $reservation->ev_event_id              = $temporal->ev_event_id;
+        $reservation->ev_event_id               = $temporal->ev_event_id;
         $reservation->res_source_type_id        = self::_ID_SOURCE_RESERVATION_WEB;
         $reservation->res_reservation_status_id = self::_ID_STATUS_RESERVATION_RESERVED;
         $reservation->status_released           = 0;
@@ -545,7 +548,7 @@ class TableReservationService extends Service
         $reservation->ms_microsite_id           = $this->microsite_id;
         $reservation->res_turn_id               = $turn->turn_id;
 
-        $reservation->datetime_input  = $reservationInit->date_reservation . ' ' .  $temporal->hour;
+        $reservation->datetime_input  = $reservationInit->date_reservation . ' ' . $temporal->hour;
         $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $reservation->hours_duration);
 
         $reservation->save();
@@ -562,9 +565,9 @@ class TableReservationService extends Service
         $guest_list_add = array();
         if ($this->req->has("guest_list")) {
             foreach ($this->req->guest_list as $name) {
-                $guest              = new res_reservation_guestlist();
-                $guest->name        = $name;
-                $guest->arrived     = 0;
+                $guest          = new res_reservation_guestlist();
+                $guest->name    = $name;
+                $guest->arrived = 0;
                 array_push($guest_list_add, $guest);
             }
         }
@@ -574,8 +577,8 @@ class TableReservationService extends Service
 
         $data = array(
             "reservation" => res_reservation::withRelations()->find($reservation->id),
-            "site" => ms_microsite::with("country", "configuration.percentage")->find($this->microsite_id),
-            "reserve_key" => encrypt($reservation->id)
+            "site"        => ms_microsite::with("country", "configuration.percentage")->find($this->microsite_id),
+            "reserve_key" => encrypt($reservation->id),
         );
 
         return $data;
@@ -596,16 +599,16 @@ class TableReservationService extends Service
                 $phone = $this->guest->phones->first()->number;
             }
         }
-        
-        $now = Carbon::now();
-        $date_reservation  = $now->toDateString();
-        $datetime_reservation  = DateTimesHelper::AddTime($now->toDateTimeString(), $this->req->quote);
-        $date = \Carbon\Carbon::parse($datetime_reservation);
-        $hours_reservation = DateTimesHelper::RoundBeforeTime($date->toTimeString());
-        $datetime_input = \Carbon\Carbon::parse($date_reservation." ".$hours_reservation)->toDateTimeString();
-        
-        $turn     = TurnsHelper::TypeTurnWithHourForHour($date_reservation, $hours_reservation, $this->microsite_id);
-        $duration = res_turn_time::where("res_turn_id", $turn->turn_id)->where("num_guests", $this->req->covers)->first();
+
+        $now                  = Carbon::now();
+        $date_reservation     = $now->toDateString();
+        $datetime_reservation = DateTimesHelper::AddTime($now->toDateTimeString(), $this->req->quote);
+        $date                 = \Carbon\Carbon::parse($datetime_reservation);
+        $hours_reservation    = DateTimesHelper::RoundBeforeTime($date->toTimeString());
+        $datetime_input       = \Carbon\Carbon::parse($date_reservation . " " . $hours_reservation)->toDateTimeString();
+
+        $turn           = TurnsHelper::TypeTurnWithHourForHour($date_reservation, $hours_reservation, $this->microsite_id);
+        $duration       = res_turn_time::where("res_turn_id", $turn->turn_id)->where("num_guests", $this->req->covers)->first();
         $hours_duration = $duration ? $duration->time : "01:30:00";
 
         $reservation                            = new res_reservation();
@@ -625,10 +628,10 @@ class TableReservationService extends Service
         $reservation->user_add                  = $this->req->_bs_user_id;
         $reservation->ms_microsite_id           = $this->microsite_id;
         $reservation->res_turn_id               = $turn->turn_id;
-        
+
         $reservation->datetime_input  = $datetime_input;
-        $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input,$reservation->hours_duration);
-        
+        $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $reservation->hours_duration);
+
         $reservation->save();
 
         $data = res_reservation::withRelations()->find($reservation->id);
@@ -651,36 +654,36 @@ class TableReservationService extends Service
                 $phone = $this->guest->phones->first()->number;
             }
         }
-        
+
         $reservation                            = res_reservation::where('id', $this->req->id)->first();
         $reservation->res_guest_id              = $guest_id;
         $reservation->res_source_type_id        = self::_ID_SOURCE_RESERVATION_HOSTESS;
         $reservation->res_reservation_status_id = self::_ID_STATUS_RESERVATION_RESERVED;
         $reservation->status_released           = 0;
-        $reservation->wait_list                 = 1;              
-        $reservation->num_guest                 = $this->req->covers;        
+        $reservation->wait_list                 = 1;
+        $reservation->num_guest                 = $this->req->covers;
         $reservation->note                      = $this->req->note;
         $reservation->phone                     = $phone;
         $reservation->email                     = $email;
         $reservation->user_add                  = $this->req->_bs_user_id;
         $reservation->ms_microsite_id           = $this->microsite_id;
-        
-        $datetime_reservation = $reservation->date_reservation. " ". $reservation->hours_reservation;
-        $datetime_reservation  = DateTimesHelper::DiffTime($reservation->date_add, $reservation->quote);
-        $datetime_reservation  = DateTimesHelper::AddTime($datetime_reservation, $this->req->quote);
-        $date = \Carbon\Carbon::parse($datetime_reservation);
-        
-        $reservation->hours_reservation         = $date->toTimeString();        
-        $reservation->quote                     = $this->req->quote;
-        
-        $turn     = TurnsHelper::TypeTurnWithHourForHour($reservation->date_reservation, $reservation->hours_reservation, $this->microsite_id);
-        $duration = res_turn_time::where("res_turn_id", $turn->turn_id)->where("num_guests", $this->req->covers)->first();
+
+        $datetime_reservation = $reservation->date_reservation . " " . $reservation->hours_reservation;
+        $datetime_reservation = DateTimesHelper::DiffTime($reservation->date_add, $reservation->quote);
+        $datetime_reservation = DateTimesHelper::AddTime($datetime_reservation, $this->req->quote);
+        $date                 = \Carbon\Carbon::parse($datetime_reservation);
+
+        $reservation->hours_reservation = $date->toTimeString();
+        $reservation->quote             = $this->req->quote;
+
+        $turn           = TurnsHelper::TypeTurnWithHourForHour($reservation->date_reservation, $reservation->hours_reservation, $this->microsite_id);
+        $duration       = res_turn_time::where("res_turn_id", $turn->turn_id)->where("num_guests", $this->req->covers)->first();
         $hours_duration = $duration ? $duration->time : "01:30:00";
-        
-        $reservation->hours_duration            = $hours_duration;
+
+        $reservation->hours_duration  = $hours_duration;
         $reservation->datetime_input  = $datetime_reservation;
         $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $reservation->hours_duration);
-        
+
         $reservation->save();
 
         //  Wait List clear tables
@@ -706,5 +709,25 @@ class TableReservationService extends Service
         $data = res_reservation::withRelations()->find($this->req->id);
 
         return array($data);
+    }
+
+    //Eliminamos la mesa de la reservacion
+    public function deleteTable(int $idTable, int $idReserva)
+    {
+        DB::table('res_table_reservation')->where('res_table_id', $idTable)->where('res_reservation_id', $idReserva)->delete();
+    }
+
+    public function addTable(int $idReserva, array $tables)
+    {
+        foreach ($tables as $key => $table) {
+
+            $tableReserva                     = new res_table_reservation();
+            $tableReserva->res_table_id       = $table;
+            $tableReserva->res_reservation_id = $idReserva;
+            $tableReserva->num_people         = 0;
+
+            $tableReserva->save();
+        }
+
     }
 }
