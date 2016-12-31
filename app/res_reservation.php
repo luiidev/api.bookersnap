@@ -67,6 +67,10 @@ class res_reservation extends Model {
     {
         return $this->belongsToMany(bs_user::class, "res_notifications");
     }
+    
+    public function microsite() {
+        return $this->belongsTo('App\Entities\ms_microsite', 'ms_microsite_id');
+    }
 
     public function scopeWithRelations($query) {
         

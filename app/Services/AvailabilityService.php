@@ -2168,7 +2168,9 @@ class AvailabilityService
     {        
         //Function Date Actual
         $date     = CalendarHelper::searchDate($microsite_id, $date);
-        
+        if(!$date){
+            abort(500, "No hay reservaciones disponibles.");
+        }
         $timezone = $date->timezoneName;
         
         $firstmonth = $date->copy()->firstOfMonth();
