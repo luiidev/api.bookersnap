@@ -2079,6 +2079,7 @@ class AvailabilityService
                 "description" => strip_tags($item->description),
                 "observation" => $item->observation,
                 "image" => ($item->image!=null || $item->image != "")?"http://bookersnap.com/archivo/reservatiopromotion/320x320/".$item->image:null,
+                "name_type" => "Promoción",
                 "turns" => collect($item->turns),
             ];
         });
@@ -2094,9 +2095,10 @@ class AvailabilityService
                 "id" => $item->id,
                 "name" => $item->name,
                 "description" => strip_tags($item->description),
-                "observation" => $item->observation,
-                "turn" => $item->turn,
+                "observation" => $item->observation,                
                 "image" => ($item->image!=null || $item->image != "")?"http://bookersnap.com/archivo/eventos/800x800/".$item->image:null,
+                "name_type" => "Evento",
+                "turn" => $item->turn,
             ];
         });
         
@@ -2184,13 +2186,19 @@ class AvailabilityService
         $eventIds = $result["event_ids"];
                 
         $events = ev_event::whereIn('id', $eventIds)->get()->map(function($item){            
-            $imagepath = ($item->bs_type_event_id == ev_event::_ID_EVENT_FREE)?"http://bookersnap.com/archivo/eventos/800x800/":"http://bookersnap.com/archivo/reservatiopromotion/320x320/"; 
+            $imagepath = ($item->bs_type_event_id == ev_event::_ID_EVENT_FREE)?"http://bookersnap.com/archivo/eventos/800x800/":"http://bookersnap.com/archivo/reservatiopromotion/320x320/";
+            if($item->bs_type_event_id == ev_event::_ID_EVENT_FREE){
+                $name_type = "Evento";
+            }else{
+                $name_type = "Promoción";
+            }
             return [
                 "id" => $item->id,
                 "name" => $item->name,
                 "description" => strip_tags($item->description),
                 "observation" => $item->observation,
                 "image" => ($item->image!=null || $item->image != "")?$imagepath.$item->image:null,
+                "name_type" => $name_type,
             ];
         });        
         

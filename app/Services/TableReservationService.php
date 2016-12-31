@@ -50,7 +50,7 @@ class TableReservationService extends Service
         try {
             $id = decrypt($this->crypt);
 
-            res_reservation::with("guest")
+            res_reservation::with(["guest", "microsite"])
                 ->where("res_reservation_status_id", self::_ID_STATUS_RESERVATION_RESERVED)
                 ->where("ms_microsite_id", $this->microsite_id)
                 ->where("id", $id)
