@@ -36,7 +36,7 @@ class ACLTempApiMicrosite extends Middleware{
             
             $microsite = temp_microsite_api::where('app_id', $request->header('APPID', 0))->first();
             if($microsite){
-                $request->request->set('microsite_id', $microsite->ms_microsite_id);
+                $request->request->set('__ID_MICROSITE', $microsite->ms_microsite_id);
                 return $next($request);
             }else{
                 abort(403, "No tiene acceso a la aplicación");
