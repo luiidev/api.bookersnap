@@ -2050,7 +2050,7 @@ class AvailabilityService
 
         $auxPeople = collect();
         for ($i = 1; $i <= $maxPeople; $i++) {
-            $text = $i == 1 ? "Persona" : "Peronas";
+            $text = $i == 1 ? "Persona" : "Personas";
             $auxPeople->push(["value" => $i, "text" => $i . " " . $text]);
         }
         return $auxPeople->all();
