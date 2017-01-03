@@ -24,8 +24,8 @@ class BlockController extends Controller
     public function index(BlockListRequest $request)
     {
         return $this->TryCatch(function () use ($request) {
-            $date    = $request->input('date');
-            $data    = $this->_blockService->listado($request->route('microsite_id'), $date);
+            $date = $request->input('date');
+            $data = $this->_blockService->listado($request->route('microsite_id'), $date);
             return $this->CreateJsonResponse(true, 201, "messages.block_list", $data);
         });
     }
@@ -84,12 +84,23 @@ class BlockController extends Controller
         });
     }
 
+    public function updateGrid(Request $request)
+    {
+        return $this->TryCatchDB(function () use ($request) {
+            $response = $this->_blockService->updateByGrid($request->all(), $request->route('microsite_id'));
+
+            $this->_notificationBlock($request->route('microsite_id'), $request->route('block_id'), "Se edito un bloqueo", "update");
+            return $this->CreateJsonResponse($response, 201, "Bloqueo actualizado");
+        });
+
+    }
+
     private function _notificationBlock(Int $microsite_id, $block, $message, String $action)
     {
         if ($action == "update") {
-            $data = $this->_blockService->getBlock($microsite_id, $block);
+            $data      = $this->_blockService->getBlock($microsite_id, $block);
             $blockData = array($data);
-        } else if ($action == "delete"){
+        } else if ($action == "delete") {
             $blockData = $block;
         } else {
             $blockData = $this->_blockService->getBlock($microsite_id, $block);

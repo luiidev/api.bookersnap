@@ -20,7 +20,7 @@ Route::get('/docs', function () {
 });
 
 Route::group(['prefix' => 'v1/{lang}', 'middleware' => ['cors']], function () {
-    
+
     Route::get('guests-tags-categories', 'GuestTagCategoryController@index');
     //-----------------------------------------------------
     // TYPETURNS
@@ -67,6 +67,7 @@ function routeMesas()
         Route::delete('blocks/{block_id}', 'BlockController@delete');
         Route::post('blocks', 'BlockController@insert');
         Route::put('blocks/{block_id}', 'BlockController@update');
+        Route::patch('blocks/{block_id}/grid', 'BlockController@updateGrid');
 
         //-----------------------------------------------------
         // MICROSITE::SERVERS
@@ -163,14 +164,17 @@ function routeMesas()
 
         Route::resource('table/reservation', 'TableReservationController', ["only" => ["store", "edit", "update"]]);
 
-        Route::get('table/reservation/confirmed/{crypt}', 'TableReservationController@showByCrypt');
-        Route::post('table/reservation/cancel/{crypt}', 'TableReservationController@cancelReserveWeb');
         Route::put('table/reservation/{reservation}/cancel', 'TableReservationController@cancel');
         Route::put('table/reservation/{reservation}/quickedit', 'TableReservationController@quickEdit');
         Route::put('table/reservation/{reservation}/sit', 'TableReservationController@sit');
         Route::post('table/reservation/quickcreate', 'TableReservationController@quickCreate');
         Route::put('table/reservation/{reservation}/guest-list', 'TableReservationController@updateGuestList');
-        Route::post('table/reservation/w', 'TableReservationController@storeFromWeb');
+
+        Route::group(['middleware' => ['auth.api']], function () {
+            Route::post('table/reservation/w', 'TableReservationController@storeFromWeb');
+            Route::get('table/reservation/confirmed/{crypt}', 'TableReservationController@showByCrypt');
+            Route::post('table/reservation/cancel/{crypt}', 'TableReservationController@cancelReserveWeb');
+        });
 
         Route::post('waitlist', 'TableReservationController@createWaitList');
         Route::put('waitlist', 'TableReservationController@updateWaitList');
@@ -209,14 +213,16 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE:: Reservation Temporal
         //-----------------------------------------------------
-        Route::resource("reservationtemporal/", "ReservationTemporalController", ["only" => ["index", "destroy", "store"]]);
-        Route::get("reservationtemporal/{token}", "ReservationTemporalController@show");
-        Route::delete("reservationtemporal/{token}", "ReservationTemporalController@destroy");
+        Route::group(['prefix' => 'reservationtemporal', 'middleware' => ['auth.api']], function () {
+            Route::resource("/", "ReservationTemporalController", ["only" => ["index", "destroy", "store"]]);
+            Route::get("/{token}", "ReservationTemporalController@show");
+            Route::delete("/{token}", "ReservationTemporalController@destroy");
+        });
 
         //-----------------------------------------------------
         // MICROSITE:: Availability
         //-----------------------------------------------------
-        Route::group(['prefix' => 'availability/', 'middleware' => [/*'auth.api'*/]], function () {
+        Route::group(['prefix' => 'availability/', 'middleware' => ['auth.api']], function () {
             Route::get('basic', 'AvailabilityController@basic');
             Route::get('zones', 'AvailabilityController@getZones');
             Route::get('hours', 'AvailabilityController@getHours');
@@ -242,13 +248,16 @@ function routeMesas()
             Route::get('block', 'WebAppController@editBlock');
             Route::get('block/{block_id}', 'WebAppController@editBlock');
         });
+
+        Route::get("notification", "NotificationController@index");
+        Route::put("notification", "NotificationController@update");
     });
 
 }
 
+function apiPublic()
+{
 
-function apiPublic(){
-    
     //-----------------------------------------------------
     // MICROSITE:: Availability
     //-----------------------------------------------------
@@ -257,5 +266,5 @@ function apiPublic(){
         Route::get('daysdisabled', 'AvailabilityController@getDaysDisabled');
         Route::get('search', 'AvailabilityController@getFormatAvailability');
     });
-    
+
 }

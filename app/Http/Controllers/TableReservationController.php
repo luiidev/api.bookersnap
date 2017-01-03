@@ -77,7 +77,11 @@ class TableReservationController extends Controller
         $this->service = Service::make($request);
         $reservation   = $this->service->showByCrypt();
 
-        return $this->CreateJsonResponse(true, 200, "", $reservation);
+        if ($reservation !== null ) {
+            return $this->CreateJsonResponse(true, 200, "", $reservation);
+        } else {
+            return response("", 404);
+        }
     }
 
     public function cancelReserveWeb(Request $request)
