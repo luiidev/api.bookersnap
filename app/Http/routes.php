@@ -223,6 +223,7 @@ function routeMesas()
             Route::get('events', 'AvailabilityController@getEvents');
             Route::get('days', 'AvailabilityController@getDays');
             Route::get('daysdisabled', 'AvailabilityController@getDaysDisabled');
+            Route::get('days/disabled', 'AvailabilityController@getDaysDisabled');
             Route::get('people', 'AvailabilityController@getPeople');
             Route::get('formatAvailability', 'AvailabilityController@getFormatAvailability');
         });

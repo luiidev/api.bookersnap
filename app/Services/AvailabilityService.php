@@ -17,6 +17,7 @@ use App\Services\TableService;
 use Carbon\Carbon;
 use DB;
 use App\res_turn;
+use App\Entities\bs_type_event;
 
 class AvailabilityService
 {
@@ -1792,13 +1793,15 @@ class AvailabilityService
         if(!is_null($event_id)){
             $promotion = ev_event::where('id', $event_id)->get()->first();
             if($promotion){
-            return [
+                
+                return [
                     "id" => $promotion->id,
                     "name" => $promotion->name,
-                    "image" => $promotion->image,
-                    "description" => $promotion->description,
+                    "image" => ($promotion->image != null || $promotion->image != "")?bs_type_event::_BASEURL_IMG_THUMB_EVENT.$promotion->image:null,
+                    "description" => strip_tags($promotion->description),
                     "observation" => $promotion->observation,
                 ];
+                
             }
         }        
         return null;
@@ -1826,12 +1829,12 @@ class AvailabilityService
                 if ($promotion->turns->count() > 0) {
                     foreach ($promotion->turns as $turn) {
                         if ($turn->days->count() > 0) {
-                            foreach ($turn->days as $day) {
+                            foreach ($turn->days as $day) {               
                                 $data = [
                                     "id" => $promotion->id,
                                     "name" => $promotion->name,
-                                    "image" => $promotion->image,
-                                    "description" => $promotion->description,
+                                    "image" => ($promotion->image != null || $promotion->image != "")?bs_type_event::_BASEURL_IMG_THUMB_PROMOTION.$promotion->image:null,
+                                    "description" => strip_tags($promotion->description),
                                     "observation" => $promotion->observation,
                                 ];
 //                                $promoaux->push($promotion->id);

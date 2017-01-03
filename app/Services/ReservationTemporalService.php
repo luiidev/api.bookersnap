@@ -7,6 +7,8 @@ use Carbon\Carbon;
 use App\Services\Helpers\CalendarHelper;
 use App\Services\Helpers\TurnsHelper;
 use App\Services\Helpers\ReservationHelper;
+use DB;
+use App\Entities\bs_type_event;
 
 class ReservationTemporalService {
 
@@ -71,8 +73,6 @@ class ReservationTemporalService {
             $tables_id = $this->listTables($reservation['tables_id']);
             $ev_event_id = @$reservation['form']['event_id'];
             
-            $reservationInit = ReservationHelper::init($microsite_id, $date, $hour, null, $num_guests);
-           
             $reservationTemporal = new res_table_reservation_temp();
             $reservationTemporal->hour = $hour;
             $reservationTemporal->date = $date;
@@ -81,12 +81,7 @@ class ReservationTemporalService {
             $reservationTemporal->tables_id = $tables_id;            
             $reservationTemporal->ev_event_id = $ev_event_id;
             $reservationTemporal->ms_microsite_id = $microsite_id;
-            $reservationTemporal->expire = $this->datetimeExpire();
-            
-            $reservationTemporal->datetime_input = $reservationInit->datetime_input;
-            $reservationTemporal->datetime_output = $reservationInit->datetime_output;
-            $reservationTemporal->hours_duration = $reservationInit->hours_duration;
-            $reservationTemporal->res_turn_id = $reservationInit->res_turn_id;
+            $reservationTemporal->expire = $this->datetimeExpire();            
             
             $reservationTemporal->user_id = $user_id;
             $reservationTemporal->token = $tokenAuth;            
@@ -113,9 +108,7 @@ class ReservationTemporalService {
             $zone_id = $reservation['form']['zone_id'];
             $tables_id = $this->listTables($reservation['tables_id']);
             $ev_event_id = @$reservation['form']['event_id'];
-            
-            $reservationInit = ReservationHelper::init($microsite_id, $date, $hour, null, $num_guests);
-           
+                       
             $reservationTemporal->hour = $hour;
             $reservationTemporal->date = $date;
             $reservationTemporal->num_guest = $num_guests;
@@ -124,12 +117,7 @@ class ReservationTemporalService {
             $reservationTemporal->ev_event_id = $ev_event_id;
             $reservationTemporal->ms_microsite_id = $microsite_id;
             $reservationTemporal->expire = $this->datetimeExpire();
-            
-            $reservationTemporal->datetime_input = $reservationInit->datetime_input;
-            $reservationTemporal->datetime_output = $reservationInit->datetime_output;
-            $reservationTemporal->hours_duration = $reservationInit->hours_duration;
-            $reservationTemporal->res_turn_id = $reservationInit->res_turn_id;
-                       
+                                   
             $reservationTemporal->save();
             
             return $reservationTemporal;
@@ -158,7 +146,7 @@ class ReservationTemporalService {
     }
     
     public function deleteTemporal(string $dateExpirePrevious, string $token) {
-        res_table_reservation_temp::where('token', $token)->where('expire', '>=', $dateExpirePrevious)->delete();
+        res_table_reservation_temp::with("event")->where('token', $token)->where('expire', '>=', $dateExpirePrevious)->delete();
     }
 
     public function getTimeTolerance() {
@@ -168,7 +156,10 @@ class ReservationTemporalService {
     public function getTempReservation(String $token) {
         $diff = null;
         $now = Carbon::now();
-        $reservationtemporal = res_table_reservation_temp::where("token", $token)->where("expire", ">", $now)->orderBy("id", "desc")->first();
+        $reservationtemporal = res_table_reservation_temp::with(["event" => function($query){
+            $condition = "IF(bs_type_event_id = '".bs_type_event::_ID_EVENT_FREE."', CONCAT('".bs_type_event::_BASEURL_IMG_EVENT."', image), CONCAT('".bs_type_event::_BASEURL_IMG_PROMOTION."', image))";
+            return $query->select("*", DB::raw("$condition AS image"));
+        }])->where("token", $token)->where("expire", ">", $now)->orderBy("id", "desc")->first();
         if ($reservationtemporal !== null) {
             $diff = $now->diffInSeconds(Carbon::parse($reservationtemporal->expire), false) * 1000;
         }

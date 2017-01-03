@@ -83,9 +83,11 @@ class TableReservationController extends Controller
     public function cancelReserveWeb(Request $request)
     {
         $this->service = Service::make($request);
-        $this->service->cancelReserveWeb();
+        $reservation = $this->service->cancelReserveWeb();
+        
+        $this->_notification($request->route("microsite_id"), [$reservation], "Se ha cancelado una reservación", "update", @$request->key);
 
-        return $this->CreateJsonResponse(true, 200, "");
+        return $this->CreateJsonResponse(true, 200, "Se ha cancelado una reservación", $reservation);
     }
 
     /**
@@ -255,8 +257,8 @@ class TableReservationController extends Controller
     public function storeFromWeb(ReservationFromWebRequest $request) {
             $this->service = Service::make($request);
             return $this->TryCatchDB(function () use ($request) {
-                $data = $this->service->storeFromWeb();
-
+                
+                $data = $this->service->storeFromWeb($request->header("token"));                
                 $this->_notification($request->route("microsite_id"), $data["reservation"], "", "create", $request->key);
                 $this->sendConfirmWebReserveMail($data["reservation"], $data["site"]);
                 $this->sendConfirmWebMasterReserveMail($data["reservation"], $data["site"]);

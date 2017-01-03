@@ -14,6 +14,7 @@ use App\res_turn_time;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Database\Eloquent\Model;
+use Faker\Provider\Uuid;
 
 class res_reservation extends Model {
 

@@ -42,8 +42,10 @@ class SetTimeZoneMiddleware {
 //            date_default_timezone_set('America/Lima');
 //        }
 //        dd($microsite->map_longitude);
-        $request["timezone"] = "America/Mexico_City";
-        date_default_timezone_set('America/Mexico_City');
+        $request["timezone"] = "America/Lima";
+        date_default_timezone_set('America/Lima');
+//        $request["timezone"] = "America/Mexico_City";
+//        date_default_timezone_set('America/Mexico_City');
 
 
         return $next($request);

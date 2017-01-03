@@ -24,7 +24,7 @@ class ReservationFromWebRequest extends Request
     public function rules()
     {
         return [
-            "token" =>  "required|exists:res_table_reservation_temp",
+//            "token" =>  "required|exists:res_table_reservation_temp",
             "guest" => "required|array",
             "guest.first_name"    =>  "required|alpha_spaces|",
             "guest.last_name" =>  "required|alpha_spaces",
