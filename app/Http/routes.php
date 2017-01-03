@@ -246,6 +246,9 @@ function routeMesas()
             Route::get('block', 'WebAppController@editBlock');
             Route::get('block/{block_id}', 'WebAppController@editBlock');
         });
+
+        Route::get("notification", "NotificationController@index");
+        Route::put("notification", "NotificationController@update");
     });
 
 }

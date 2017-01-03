@@ -65,7 +65,7 @@ class res_reservation extends Model {
 
     public function user_notifications()
     {
-        return $this->belongsToMany(bs_user::class, "res_notifications");
+        return $this->belongsToMany(bs_user::class, "res_notifications", "res_reservation_id", "bs_user_id");
     }
 
     public function scopeWithRelations($query) {
