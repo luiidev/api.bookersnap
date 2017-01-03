@@ -20,7 +20,7 @@ Route::get('/docs', function () {
 });
 
 Route::group(['prefix' => 'v1/{lang}', 'middleware' => ['cors']], function () {
-    
+
     Route::get('guests-tags-categories', 'GuestTagCategoryController@index');
     //-----------------------------------------------------
     // TYPETURNS
@@ -67,6 +67,7 @@ function routeMesas()
         Route::delete('blocks/{block_id}', 'BlockController@delete');
         Route::post('blocks', 'BlockController@insert');
         Route::put('blocks/{block_id}', 'BlockController@update');
+        Route::patch('blocks/{block_id}/grid', 'BlockController@updateGrid');
 
         //-----------------------------------------------------
         // MICROSITE::SERVERS
@@ -253,9 +254,9 @@ function routeMesas()
 
 }
 
+function apiPublic()
+{
 
-function apiPublic(){
-    
     //-----------------------------------------------------
     // MICROSITE:: Availability
     //-----------------------------------------------------
@@ -264,5 +265,5 @@ function apiPublic(){
         Route::get('daysdisabled', 'AvailabilityController@getDaysDisabled');
         Route::get('search', 'AvailabilityController@getFormatAvailability');
     });
-    
+
 }
