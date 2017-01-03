@@ -31,9 +31,9 @@ class ACLTempApiMicrosite extends Middleware{
     public function handle($request, Closure $next, $action = null)
     {
         return $this->TryCatch(function () use ($request, $next, $action) {
-            $microsite = temp_microsite_api::where('app_id', $request->route('microsite_id', 0))->first();
+            $microsite = temp_microsite_api::where('app_id', $request->header('app_id', 0))->first();
             if($microsite){
-                Route::current()->setParameter('microsite_id', $microsite->ms_microsite_id);
+                // Route::current()->setParameter('microsite_id', $microsite->ms_microsite_id);
                 return $next($request);
             }else{
                 abort(403, "No tiene acceso a la aplicación");
