@@ -651,7 +651,7 @@ class AvailabilityService
                                     // $availability['form']['event_id'] = null;
                                     $availability['promotions'] = null;
                                 }
-                                $availability['form']['event_id'] = $idEvent;
+                                //$availability['form']['event_id'] = $idEvent;
                             }
                             $aux->push($availability);
                         }
@@ -736,7 +736,7 @@ class AvailabilityService
                             } else {
                                 $availability['promotions'] = null;
                             }                            
-                            $availability['form']['event_id'] = $idEvent;
+//                            $availability['form']['event_id'] = $idEvent;
                         }
                         $aux->push($availability);
                     }
@@ -1000,8 +1000,9 @@ class AvailabilityService
         //Devuelve las mesas ocupadas en la tabla temporal de reservaciones con expiracion
         $listReservationsTemp = $this->getReservationTemp($availabilityTablesId->toArray(), $date, $hour, $timezone, $microsite_id, $next_day);
         
-        $unavailabilityTablesFilter = collect(array_merge($listBlocks, $listReservations, $listReservationsTemp))->unique();        
-        $availabilityTablesId = $availabilityTablesId->diff($unavailabilityTablesFilter);
+        $unavailabilityTablesFilter = collect(array_merge($listBlocks, $listReservations, $listReservationsTemp))->unique();
+        
+        $availabilityTablesId = $availabilityTablesId->diff($unavailabilityTablesFilter)->values();
         
         //Filtrar de las mesas disponibles la cantidad de usuarios
         $availabilityTablesIdFinal = $this->availabilityTablesIdFinal($availabilityTablesId->toArray(), $num_guests);
@@ -1856,7 +1857,7 @@ class AvailabilityService
         $hour                = Carbon::parse($date . " " . $hour);
         $hourActual          = Carbon::now()->subMinutes(10);
         $tables              = collect();      
-        $reservations        = res_table_reservation_temp::where('date', $date)->where('hour', $hour)->where('ms_microsite_id', $microsite_id)->where('expire', '>', $hourActual->toDateTimeString())->get();       
+        $reservations        = res_table_reservation_temp::where(['date' => $date, 'hour' => $hour, 'ms_microsite_id' => $microsite_id])->where('expire', '>', $hourActual->toDateTimeString())->get();       
         if ($reservations->count() > 0) {
             foreach ($reservations as $reservationTemp) {
                 $tables_id = explode(",", $reservationTemp->tables_id);

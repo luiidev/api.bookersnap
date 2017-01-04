@@ -61,7 +61,7 @@
             <div class="info">
                 @if( $reservation->event )
                 <div class="promo">
-                    <img src="http://bookersnap.com/archivo/reservatiopromotion/{{ $reservation->event['image'] }}" />
+                    <img src="{{ $reservation->event['url_image'] }}" />
                 </div>
                 @endif
 
