@@ -89,7 +89,9 @@ class BlockController extends Controller
         return $this->TryCatchDB(function () use ($request) {
             $response = $this->_blockService->updateByGrid($request->all(), $request->route('microsite_id'));
 
-            $this->_notificationBlock($request->route('microsite_id'), $request->route('block_id'), "Se edito un bloqueo", "update");
+            $action = (count($request->input('tables_deleted')) > 0) ? "patch" : "update";
+
+            $this->_notificationBlock($request->route('microsite_id'), $request->route('block_id'), "Se edito un bloqueo", $action);
             return $this->CreateJsonResponse($response, 201, "Bloqueo actualizado");
         });
 
@@ -103,7 +105,8 @@ class BlockController extends Controller
         } else if ($action == "delete") {
             $blockData = $block;
         } else {
-            $blockData = $this->_blockService->getBlock($microsite_id, $block);
+            $data      = $this->_blockService->getBlock($microsite_id, $block);
+            $blockData = array($data);
         }
         event(new EmitNotification("b-mesas-floor-upd-block",
             array(
