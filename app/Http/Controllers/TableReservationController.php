@@ -263,7 +263,7 @@ class TableReservationController extends Controller
             return $this->TryCatchDB(function () use ($request) {
                 
                 $data = $this->service->storeFromWeb($request->header("token"));                
-                $this->_notification($request->route("microsite_id"), $data["reservation"], "", "create", $request->key);
+                $this->_notification($request->route("microsite_id"), $data["reservation"], "", "create", @$request->key);
                 $this->sendConfirmWebReserveMail($data["reservation"], $data["site"]);
                 $this->sendConfirmWebMasterReserveMail($data["reservation"], $data["site"]);
 
@@ -326,7 +326,7 @@ class TableReservationController extends Controller
         //     'name'  => $reservation->guest['first_name'].' '.$reservation->guest['last_name'],
         // );
 
-        $to =$reservation->email;
+        $to =  $reservation->email;
 
         $body = array(
             "template" => "emails.web_reserve",

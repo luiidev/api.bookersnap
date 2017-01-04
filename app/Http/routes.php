@@ -213,8 +213,9 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE:: Reservation Temporal
         //-----------------------------------------------------
-        Route::group(['prefix' => 'reservationtemporal', 'middleware' => ['auth.api']], function () {
+        Route::group(['prefix' => 'reservationtemporal', 'middleware' => ['auth.api']], function () {            
             Route::resource("/", "ReservationTemporalController", ["only" => ["index", "destroy", "store"]]);
+            Route::get("/expire", "ReservationTemporalController@expire");
             Route::get("/{token}", "ReservationTemporalController@show");
             Route::delete("/{token}", "ReservationTemporalController@destroy");
         });

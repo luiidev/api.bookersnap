@@ -510,7 +510,6 @@ class TableReservationService extends Service
     {
         
         $now = Carbon::now();
-
         $temporal = res_table_reservation_temp::where("token", $token)->where("expire", ">", $now)->orderBy("id", "desc")->first();
 
         if ($temporal === null) {
@@ -530,12 +529,6 @@ class TableReservationService extends Service
             }
         }
 
-        // $date = !$temporal->next_day ? $temporal->date : Carbon::parse($temporal->date)->addDay(1, "days")->toDateString();
-//        $reservationInit = CalendarHelper::CalculeTimesReservation($this->microsite_id, $temporal->date, $temporal->hour);
-
-//        $turn     = TurnsHelper::TypeTurnWithHourForHour($temporal->date, $temporal->hour, $this->microsite_id);
-//        $duration = res_turn_time::where("res_turn_id", $turn->turn_id)->where("num_guests", $temporal->num_guest)->first();
-
         $reservation                            = new res_reservation();
         $reservation->res_guest_id              = $guest_id;
         $reservation->ev_event_id               = $temporal->ev_event_id;
@@ -545,16 +538,11 @@ class TableReservationService extends Service
         $reservation->num_guest                 = $temporal->num_guest;
         $reservation->date_reservation          = $temporal->date;
         $reservation->hours_reservation         = $temporal->hour;
-//        $reservation->hours_duration            = $duration ? $duration->time : "01:30:00";
         $reservation->note                      = $this->req->note;
         $reservation->phone                     = $phone;
         $reservation->email                     = $email;
         $reservation->user_add                  = $this->req->_bs_user_id;
         $reservation->ms_microsite_id           = $this->microsite_id;
-//        $reservation->res_turn_id               = $turn->turn_id;
-
-//        $reservation->datetime_input  = $reservationInit->date_reservation . ' ' . $temporal->hour;
-//        $reservation->datetime_output = DateTimesHelper::AddTime($reservation->datetime_input, $reservation->hours_duration);
 
         $reservation->save();
 
