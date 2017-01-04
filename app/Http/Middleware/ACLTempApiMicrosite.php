@@ -18,7 +18,7 @@ use App\temp_microsite_api;
 use Closure;
 use App\Http\Middleware\Middleware;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-
+use Route;
 class ACLTempApiMicrosite extends Middleware{
 
     /**
@@ -28,15 +28,11 @@ class ACLTempApiMicrosite extends Middleware{
      * @param  \Closure $next
      * @return mixed
      */
-    public function handle($request, Closure $next, $action = null) {
-        
-//        dd($request->header());
-        
+    public function handle($request, Closure $next, $action = null)
+    {
         return $this->TryCatch(function () use ($request, $next, $action) {
-            
-            $microsite = temp_microsite_api::where('app_id', $request->header('APPID', 0))->first();
+            $microsite = temp_microsite_api::where('app_id', $request->header('app_id', 0))->first();
             if($microsite){
-                $request->request->set('__ID_MICROSITE', $microsite->ms_microsite_id);
                 return $next($request);
             }else{
                 abort(403, "No tiene acceso a la aplicación");
