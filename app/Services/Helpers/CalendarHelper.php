@@ -194,16 +194,19 @@ class CalendarHelper {
         $datenow = Carbon::now();        
         $yesterday = $datenow->copy()->subDay();
         $dateyesterday = $yesterday->toDateString();
-        
+        $nextday = $datenow->copy()->addDay();
+        $datenextday = $nextday->toDateString();
+                
         $dateIni = $date;
         $date = (strcmp($date, $datenow->toDateString()) == -1 || is_null($date))? $datenow->toDateString():$date;
         
         if(is_null($dateIni) || strcmp($dateIni, $yesterday->toDateString()) == 0){  // SI ES LA FEHCA DE HOY BUSCAR HORARIOS DE MADRUGADA DE AYER
             
-            $datetimeEnd = "CONCAT('$date ', end_time)";
+            $datetimeEnd = "CONCAT('$date ', end_time)";            
             /* turnos de Ayer en el calendario */
             $lastTurn = res_turn_calendar::fromMicrosite($microsite_id, $dateyesterday, $dateyesterday)->orderBy('start_date');
-            $lastTurn = $lastTurn->whereRaw("start_time > end_time")->whereRaw("$datetimeEnd >= ?", [$datenow->toDateTimeString()])->get();            
+            $lastTurn = $lastTurn->whereRaw("start_time > end_time")->whereRaw("$datetimeEnd >= ?", [$datenow->toDateTimeString()]);
+            $lastTurn = $lastTurn->get();            
             /* turnos de Ayer en eventos */
             $eventFree = ev_event::eventFreeActive($dateyesterday, $dateyesterday)->select('*', DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"));
             $eventFree = $eventFree->where('ms_microsite_id', $microsite_id)->whereHas('turn', function($query) use($date, $datenow){
@@ -216,12 +219,14 @@ class CalendarHelper {
             }
         }
         
-        // Buscar el turno en la fecha.        
-        $turncalendar = res_turn_calendar::fromMicrositeActives($microsite_id, $date, $date)->orderBy('start_date')->first();     
+        // Buscar el turno en la fecha.
+        $datetimeEnd = "IF(end_time > start_time ,CONCAT('$date ', end_time), CONCAT('$datenextday ', end_time))";  
+        $turncalendar = res_turn_calendar::fromMicrosite($microsite_id, $date, $date)->select("*", DB::raw("$datetimeEnd AS datetime_end"), DB::raw("'$date' AS start_date"))->whereRaw("$datetimeEnd >= ?",[$datenow->toDateTimeString()])->orderBy('datetime_end')->first();
+        
         if(!$turncalendar){
             // Buscar el turno mas proximos.
             $turncalendar = res_turn_calendar::fromMicrositeActives($microsite_id)->orderBy('start_date')->first();            
-        }
+        }        
         // Buscar el turno de eventos en la fecha.
         $eventFree = ev_event::eventFreeActive($date, $date)->select('*', DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"))->where('ms_microsite_id', $microsite_id)->with('turn')->orderBy('datetime_event')->first();
         if(!$eventFree){
@@ -250,7 +255,7 @@ class CalendarHelper {
                 return Carbon::parse($eventFree->start_date);
             }            
 //            return [$turncalendar, $eventFree, $dateCalendar, $dateEvent, $startDateTurnCalendar, $startDateTurnEvent];
-        }        
+        }      
         return false;
     }
 
