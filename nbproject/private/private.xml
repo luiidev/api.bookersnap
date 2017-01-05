@@ -3,16 +3,12 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Services/CalendarService.php</file>
             <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Services/ReservationTemporalService.php</file>
             <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Http/routes.php</file>
-            <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Services/AvailabilityService.php</file>
-            <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Http/Controllers/WebAppController.php</file>
-            <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Http/Controllers/CalendarController.php</file>
-            <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Http/Controllers/AvailabilityController.php</file>
-            <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Http/Controllers/TableController.php</file>
+            <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/res_reservation.php</file>
+            <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Services/TableReservationService.php</file>
+            <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Http/Controllers/TableReservationController.php</file>
             <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Http/Controllers/ReservationTemporalController.php</file>
-            <file>file:/D:/BOOKERSNAP/PROJECTS/APIREST/api.mesas/app/Services/TableService.php</file>
         </group>
     </open-files>
 </project-private>

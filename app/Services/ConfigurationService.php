@@ -29,42 +29,39 @@ class ConfigurationService
 
     public function getConfiguration(int $microsite_id)
     {
-        return res_configuration::where("ms_microsite_id", $microsite_id)->with(['forms' => function ($query) {
+        $configuration = res_configuration::where("ms_microsite_id", $microsite_id)->with(['forms' => function ($query) {
             $query->where('status', 1);
         }])->first();
+        if($configuration){
+            return $configuration;
+        }
+        return $this->createDefaultConfiguration($microsite_id);
     }
 
     public function createDefaultConfiguration(int $microsite_id)
     {
-        try {
-
             $config                       = new res_configuration();
             $config->ms_microsite_id      = $microsite_id;
-            $config->time_tolerance       = 1;
-            $config->time_restriction     = 1;
-            $config->max_people           = 1;
-            $config->max_people_standing  = 1;
-            $config->max_table            = 1;
-            $config->res_code_status      = 1;
-            $config->res_privilege_status = "test";
-            $config->messenger_status     = 1;
+            $config->time_tolerance       = 0;
+            $config->time_restriction     = 30;
+            $config->max_people           = 100;
+            $config->max_people_standing  = 10;
+            $config->max_table            = 4;
+            $config->res_code_status      = 0;
+            $config->res_privilege_status = 0;
+            $config->messenger_status     = 0;
             $config->user_add             = 1;
             $config->user_upd             = 1;
             $config->reserve_portal       = 1;
             $config->res_percentage_id    = 1;
-            $config->name_people_1        = "test";
-            $config->name_people_2        = "test";
-            $config->name_people_3        = "test";
+            $config->name_people_1        = "Hombres";
+            $config->name_people_2        = "Mujeres";
+            $config->name_people_3        = "Niños";
             $config->status_people_1      = 1;
             $config->status_people_2      = 1;
             $config->status_people_3      = 1;
             $config->save();
             return $config;
-
-        } catch (\Exception $e) {
-            abort(500, $e->getMessage());
-        }
-
     }
 
     public function updateConfiguration(int $microsite_id, array $input)

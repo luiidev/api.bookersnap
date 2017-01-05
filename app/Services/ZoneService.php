@@ -12,6 +12,7 @@ use App\Services\ZoneTableService;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Services\Helpers\CalendarHelper;
+use App\Services\Helpers\TurnsHelper;
 
 class ZoneService {
 
@@ -19,6 +20,23 @@ class ZoneService {
 
     public function __construct(ZoneTableService $ZoneTableService) {
         $this->_ZoneTableService = $ZoneTableService;
+    }
+    
+    /**
+     * Coleccion de todas las zonas activas
+     * @param int $microsite_id
+     * @param type $with
+     * @return type
+     */
+    public function actives(int $microsite_id, $with = null) {
+        $turnsActives = TurnsHelper::IdsCalendarActives($microsite_id);
+        $rows = res_zone::where('ms_microsite_id', $microsite_id)->whereIn('id', $turnsActives)->with('tables')->where("status", "<>", 2);
+        if (isset($with)) {
+            $split = explode('|', $with);
+            $rows = (in_array("turns", $split)) ? $rows->with('turns') : $rows;
+            $rows = (in_array("turns.type_turn", $split)) ? $rows->with('turns.typeTurn') : $rows;
+        }
+        return $rows->get();
     }
 
     /**

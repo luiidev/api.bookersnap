@@ -8,48 +8,19 @@
 | Here is where you can register all of the routes for an application.
 | It's a breeze. Simply tell Laravel the URIs it should respond to
 | and give it the controller to call when that URI is requested.
-|
+|s
  */
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-// use App\res_reservation;
-// use App\Entities\ms_microsite;
-// use App\Entities\bs_country;
-// use App\Entities\res_configuration;
-// Route::get('/mail', function () {
-    
-//     $to = array(
-//                     'email' => "luizhito.lp.4ever@gmail.com",
-//                     'name'  => "Luis Vasquez Arones",
-//                     'type'  => 'to',
-//                 );
-
-//     $data = array(
-//         "reservation" => res_reservation::with("guest")->find(437),
-//         "site" => ms_microsite::with("country", "configuration.percentage")->find(1)
-//     );
-
-//     // return bs_country::with("microsites")->get();
-//     // return res_configuration::with("microsite")->get();
-
-//     // return $data;
-
-//     $body = view("emails.web_reserve", $data)->render();
-//     // return $body;
-
-//     $config = "web_reserve";
-//     $mail = event(new App\Events\SendMailEvent($to, $body, $config));
-//     return $mail;
-// });
-
 Route::get('/docs', function () {
     return "documentacion del API";
 });
 
 Route::group(['prefix' => 'v1/{lang}', 'middleware' => ['cors']], function () {
+
     Route::get('guests-tags-categories', 'GuestTagCategoryController@index');
     //-----------------------------------------------------
     // TYPETURNS
@@ -96,7 +67,7 @@ function routeMesas()
         Route::delete('blocks/{block_id}', 'BlockController@delete');
         Route::post('blocks', 'BlockController@insert');
         Route::put('blocks/{block_id}', 'BlockController@update');
-        
+        Route::patch('blocks/{block_id}/grid', 'BlockController@updateGrid');
 
         //-----------------------------------------------------
         // MICROSITE::SERVERS
@@ -126,7 +97,7 @@ function routeMesas()
 
         //-----------------------------------------------------
         // MICROSITE::CALENDAR
-        //-----------------------------------------------------        
+        //-----------------------------------------------------
         Route::get('calendar/{date}', 'CalendarController@index');
         Route::get('calendar/{date}/zones', 'CalendarController@getZones');
         Route::get('calendar/{date}/shifts', 'CalendarController@listShift');
@@ -185,6 +156,7 @@ function routeMesas()
         Route::patch('reservations/{reservation_id}', 'ReservationController@patch');
         Route::delete('reservations/{reservation_id}', 'ReservationController@delete');
         Route::post('reservations/{reservation_id}/send-email', 'ReservationController@sendEmail');
+        Route::post('reservations/{reservation_id}/grid', 'ReservationController@updateGrid');
 
         //-----------------------------------------------------
         // MICROSITE:: RESERVATION
@@ -197,7 +169,12 @@ function routeMesas()
         Route::put('table/reservation/{reservation}/sit', 'TableReservationController@sit');
         Route::post('table/reservation/quickcreate', 'TableReservationController@quickCreate');
         Route::put('table/reservation/{reservation}/guest-list', 'TableReservationController@updateGuestList');
-        Route::post('table/reservation/w', 'TableReservationController@storeFromWeb');
+
+        Route::group(['middleware' => ['auth.api']], function () {
+            Route::post('table/reservation/w', 'TableReservationController@storeFromWeb');
+            Route::get('table/reservation/confirmed/{crypt}', 'TableReservationController@showByCrypt');
+            Route::post('table/reservation/cancel/{crypt}', 'TableReservationController@cancelReserveWeb');
+        });
 
         Route::post('waitlist', 'TableReservationController@createWaitList');
         Route::put('waitlist', 'TableReservationController@updateWaitList');
@@ -236,19 +213,25 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE:: Reservation Temporal
         //-----------------------------------------------------
-        Route::resource("reservationtemporal/", "ReservationTemporalController", ["only" => ["index", "destroy", "store"]]);
-        Route::get("reservationtemporal/{token}", "ReservationTemporalController@show");
+        Route::group(['prefix' => 'reservationtemporal', 'middleware' => ['auth.api']], function () {
+            Route::resource("/", "ReservationTemporalController", ["only" => ["index", "destroy", "store"]]);
+            Route::get("/expire", "ReservationTemporalController@expire");
+            Route::get("/{token}", "ReservationTemporalController@show");
+            Route::delete("/{token}", "ReservationTemporalController@destroy");
+        });
 
         //-----------------------------------------------------
         // MICROSITE:: Availability
         //-----------------------------------------------------
-        Route::group(['prefix' => 'availability/'], function () {
+        Route::get('availability/hours', 'AvailabilityController@getHours');
+        Route::group(['prefix' => 'availability/', 'middleware' => ['auth.api']], function () {
             Route::get('basic', 'AvailabilityController@basic');
             Route::get('zones', 'AvailabilityController@getZones');
-            Route::get('hours', 'AvailabilityController@getHours');
+
             Route::get('events', 'AvailabilityController@getEvents');
             Route::get('days', 'AvailabilityController@getDays');
             Route::get('daysdisabled', 'AvailabilityController@getDaysDisabled');
+            Route::get('days/disabled', 'AvailabilityController@getDaysDisabled');
             Route::get('people', 'AvailabilityController@getPeople');
             Route::get('formatAvailability', 'AvailabilityController@getFormatAvailability');
         });
@@ -258,6 +241,7 @@ function routeMesas()
         //-----------------------------------------------------
         Route::group(['prefix' => 'web-app/'], function () {
             Route::get('floor', 'WebAppController@floor');
+            Route::get('grid', 'WebAppController@grid');
             Route::get('book', 'WebAppController@book');
             Route::get('book/history', 'WebAppController@bookHistory');
             Route::get('book/history/reservations', 'WebAppController@bookHistoryReservations');
@@ -266,6 +250,23 @@ function routeMesas()
             Route::get('block', 'WebAppController@editBlock');
             Route::get('block/{block_id}', 'WebAppController@editBlock');
         });
+
+        Route::get("notification", "NotificationController@index");
+        Route::put("notification", "NotificationController@update");
+    });
+
+}
+
+function apiPublic()
+{
+
+    //-----------------------------------------------------
+    // MICROSITE:: Availability
+    //-----------------------------------------------------
+    Route::group(['prefix' => 'reservations/'], function () {
+        Route::post('availability', 'AvailabilityController@basic');
+        Route::get('daysdisabled', 'AvailabilityController@getDaysDisabled');
+        Route::get('search', 'AvailabilityController@getFormatAvailability');
     });
 
 }

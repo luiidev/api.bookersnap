@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\EmitNotification;
+use App\Events\SendMailEvent;
 use App\Http\Requests;
 use App\Http\Requests\GuestListRequest;
 use App\Http\Requests\ReservationFromWebRequest;
@@ -63,6 +64,34 @@ class TableReservationController extends Controller
     public function show($id)
     {
 
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function showByCrypt(Request $request)
+    {
+        $this->service = Service::make($request);
+        $reservation   = $this->service->showByCrypt();
+
+        if ($reservation !== null ) {
+            return $this->CreateJsonResponse(true, 200, "", $reservation);
+        } else {
+            return response("", 404);
+        }
+    }
+
+    public function cancelReserveWeb(Request $request)
+    {
+        $this->service = Service::make($request);
+        $reservation = $this->service->cancelReserveWeb();
+        
+        $this->_notification($request->route("microsite_id"), [$reservation], "Se ha cancelado una reservación", "update", @$request->key);
+
+        return $this->CreateJsonResponse(true, 200, "Se ha cancelado una reservación", $reservation);
     }
 
     /**
@@ -232,10 +261,13 @@ class TableReservationController extends Controller
     public function storeFromWeb(ReservationFromWebRequest $request) {
             $this->service = Service::make($request);
             return $this->TryCatchDB(function () use ($request) {
-                $reservation = $this->service->storeFromWeb();
+                
+                $data = $this->service->storeFromWeb($request->header("token"));                
+                $this->_notification($request->route("microsite_id"), $data["reservation"], "", "create", @$request->key);
+                $this->sendConfirmWebReserveMail($data["reservation"], $data["site"]);
+                $this->sendConfirmWebMasterReserveMail($data["reservation"], $data["site"]);
 
-                $this->_notification($request->route("microsite_id"), $reservation, "", "create", $request->key);
-                return $this->CreateJsonResponse(true, 200, "", $reservation);
+                return $this->CreateJsonResponse(true, 200, "", $data["reserve_key"]);
             });
     }
 
@@ -285,6 +317,57 @@ class TableReservationController extends Controller
                 'key'          => $key
             )
         ));
+    }
+
+    private function sendConfirmWebReserveMail($reservation, $site) {
+        // Mas info
+        // $to = array(
+        //     'email' => $reservation->email,
+        //     'name'  => $reservation->guest['first_name'].' '.$reservation->guest['last_name'],
+        // );
+
+        $to =  $reservation->email;
+
+        $body = array(
+            "template" => "emails.web_reserve",
+            "data" =>  array(
+                "reservation" => $reservation,
+                "site" => $site
+            )
+        );
+
+        $config = "web_reserve";
+
+        $from = array(
+            "subject" => strtoupper(str_random(5))." Confirmación de reserva ".$site->name
+        );
+
+        event(new SendMailEvent($to, $body, $config, $from));
+    }
+
+    private function sendConfirmWebMasterReserveMail($reservation, $site) {
+        $to =$site->email;
+
+        $body = array(
+            "template" => "emails.web_master_reserve",
+            "data" =>  array(
+                "reservation" => $reservation,
+                "site" => $site
+            )
+        );
+
+        $config = "web_master_reserve";
+
+        $from = array(
+            "subject" => strtoupper(str_random(5)).' '.
+                                    $reservation->guest['first_name'].' '.
+                                    $reservation->guest['last_name'].' hizo una reservación en '.
+                                    $site->name.'. '.
+                                    $reservation->date_reservation.' '.
+                                    date('h:i A', strtotime($reservation->hours_reservation))
+        );
+
+        event(new SendMailEvent($to, $body, $config, $from));
     }
 
 }

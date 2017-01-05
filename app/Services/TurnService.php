@@ -12,10 +12,40 @@ use App\Services\Helpers\CreateTurnHelper;
 use App\Services\Helpers\TurnServiceHelper;
 use Carbon\Carbon;
 use DB;
+use App\Services\Helpers\TurnsHelper;
 
 class TurnService {
 
+    /**
+     * Colleccion de todos los turnos activos
+     * @param int $microsite_id
+     * @param string $with
+     * @return type
+     */
+    public function actives(int $microsite_id, string $with = null) {
+        
+        $turnIdscalendar = TurnsHelper::IdsCalendarActives($microsite_id);
+        
+        $rows = res_turn::with('typeTurn')->where('ms_microsite_id', $microsite_id)->whereIn('id', $turnIdscalendar);
+        if (!empty($params)) {
+            if (!empty($params['hours_ini'])) {
+                $rows = $rows->where('hours_ini', $params['hours_ini']);
+            }
+
+            if (!empty($params['hours_end'])) {
+                $rows = $rows->where('hours_end', $params['hours_end']);
+            }
+            if (!empty($params['type_turn'])) {
+                $rows = $rows->where('res_type_turn_id', $params['type_turn']);
+            }
+        }
+        $rows = $rows->get();
+
+        return $rows;
+    }
+    
     public function search(int $microsite_id, array $params) {
+        
         $rows = res_turn::with('typeTurn')->where('ms_microsite_id', $microsite_id);
         if (!empty($params)) {
             if (!empty($params['hours_ini'])) {
@@ -74,7 +104,7 @@ class TurnService {
                 ->where("end_date", ">=", $fecha->toDateString())
                 ->pluck('id');
 
-        $rows = res_turn::select(array(
+        $rows = res_turn::inCalendar($date)->select(array(
                     'id',
                     'name',
                     'res_type_turn_id',
@@ -84,7 +114,7 @@ class TurnService {
 //                    DB::raw("IF(hours_end > hours_ini, '" . $fecha->toDateString() . "', '" . $nextDay->toDateString() . "') AS date_end"),
 //                    DB::raw("CONCAT('" . $fecha->toDateString() . "',' ',hours_ini) AS start_datetime"),
 //                    DB::raw("IF(hours_end > hours_ini, CONCAT('" . $fecha->toDateString() . "',' ',hours_end), CONCAT('" . $nextDay->toDateString() . "',' ',hours_end)) AS end_datetime")
-                ))->where('ms_microsite_id', $microsite_id)->whereIn('id', $turnsIds);
+                ))->where('ms_microsite_id', $microsite_id);
         
         $rows = isset($type_turn) ? $rows->whereIn('res_type_turn_id', explode(",", $type_turn)) : $rows;
 
@@ -239,7 +269,7 @@ class TurnService {
 
             DB::BeginTransaction();
             $turn->save();
-
+            unset($turn_zones);
             $turn_zones = array();
             foreach ($request->turn_zone as $value) {
                 $this->saveTurnTables(@$value["tables"], $turn->hours_ini, $turn->hours_end, $turn->id);
@@ -428,7 +458,9 @@ class TurnService {
 
     public function getListTable(int $turn_id, int $zone_id) {
 
-        $turn = res_turn::where('id', $turn_id)->first();
+        $turn = res_turn::whereHas('turnZone',function($query) use ($turn_id){
+            return $query->where('id', $turn_id);
+        })->first();
 
         if ($turn != null) {
             $EnableTimesForTable = new \App\Domain\EnableTimesForTable();

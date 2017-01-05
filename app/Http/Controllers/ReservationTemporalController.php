@@ -53,14 +53,19 @@ class ReservationTemporalController extends Controller
      */
     public function store(ReservationTemporalRequest $request)
     {
+        // return $request->header("token");
         //inyectar evento
         // $request->request->set('ev_event_id', 1);
+        
         return $this->TryCatch(function () use ($request) {
+            
+//             $token        = request()->cookie('token', request()->cookie('laravel_session'));
+            $token        = request()->header("token");
             $ev_event_id = $request->ev_event_id;
 
             $user_id      = $request->input("_bs_user_id");
             $microsite_id = $request->route('microsite_id');
-            $token        = $request->token;
+//            $token        = $request->token;          
             $hour         = $request->hour;
             $date         = $request->date;
             $num_guests   = $request->num_guests;
@@ -94,14 +99,13 @@ class ReservationTemporalController extends Controller
      */
     public function show($lang, $microsite_id, $token)
     {
+        
         return $this->TryCatch(function () use ($microsite_id, $token) {
 
-            $reservation_temp = $this->service->getTempReservation($token);
-
-            if ($reservation_temp["reservation"] === null) {
-                return $this->CreateJsonResponse(true, 200, "", null);
-            }
-
+            $reservation_temp = $this->service->getTempReservation($token);            
+//            if ($reservation_temp["reservation"] === null) {
+//                return response("", 500);
+//            }
             $forms = $this->formService->getFormsByMicrosite($microsite_id);
 
             return $this->CreateJsonResponse(true, 200, "", ["reservation" => $reservation_temp["reservation"], "forms" => $forms, "time" => $reservation_temp["time"]]);
@@ -137,8 +141,30 @@ class ReservationTemporalController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($lang, $microsite_id, $token)
     {
-        //
+        return $this->TryCatch(function () use ($microsite_id, $token) {
+            $this->service->temporalReserveFinish($token);
+
+            return $this->CreateJsonResponse(true, 200, "");
+        });
+    }
+    
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function expire(Request $request)
+    {       
+        return $this->TryCatch(function () use ($request) {
+            
+            $microsite_id = $request->route("microsite_id");
+            $token = $request->header("token");
+            $result = $this->service->temporalReserveExpire($microsite_id, $token);
+
+            return $this->CreateJsonResponse(true, 200, "", $result);
+        });
     }
 }

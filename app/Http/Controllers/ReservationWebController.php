@@ -30,7 +30,7 @@ class AvailabilityController extends Controller
             $event_id     = $request->event_id;
             
             $reservationTime = CalendarHelper::getDatetimeCalendar($microsite_id, $date, $hour);
-            
+//            return [$reservationTime];
             if(!$reservationTime){
                 abort(500, "Este horario no esta disponible :(");
             }
@@ -66,12 +66,13 @@ class AvailabilityController extends Controller
     {
         $microsite_id = $request->route('microsite_id');
         $date         = $request->date;
+        $zone_id      = $request->zone_id;
+        $timezone     = $request->timezone;
 
-        return $this->TryCatch(function () use ($microsite_id, $date) {
-            $hours = $this->service->getHours($microsite_id, $date);
+        return $this->TryCatch(function () use ($microsite_id, $date, $zone_id, $timezone) {
+            $hours = $this->service->getHours($microsite_id, $date, $zone_id, $timezone);
             return $this->CreateJsonResponse(true, 200, "", $hours);
         });
-        
     }
 
     public function getEvents(AvailabilityInfoRequest $request)
@@ -142,7 +143,7 @@ class AvailabilityController extends Controller
     {        
         return $this->TryCatch(function () use ($request) {
             $microsite_id = $request->route('microsite_id');
-            $date = $request->input('date');            
+            $date = $request->input('date', \Carbon\Carbon::now()->toDateString());            
             $people = $this->service->formatAvailability($microsite_id, $date);
             return $this->CreateJsonResponse(true, 200, "", $people);
         });

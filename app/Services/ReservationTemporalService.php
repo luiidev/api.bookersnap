@@ -7,6 +7,8 @@ use Carbon\Carbon;
 use App\Services\Helpers\CalendarHelper;
 use App\Services\Helpers\TurnsHelper;
 use App\Services\Helpers\ReservationHelper;
+use DB;
+use App\Entities\bs_type_event;
 
 class ReservationTemporalService {
 
@@ -28,23 +30,17 @@ class ReservationTemporalService {
         $this->tokenAuth = $tokenAuth;
         $dateExpirePrevious = Carbon::now()->subMinutes($this->timeTolerance)->toDateTimeString();
         
-        $reservationTemporal = res_table_reservation_temp::where('ms_microsite_id', $microsite_id)->where('token', $this->tokenAuth)->where('expire', '>=', $dateExpirePrevious)->first();
+        $reservationTemporal = res_table_reservation_temp::where('ms_microsite_id', $microsite_id)->where('token', $this->tokenAuth)->where('expire', '>=', Carbon::now()->toTimeString())->first();
         
-        if ($reservationTemporal) {            
-            if(!$this->isDeferer($reservationTemporal, $date, $hour, $num_guest, $zone_id)){                
-                $reservationTemporal->expire = $this->datetimeExpire();
-                $reservationTemporal->save();
-                return $reservationTemporal;                
-            }else{                
-                $reservationTemporal = $this->updateReservationTemporal($reservationTemporal, $microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone);
-                if (!$reservationTemporal) {
-                    $this->deleteReservationTempActive($microsite_id, $this->tokenAuth, $dateExpirePrevious);
-                    abort(500, "No hay disponibilidad de mesas");
-                }
-                return $reservationTemporal;            
+        if ($reservationTemporal) {
+            $reservationTemporal = $this->updateReservationTemporal($reservationTemporal, $microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone, $ev_event_id);
+            if (!$reservationTemporal) {
+                $this->deleteReservationTempActive($microsite_id, $this->tokenAuth, $dateExpirePrevious);
+                abort(500, "No hay disponibilidad de mesas");
             }
+            return $reservationTemporal;
         }else{            
-            $reservationTemporal = $this->saveReservationTemporal($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone, $user_id, $tokenAuth);
+            $reservationTemporal = $this->saveReservationTemporal($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone, $ev_event_id, $user_id, $tokenAuth);
             if (!$reservationTemporal) {
                 $this->deleteReservationTempActive($microsite_id, $this->tokenAuth, $dateExpirePrevious);
                 abort(500, "No hay disponibilidad de mesas");
@@ -54,11 +50,11 @@ class ReservationTemporalService {
         
     }
     
-    private function saveReservationTemporal($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone, $user_id, $tokenAuth) {        
+    private function saveReservationTemporal($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone, $ev_event_id, $user_id, $tokenAuth) {        
         if (isset($zone_id)) {
-            $availabilityList = $this->availabilityService->searchAvailabilityDay($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone);
+            $availabilityList = $this->availabilityService->searchAvailabilityDay($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone, $ev_event_id);
         } else {
-            $availabilityList = $this->availabilityService->searchAvailabilityDayAllZone($microsite_id, $date, $hour, $num_guests, $next_day, $timezone);            
+            $availabilityList = $this->availabilityService->searchAvailabilityDayAllZone($microsite_id, $date, $hour, $num_guests, $next_day, $timezone, $ev_event_id);            
         }
         
         $reservation = $availabilityList[2];
@@ -71,8 +67,6 @@ class ReservationTemporalService {
             $tables_id = $this->listTables($reservation['tables_id']);
             $ev_event_id = @$reservation['form']['event_id'];
             
-            $reservationInit = ReservationHelper::init($microsite_id, $date, $hour, null, $num_guests);
-           
             $reservationTemporal = new res_table_reservation_temp();
             $reservationTemporal->hour = $hour;
             $reservationTemporal->date = $date;
@@ -81,12 +75,7 @@ class ReservationTemporalService {
             $reservationTemporal->tables_id = $tables_id;            
             $reservationTemporal->ev_event_id = $ev_event_id;
             $reservationTemporal->ms_microsite_id = $microsite_id;
-            $reservationTemporal->expire = $this->datetimeExpire();
-            
-            $reservationTemporal->datetime_input = $reservationInit->datetime_input;
-            $reservationTemporal->datetime_output = $reservationInit->datetime_output;
-            $reservationTemporal->hours_duration = $reservationInit->hours_duration;
-            $reservationTemporal->res_turn_id = $reservationInit->res_turn_id;
+            $reservationTemporal->expire = $this->datetimeExpire();            
             
             $reservationTemporal->user_id = $user_id;
             $reservationTemporal->token = $tokenAuth;            
@@ -97,11 +86,11 @@ class ReservationTemporalService {
         return false;
     }
     
-    private function updateReservationTemporal(res_table_reservation_temp $reservationTemporal, $microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone) {        
+    private function updateReservationTemporal(res_table_reservation_temp $reservationTemporal, $microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone, $ev_event_id) {        
         if (isset($zone_id)) {
-            $availabilityList = $this->availabilityService->searchAvailabilityDay($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone);
+            $availabilityList = $this->availabilityService->searchAvailabilityDay($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone, $ev_event_id);
         } else {
-            $availabilityList = $this->availabilityService->searchAvailabilityDayAllZone($microsite_id, $date, $hour, $num_guests, $next_day, $timezone);            
+            $availabilityList = $this->availabilityService->searchAvailabilityDayAllZone($microsite_id, $date, $hour, $num_guests, $next_day, $timezone, $ev_event_id);            
         }
         
         $reservation = $availabilityList[2];
@@ -113,9 +102,7 @@ class ReservationTemporalService {
             $zone_id = $reservation['form']['zone_id'];
             $tables_id = $this->listTables($reservation['tables_id']);
             $ev_event_id = @$reservation['form']['event_id'];
-            
-            $reservationInit = ReservationHelper::init($microsite_id, $date, $hour, null, $num_guests);
-           
+                       
             $reservationTemporal->hour = $hour;
             $reservationTemporal->date = $date;
             $reservationTemporal->num_guest = $num_guests;
@@ -124,12 +111,7 @@ class ReservationTemporalService {
             $reservationTemporal->ev_event_id = $ev_event_id;
             $reservationTemporal->ms_microsite_id = $microsite_id;
             $reservationTemporal->expire = $this->datetimeExpire();
-            
-            $reservationTemporal->datetime_input = $reservationInit->datetime_input;
-            $reservationTemporal->datetime_output = $reservationInit->datetime_output;
-            $reservationTemporal->hours_duration = $reservationInit->hours_duration;
-            $reservationTemporal->res_turn_id = $reservationInit->res_turn_id;
-                       
+                                   
             $reservationTemporal->save();
             
             return $reservationTemporal;
@@ -158,7 +140,7 @@ class ReservationTemporalService {
     }
     
     public function deleteTemporal(string $dateExpirePrevious, string $token) {
-        res_table_reservation_temp::where('token', $token)->where('expire', '>=', $dateExpirePrevious)->delete();
+        res_table_reservation_temp::with("event")->where('token', $token)->where('expire', '>=', $dateExpirePrevious)->delete();
     }
 
     public function getTimeTolerance() {
@@ -168,11 +150,31 @@ class ReservationTemporalService {
     public function getTempReservation(String $token) {
         $diff = null;
         $now = Carbon::now();
-        $reservationtemporal = res_table_reservation_temp::where("token", $token)->where("expire", ">", $now)->orderBy("id", "desc")->first();
+        $reservationtemporal = res_table_reservation_temp::with(["event" => function($query){
+            $condition = "IF(bs_type_event_id = '".bs_type_event::_ID_EVENT_FREE."', CONCAT('".bs_type_event::_BASEURL_IMG_EVENT."', image), CONCAT('".bs_type_event::_BASEURL_IMG_PROMOTION."', image))";
+            return $query->select("*", DB::raw("$condition AS image"));
+        }])->where("token", $token)->where("expire", ">", $now)->orderBy("id", "desc")->first();
         if ($reservationtemporal !== null) {
             $diff = $now->diffInSeconds(Carbon::parse($reservationtemporal->expire), false) * 1000;
         }
-        return array("reservation" => $reservationtemporal, "time" => $diff,);
+        return array("reservation" => $reservationtemporal, "time" => $diff);
     }
 
+    public function temporalReserveFinish(String $token)
+    {
+        $now = Carbon::now();
+        $reservationtemporal = res_table_reservation_temp::where("token", $token)->where("expire", ">", $now)->orderBy("expire", "desc")->first();
+        if ($reservationtemporal !== null) {
+            $reservationtemporal->expire = $now->toDateTimeString();
+            $reservationtemporal->save();
+        }
+    }
+    
+    public function temporalReserveExpire(int $microsite_id, String $token)
+    {
+        $now = Carbon::now();
+        $reservationtemporal = res_table_reservation_temp::where(["ms_microsite_id" => $microsite_id,"token" => $token]);
+        $reservationtemporal = $reservationtemporal->where("expire", ">", $now);
+        return $reservationtemporal->update(["expire" => $now->toDateTimeString()]);
+    }
 }

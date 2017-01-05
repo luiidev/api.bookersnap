@@ -6,3 +6,4 @@ Homestead.json
 .env
 /.idea
 /public/github.php
+/nbproject/private/
