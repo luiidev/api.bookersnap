@@ -256,7 +256,7 @@ class ReservationService
         if (isset($data["num_people_3"])) {
             $reservation->num_people_3 = $data["num_people_3"];
         }
-        
+
         if (isset($data["consume"])) {
             $reservation->consume = $data["consume"];
         }
