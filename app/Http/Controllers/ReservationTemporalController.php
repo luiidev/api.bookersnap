@@ -99,13 +99,12 @@ class ReservationTemporalController extends Controller
      */
     public function show($lang, $microsite_id, $token)
     {
-        
         return $this->TryCatch(function () use ($microsite_id, $token) {
 
             $reservation_temp = $this->service->getTempReservation($token);            
-//            if ($reservation_temp["reservation"] === null) {
-//                return response("", 500);
-//            }
+            if ($reservation_temp["reservation"] === null) {
+                return response("", 404);
+            }
             $forms = $this->formService->getFormsByMicrosite($microsite_id);
 
             return $this->CreateJsonResponse(true, 200, "", ["reservation" => $reservation_temp["reservation"], "forms" => $forms, "time" => $reservation_temp["time"]]);
