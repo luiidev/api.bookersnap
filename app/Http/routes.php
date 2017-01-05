@@ -213,7 +213,7 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE:: Reservation Temporal
         //-----------------------------------------------------
-        Route::group(['prefix' => 'reservationtemporal', 'middleware' => ['auth.api']], function () {            
+        Route::group(['prefix' => 'reservationtemporal', 'middleware' => ['auth.api']], function () {
             Route::resource("/", "ReservationTemporalController", ["only" => ["index", "destroy", "store"]]);
             Route::get("/expire", "ReservationTemporalController@expire");
             Route::get("/{token}", "ReservationTemporalController@show");
@@ -223,10 +223,11 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE:: Availability
         //-----------------------------------------------------
+        Route::get('availability/hours', 'AvailabilityController@getHours');
         Route::group(['prefix' => 'availability/', 'middleware' => ['auth.api']], function () {
             Route::get('basic', 'AvailabilityController@basic');
             Route::get('zones', 'AvailabilityController@getZones');
-            Route::get('hours', 'AvailabilityController@getHours');
+
             Route::get('events', 'AvailabilityController@getEvents');
             Route::get('days', 'AvailabilityController@getDays');
             Route::get('daysdisabled', 'AvailabilityController@getDaysDisabled');

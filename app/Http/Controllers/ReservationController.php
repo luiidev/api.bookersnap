@@ -172,10 +172,7 @@ class ReservationController extends Controller
         $service = $this->_ReservationService;
         return $this->TryCatch(function () use ($request, $service) {
             $result = $service->updateByGrid($request->all(), $request->route('microsite_id'));
-
-            $action = (count($request->input('tables_deleted')) > 0) ? "patch" : "update";
-
-            $this->_notification($request->route("microsite_id"), [$result], "Reservación actualizada", $action, $request->key);
+            $this->_notification($request->route("microsite_id"), [$result], "Reservación actualizada", "update", $request->key);
 
             return response()->json($result);
         });

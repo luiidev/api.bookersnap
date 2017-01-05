@@ -88,10 +88,7 @@ class BlockController extends Controller
     {
         return $this->TryCatchDB(function () use ($request) {
             $response = $this->_blockService->updateByGrid($request->all(), $request->route('microsite_id'));
-
-            $action = (count($request->input('tables_deleted')) > 0) ? "patch" : "update";
-
-            $this->_notificationBlock($request->route('microsite_id'), $request->route('block_id'), "Se edito un bloqueo", $action);
+            $this->_notificationBlock($request->route('microsite_id'), $request->route('block_id'), "Se edito un bloqueo", "update");
             return $this->CreateJsonResponse($response, 201, "Bloqueo actualizado");
         });
 
