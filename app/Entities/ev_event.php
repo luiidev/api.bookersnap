@@ -13,6 +13,11 @@ class ev_event extends Model {
 
     const _ID_EVENT_FREE = 1;
     const _ID_PROMOTION_FREE = 3;
+    
+    const _BASEURL_IMG_EVENT = "http://bookersnap.com/archivo/eventos/800x800/";
+    const _BASEURL_IMG_THUMB_EVENT = "http://bookersnap.com/archivo/eventos/160x160/";
+    const _BASEURL_IMG_PROMOTION = "http://bookersnap.com/archivo/reservatiopromotion/800x800/";
+    const _BASEURL_IMG_THUMB_PROMOTION = "http://bookersnap.com/archivo/reservatiopromotion/320x320/";
 
     public function type() {
         return $this->belongsTo('App\Entities\bs_type_event', 'bs_type_event_id');
@@ -68,7 +73,9 @@ class ev_event extends Model {
 
         $query = $query->where(function($query) use ($datenow) {
             $query = $query->promotionFree();
-            $query = $query->doesntHave('turns');   // para promciones que se aplican todos los dias de la semana.         
+            $query = $query->whereHas('turns', function($query){
+                return $query->doesntHave('days');
+            });   // para promciones que se aplican todos los dias de la semana.         
             $query = $query->orWhereHas('turns', function($query) use ($datenow) {
                 $query = $query->whereHas('days', function($query) use ($datenow) {
                     $query = $query->where('res_day_turn_promotion.day', $datenow->dayOfWeek);
