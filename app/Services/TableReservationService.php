@@ -534,7 +534,7 @@ class TableReservationService extends Service
         $reservation->ev_event_id               = $temporal->ev_event_id;
         $reservation->res_source_type_id        = self::_ID_SOURCE_RESERVATION_WEB;
         $reservation->res_reservation_status_id = self::_ID_STATUS_RESERVATION_RESERVED;
-        $reservation->status_released           = 0;
+        $reservation->status_released           = 0;        
         $reservation->num_guest                 = $temporal->num_guest;
         $reservation->date_reservation          = $temporal->date;
         $reservation->hours_reservation         = $temporal->hour;
@@ -542,16 +542,16 @@ class TableReservationService extends Service
         $reservation->phone                     = $phone;
         $reservation->email                     = $email;
         $reservation->user_add                  = $this->req->_bs_user_id;
-        $reservation->ms_microsite_id           = $this->microsite_id;
-
+        $reservation->ms_microsite_id           = $this->microsite_id;      
+        $reservation->status_standing = (strlen(trim($temporal->tables_id))>0)?0:1;
+        
         $reservation->save();
-
+                
         // Tables
-        $tables = array();
-        foreach (explode(",", $temporal->tables_id) as $value) {
+        $tables = explode(",", trim($temporal->tables_id));        
+        foreach ($tables as $value) {
             $tables[$value] = array("num_people" => 0);
         }
-
         $reservation->tables()->sync($tables);
 
         // Guest List

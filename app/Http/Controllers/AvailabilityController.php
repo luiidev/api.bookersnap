@@ -30,9 +30,9 @@ class AvailabilityController extends Controller
             $event_id     = $request->event_id;
             
             $reservationTime = CalendarHelper::getDatetimeCalendar($microsite_id, $date, $hour);
-            
+           
             if(!$reservationTime){
-                abort(500, "Este horario no esta disponible :(");
+                abort(500, "Este horario no esta disponible");
             }
             
             $now = Carbon::now();

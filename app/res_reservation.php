@@ -164,9 +164,9 @@ class res_reservation extends Model {
         }
         
         if($reservation){
-            $this->setDatetimesReservationUpdate($reservation);
+            $this->setDatetimesReservationUpdate($reservation, $turn);
         }else{
-            $this->setDatetimesReservationCreate();
+            $this->setDatetimesReservationCreate($turn);
         }
         
     }
@@ -177,9 +177,11 @@ class res_reservation extends Model {
      * @param string $date_reservation
      * @param string $hours_reservation
      */
-    private function setDatetimesReservationCreate() {
-                    
-        $datetime_reservation = trim($this->date_reservation)." ".trim($this->hours_reservation);
+    private function setDatetimesReservationCreate($turn) {
+        
+        $datetime_reservation = Carbon::parse(trim($this->date_reservation)." ".trim($this->hours_reservation));
+        $datetime_reservation = (@$turn && $turn->hours_ini > $turn->hours_end && strcmp($datetime_reservation->toTimeString(), 0) >=0 && strcmp($datetime_reservation->toTimeString(), $turn->hours_end) <= 0) ? $datetime_reservation->addDay() : $datetime_reservation;
+ 
         $this->datetime_input = $datetime_reservation;
         
         switch ($this->res_reservation_status_id) {
@@ -210,10 +212,11 @@ class res_reservation extends Model {
         }
         
     }
-    private function setDatetimesReservationUpdate($reservation) {
+    private function setDatetimesReservationUpdate($reservation, $turn) {
                     
-        $datetime_reservation = trim($this->date_reservation)." ".trim($this->hours_reservation);
-        
+        $datetime_reservation = Carbon::parse(trim($this->date_reservation)." ".trim($this->hours_reservation));
+        $datetime_reservation = (@$turn && $turn->hours_ini > $turn->hours_end && strcmp($datetime_reservation->toTimeString(), 0) >=0 && strcmp($datetime_reservation->toTimeString(), $turn->hours_end) <= 0) ? $datetime_reservation->addDay() : $datetime_reservation;
+ 
         if($reservation->res_reservation_status_id != $this->res_reservation_status_id){
             switch ($this->res_reservation_status_id) {
                 case res_reservation_status::_ID_RESERVED:

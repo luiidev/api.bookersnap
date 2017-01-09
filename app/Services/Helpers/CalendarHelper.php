@@ -324,7 +324,7 @@ class CalendarHelper {
         $now = Carbon::parse(trim($date) . " " . trim($time));
         $nextday = $now->copy()->addDay();
         
-        $lastTurn = res_turn_calendar::fromMicrositeActives($microsite_id, $date, $date)->where(function($query) use ($time){
+        $lastTurn = res_turn_calendar::fromMicrosite($microsite_id, $date, $date)->where(function($query) use ($time){
             $query = $query->whereRaw("(start_time < end_time AND '$time' >= start_time AND '$time' <= end_time)");
             $query = $query->orWhereRaw("(start_time > end_time AND '$time' >= start_time AND '$time' <= '23:59:59')");
             $query = $query->orWhereRaw("(start_time > end_time AND '$time' >= '00:00:00' AND '$time' <= end_time)");
