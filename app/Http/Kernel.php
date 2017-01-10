@@ -27,7 +27,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
-            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,            
             //\App\Http\Middleware\VerifyCsrfToken::class,
         ],
 
@@ -43,11 +43,18 @@ class Kernel extends HttpKernel
      *
      * @var array
      */
+    
     protected $routeMiddleware = [
         'auth' => \App\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'can' => \Illuminate\Foundation\Http\Middleware\Authorize::class,
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'responseHeader' => \App\Http\Middleware\ResponseHeaderMiddleware::class,
+        'setLocale' => \App\Http\Middleware\SetLocaleMiddleware::class,
+        'setTimeZone' => \App\Http\Middleware\SetTimeZoneMiddleware::class,
+        'ACL' => \App\Http\Middleware\AclMiddleware::class,
+        
+        'auth.api' => \App\Http\Middleware\ACLTempApiMicrosite::class,
     ];
 }

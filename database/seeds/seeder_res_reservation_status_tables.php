@@ -26,6 +26,7 @@ class seeder_res_reservation_status_tables extends Seeder
             $this->getRow(9, "Cancelado / invitado", "red"),
             $this->getRow(10, "Cancelado / restaurante", "red"),
             $this->getRow(11, "Ausente", "red"),
+            $this->getRow(12, "Finalizado", "red"),
         ];
     }
 

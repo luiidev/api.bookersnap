@@ -39,7 +39,7 @@ class seeder_res_table_table extends Seeder {
             'config_position' => rand(100, 500) . "," . rand(100, 500),
             'config_forme' => rand(1, 3),
             'config_size' => rand(1, 3),
-            'config_rotation' => 45,
+            'config_rotation' => 0,
             'date_add' => Carbon\Carbon::now(),
             'date_upd' => null,
             'user_add' => 1,
