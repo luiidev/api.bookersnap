@@ -607,7 +607,7 @@ class AvailabilityService
         $availabilityTablesInit = $this->searchTablesReservation($date, $microsite_id, $zone_id);
         
         $firstAvailability = $availabilityTablesInit['availability']->first();
-        if (!$firstAvailability->isEmpty()) {
+        if (@$firstAvailability && !$firstAvailability->isEmpty()) {
             //Calculo hora de cierre de local
             $dateCloseInit = Carbon::createFromFormat('Y-m-d H:i:s', $availabilityTablesInit['dayClose'] . " " . $availabilityTablesInit['hourClose'], $timezone)->addDay($availabilityTablesInit['day']);
             //Busco si existe un evento de pago
