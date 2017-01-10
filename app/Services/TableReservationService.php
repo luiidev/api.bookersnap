@@ -548,12 +548,14 @@ class TableReservationService extends Service
         $reservation->save();
                 
         // Tables
-        $tables = explode(",", trim($temporal->tables_id));        
-        foreach ($tables as $value) {
-            $tables[$value] = array("num_people" => 0);
+        if(!is_null($temporal->tables_id) || strlen(trim($temporal->tables_id))>0){
+            $tables = explode(",", trim($temporal->tables_id));        
+            foreach ($tables as $value) {
+                $tables[$value] = array("num_people" => 0);
+            }
+            $reservation->tables()->sync($tables);
         }
-        $reservation->tables()->sync($tables);
-
+        
         // Guest List
         $guest_list_add = array();
         if ($this->req->has("guest_list")) {
