@@ -685,8 +685,29 @@ class AvailabilityService
                     $auxTimeLimit = ($dateQueryE->toDateTimeString() <=> $dateClose->toDateTimeString()) > 0 ? $eventSearchLimit["hourMax"] : null;
                     $dateAuxQ     = $dateQueryE->copy()->subDay($next_day)->toDateString();
                     $hours        = $this->formatActualHour($dateAuxQ, $secelectHour, $next_dayE, $timezone, $otherDay, $eventSearchLimit["hourMin"]->toTimeString(), $eventSearchLimit["hourMin"], $auxTimeLimit);
+                
+                    
                 } else {
-                    abort(500, "No existe el evento que se desea buscar disponibilidad para " . $today->formatLocalized('%A %d %B %Y'));
+                    
+//                    $hoursWithEvenst = $this->hoursWithEvenst($microsite_id, $date);
+//                    $first = $hoursWithEvenst->first();
+//                    
+//                    
+//                    if(@$first['events']){                        
+//                        $hours_ini = $first['option'];
+//                        $dateNow = Carbon::parse($date." ".$hours_ini);
+//                        foreach ($first['events'] as $event) {
+//                            if($event["id"] == $eventId){
+//                                $last = $hoursWithEvenst->last();
+//                                $hours        = $this->formatActualHour($dateAuxQ, $secelectHour, $next_dayE, $timezone, $otherDay, $eventSearchLimit["hourMin"]->toTimeString(), $eventSearchLimit["hourMin"], $auxTimeLimit);
+//                                break;
+//                            }
+//                        }
+////                        
+//                        return [$first, $last];
+//                    }
+                    
+                    abort(500, "No existe el evento que se desea buscar disponibilidad para " . $today->formatLocalized('%A %d %B %Y'));                    
                 }
             } else {
                 //Cuando existe un evento de pago en ese dia
@@ -2280,10 +2301,12 @@ class AvailabilityService
                     
                     $promosAll = $promotionsdata->reject(function($value, $key) use ($index){                        
                                     $turns = $value['turns'];
+                                    if($turns->count() ==0){
+                                        return false;
+                                    }
                                     $searchtruns = $turns->reject(function($val, $k) use ($index){
                                         return !($val['index_ini'] <= $index && $val['index_end'] >= $index);
-                                    });
-                                    
+                                    });                                    
                                 return ($searchtruns->count() == 0);
                             });
                             

@@ -72,17 +72,24 @@ class ev_event extends Model {
         $datenow = !is_null($date) ? Carbon::parse($date) : Carbon::now();
 
         $query = $query->where(function($query) use ($datenow) {
-            $query = $query->promotionFree();
-            $query = $query->whereHas('turns', function($query){
-                return $query->doesntHave('days');
-            });   // para promciones que se aplican todos los dias de la semana.         
-            $query = $query->orWhereHas('turns', function($query) use ($datenow) {
-                $query = $query->whereHas('days', function($query) use ($datenow) {
-                    $query = $query->where('res_day_turn_promotion.day', $datenow->dayOfWeek);
+            
+            $query = $query->promotionFree()->where(function($query) use ($datenow) {
+                
+                $query = $query->doesntHave('turns');// para promciones que se aplican todos los dias de la semana todo el horario del día. 
+                
+                $query = $query->orWhereHas('turns', function($query){
+                    return $query->doesntHave('days'); // para promciones que se aplican todos los dias de la semana. 
+                });   
+                        
+                $query = $query->orWhereHas('turns', function($query) use ($datenow) {
+                    $query = $query->whereHas('days', function($query) use ($datenow) {
+                        $query = $query->where('res_day_turn_promotion.day', $datenow->dayOfWeek);
+                        return $query;
+                    });
                     return $query;
                 });
-                return $query;
-            });
+            });   
+            
             return $query;
         });
 
