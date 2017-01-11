@@ -35,8 +35,6 @@ class CalendarService
             $startDate = $date->copy()->subDay(14);
             $endDate   = $date->copy()->lastOfMonth()->addDay(14);
             $calendar->setFixDate($startDate, $endDate);
-//
-            //return Helpers\CalendarHelper::searchDate($microsite_id);
             $turns = res_turn_calendar::fromMicrosite($microsite_id, $calendar->FIRST_DATE, $calendar->END_DATE);
         } else {
             $calendar = new Calendar($year, $month, $day);
@@ -77,7 +75,6 @@ class CalendarService
      */
     public function getListShift(int $microsite_id, string $date)
     {
-
         return res_type_turn::where('status', 1)->with(['turns' => function ($query) use ($microsite_id, $date) {
             return $query->InCalendar($date)->where('ms_microsite_id', $microsite_id);
         }])->get()->map(function ($item) {
@@ -85,7 +82,6 @@ class CalendarService
             unset($item->turns);
             return $item;
         });
-
     }
 
     public function deleteCalendar(int $res_turn_id, string $date)

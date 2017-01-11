@@ -111,11 +111,12 @@ class AvailabilityService
         $dateIni = $date;
         $date = (strcmp($date, $now->toDateString()) == -1 || is_null($date))? $now->toDateString():$date;
 //        return [$dateIni, $date, $yesterday, $now];
-        if(strcmp($dateIni, $yesterday) == 0){  // SI LA FECHA ES DE AYER  
-            
+        if(strcmp($dateIni, $yesterday) == 0){  // SI LA FECHA ES DE AYER            
             /* turnos de Ayer en el calendario */
             $datetimeEnd = "CONCAT('$date ', end_time)";
-            $lastTurn = res_turn_calendar::fromMicrosite($microsite_id, $yesterday, $yesterday)->orderBy('start_date');
+            $lastTurn = res_turn_calendar::fromMicrosite($microsite_id, $yesterday, $yesterday)->with(['turn.zones' => function($query){
+                return $query->select("id", "name");
+            }])->orderBy('start_date');
             $lastTurn = $lastTurn->whereRaw("start_time > end_time")->whereRaw("$datetimeEnd >= ?", [$now->toDateTimeString()])->get();
             
             /* turnos de Ayer en eventos */
@@ -125,7 +126,9 @@ class AvailabilityService
                 $query = $query->whereRaw("hours_ini > hours_end")->whereRaw("$datetimeEnd >= ?", [$now->toDateTimeString()]);
                 return $query;
             })->whereRaw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') = ?", [$yesterday]);
-            $eventFree = $eventFree->with(['turn'])->orderBy('datetime_event')->get();
+            $eventFree = $eventFree->with(['turn.zones' => function($query){
+                return $query->select("id", "name");
+            }])->orderBy('datetime_event')->get();
             
             if($lastTurn->count() >0 || $eventFree->count() > 0){
                 $horarioDeMadrugadaDeAyer = true;
@@ -137,7 +140,9 @@ class AvailabilityService
             $enddate = "CONCAT('$date ', end_time)";
             $datetime = "IF(start_time < end_time, $enddate, ADDDATE($enddate, INTERVAL 1 DAY))";
             
-            $lastTurn = res_turn_calendar::fromMicrosite($microsite_id, $date, $date)->orderBy('start_date');
+            $lastTurn = res_turn_calendar::fromMicrosite($microsite_id, $date, $date)->with(['turn.zones' => function($query){
+                return $query->select("id", "name");
+            }])->orderBy('start_date');
             $lastTurn = $lastTurn->whereRaw("$datetime >= ?",[$now->toDateTimeString()])->get();
             
             /* turnos de Hoy en eventos */            
@@ -157,9 +162,9 @@ class AvailabilityService
             /* turnos de Hoy en el calendario */            
             $lastTurn = res_turn_calendar::fromMicrosite($microsite_id, $date, $date)->orderBy('start_date')->get();
             /* turnos de Hoy en eventos */
-            $eventFree = ev_event::eventFreeActive($date, $date)->select('*', DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"))
-                    ->where('ms_microsite_id', $microsite_id)->whereRaw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') = ?", [$date])
-                    ->with(['turn'])->orderBy('datetime_event')->get();            
+            $eventFree = ev_event::eventFreeActive($date, $date)->select('*', DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"));
+            $eventFree = $eventFree->where('ms_microsite_id', $microsite_id)->whereRaw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') = ?", [$date]);
+            $eventFree = $eventFree->with(['turn'])->orderBy('datetime_event')->get();            
         }        
 //        return [$horarioDeMadrugadaDeAyer,$lastTurn, $eventFree];
         unset($hours);
@@ -174,7 +179,7 @@ class AvailabilityService
             $indexMin = $this->timeForTable->timeToIndex($item->start_time);
             $indexMax = $this->timeForTable->timeToIndex($item->end_time);            
             $indexMax = ($indexMax < $indexMin) ?$indexMax + 96 :$indexMax;
-            
+                        
             if($horarioDeMadrugadaDeAyer || $horarioDeHoy){
                 $indexMinReal = ($horarioDeMadrugadaDeAyer) ? $indexMinReal + 96 : $indexMinReal;
                 $indexMin = ($indexMinReal >= $indexMin) ?$indexMinReal :$indexMin;
@@ -184,26 +189,23 @@ class AvailabilityService
                 $timeAux = [];
                 $timeAux['index']       = $i;
 //                $timeAux['min_max']       = [$indexMin, $indexMax, $date, $indexMinReal, @$horarioDeMadrugadaDeAyer];
-                $timeAux['index_real']  = $indexMinReal;
-                $timeAux['next_day']    = $i >= 96 ? 1 : 0;
+//                $timeAux['index_real']  = $indexMinReal;
+//                $timeAux['next_day']    = $i >= 96 ? 1 : 0;
                 $timeAux['option']      = $this->timeForTable->indexToTime($i);
                 $timeAux['option_user'] = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $this->timeForTable->indexToTime($i))->format('g:i A');
-                $timeAux['event']       = null;
-                $timeAux['promotions']  = null;
                 $hours->push($timeAux);
             }
         }
         
 //        return [$lastTurn, @$horarioDeMadrugadaDeAyer, @$indexMinRealAnt, @$indexMinReal, @$indexMin, @$indexMax, $hours];        
         
-        if($eventFree){
-            
+        if($eventFree){            
             foreach ($eventFree as $event) {                
                 $item = $event->turn;
                 $indexMin = $this->timeForTable->timeToIndex($item->hours_ini);
                 $indexMax = $this->timeForTable->timeToIndex($item->hours_end);
 
-                $indexMax = ($indexMax < $indexMin) ?$indexMax + 96 :$indexMax;          
+                $indexMax = ($indexMax < $indexMin) ?$indexMax + 96 :$indexMax;
                 if($horarioDeMadrugadaDeAyer || $horarioDeHoy){
                     $indexMinReal = ($horarioDeMadrugadaDeAyer) ? $indexMinReal + 96 : $indexMinReal;
                     $indexMin = ($indexMinReal >= $indexMin) ?$indexMinReal :$indexMin;
@@ -212,24 +214,15 @@ class AvailabilityService
                     $timeAux = [];
                     $timeAux['index']       = $i;
 //                    $timeAux['min_max']       = [$indexMin, $indexMax, $date, $indexMinReal];
-                    $timeAux['next_day']    = $i >= 96 ? 1 : 0;
+//                    $timeAux['next_day']    = $i >= 96 ? 1 : 0;
                     $timeAux['option']      = $this->timeForTable->indexToTime($i);
                     $timeAux['option_user'] = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $this->timeForTable->indexToTime($i))->format('g:i A');
-                    $timeAux['event']       = null;
-                    $timeAux['promotions']  = null;
                     $hours->push($timeAux);
                 }
             }
         }
         
         $result = $hours->unique()->sortBy('index');
-        
-//        if($horarioDeHoy){
-//            $indexIni = $this->timeForTable->timeToIndex($now->toTimeString()) + (int)$time_restriction/15;
-//            $result = $result->reject(function($item) use ($indexIni){
-//                return ($item["index"] < $indexIni);
-//            });
-//        }
         
         return $result->values();
     }
@@ -2356,6 +2349,9 @@ class AvailabilityService
             ];
         });
         
+        
+//        $zones = \App\res_zone::whereHas("turn")->where('ms_microsite_id', $microsite_id)->get();
+        
         $turnsIds = collect();
         $hourscollection = collect();
         
@@ -2450,19 +2446,49 @@ class AvailabilityService
         if($hours->count() == 0 && strcmp($date, $now->toDateString())){
             $date     = CalendarHelper::searchDate($microsite_id, $now->addDay()->toDateString());
             $hours = $this->hoursWithEvenst($microsite_id, $date);
-        }        
+        }
+        
+        
+        $fecha = $date->toDateString();
+        $zoneshoy = \App\res_zone::whereHas("turns" , function($query) use($fecha) {
+            
+            return $query->where(function($query) use ($fecha){
+                $query->InCalendar($fecha, $fecha);
+                $query->orWhere(function($query)  use ($fecha){
+                    return $query->InEventFree($fecha, $fecha);
+                });
+                return $query;
+            });
+            
+        })->with(["turns" => function($query) use($fecha) {
+            
+            return $query->where(function($query) use ($fecha){
+                $query->InCalendar($fecha, $fecha);
+                $query->orWhere(function($query)  use ($fecha){
+                    return $query->InEventFree($fecha, $fecha);
+                });
+                return $query;
+            });
+            
+        }])->where("ms_microsite_id", $microsite_id)->get();
+        
+//        $hours = $hours->map(function($item){
+//            return $item;
+//        });
         
         $zones = $this->searchZones($microsite_id, $date->toDateString(), $timezone);        
         $daysDisabled = $this->getDaysDisabled($microsite_id, $dateIni->toDateString(), $dateFin->toDateString());
         $people       = $this->getPeople($microsite_id);
 
         return [
+            "zones_yoh" => $zoneshoy,
             "date" => $date->toDateString(), 
             "people" => $people, 
             "daysDisabled" => $daysDisabled,
             "hours" => $hours, 
             "zones" => $zones, 
-            'events' => []
+            'events' => [],
+            
         ];
         
     }

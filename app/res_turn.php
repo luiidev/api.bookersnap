@@ -256,12 +256,12 @@ class res_turn extends Model {
     public function scopeInEventFree($query, string $start_date = null, string $end_date = null) {
 
         return $query->whereHas('events', function($query) use ($start_date, $end_date) {
-                    $query = $query->where('bs_type_event_id', 1);
+                    $query = $query->where('bs_type_event_id', Entities\bs_type_event::_ID_EVENT_FREE);
                     if (!is_null($start_date)) {
-                        $query = $query->where(DB::raw("DATE_FORMAT(datetime_event, '%Y-%m-%d')"), ">=", [$start_date]);
+                        $query = $query->whereRaw("DATE_FORMAT(datetime_event, '%Y-%m-%d') >= ?", [$start_date]);
                     }
                     if (!is_null($end_date)) {
-                        $query = $query->where(DB::raw("DATE_FORMAT(datetime_event, '%Y-%m-%d')"), "<=", [$end_date]);
+                        $query = $query->whereRaw("DATE_FORMAT(datetime_event, '%Y-%m-%d') <= ?", [$end_date]);
                     }
                     return $query;
                 });
