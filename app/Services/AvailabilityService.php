@@ -947,21 +947,36 @@ class AvailabilityService
                     $availabilitySinPromociones = $this->searchAvailavilityFormat($indexQuery, $indexAvailability, $indexHourInitDown, $indexHourInitUp, $indexHourMin, $indexHourMax, $microsite_id, $date, $hourQuery, $num_guests, $zone_id, $timezone, $availabilityTablesAvailability, $eventId);
                     
                     $aux                        = collect();
+                    
+                    $hours = $this->hoursWithEvenst($microsite_id, $date);
+                    
                     foreach ($availabilitySinPromociones as $availability) {
                         if ($availability['availability']) {
                             //Buscar promociones se tiene $date & $hour
                             //Servicio para buscar las promociones
                             // return $availability;
-                            $nextday = ($availability['index'] >= 96)?1:0;
-                            $promotionsId = $this->searchPromotions($availability['form']['date'], $nextday, $availability['hour'], $microsite_id, $timezone);
-                            $availability['event'] = $this->searchEvent($availability['form']['event_id']);
+                            $index = $availability['index'];
+                            $hourselect = $hours->where("index", $index)->first();
+                            $existEvent = false;                            
+                            if($hourselect && @$hourselect["events"]){                                
+                                foreach ($hourselect["events"] as $key => $value) {
+                                    if($value["id"] == $eventId){
+                                        $existEvent = true;
+                                    }
+                                }
+                            }
+                            $availability['form']['event_id']= ($existEvent)?$eventId:null;
                             
-                            if ($promotionsId->count() > 0) {
-                                // $availability['form']['event_id'] = $promotionsId;                                
-                                $availability['promotions'] = is_null($availability['form']['event_id'])?$promotionsId:null;                                
-                            } else {
-                                $availability['promotions'] = null;
-                            }                            
+//                            $nextday = ($availability['index'] >= 96)?1:0;
+//                            $promotionsId = $this->searchPromotions($availability['form']['date'], $nextday, $availability['hour'], $microsite_id, $timezone);
+//                            $availability['event'] = $this->searchEvent($availability['form']['event_id']);
+//                            
+//                            if ($promotionsId->count() > 0) {
+//                                // $availability['form']['event_id'] = $promotionsId;                                
+//                                $availability['promotions'] = is_null($availability['form']['event_id'])?$promotionsId:null;                                
+//                            } else {
+//                                $availability['promotions'] = null;
+//                            }                            
 //                            $availability['form']['event_id'] = $idEvent;
                         }
                         $aux->push($availability);
