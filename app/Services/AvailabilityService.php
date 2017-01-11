@@ -1352,9 +1352,11 @@ class AvailabilityService
     {
         $availabilityTablesFilter = collect();
         foreach ($availabilityTables as $tables) {
-            foreach ($tables as $table) {
-                if ($table['availability'][$indexHour]['rule_id'] >= 2) {
-                    $availabilityTablesFilter->push(collect($table));
+            if($tables){
+                foreach ($tables as $table) {
+                    if ($table['availability'][$indexHour]['rule_id'] >= 2) {
+                        $availabilityTablesFilter->push(collect($table));
+                    }
                 }
             }
         }
