@@ -11,6 +11,7 @@ use App\Services\TurnService;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
+use App\Services\AvailabilityService;
 
 class WebAppController extends Controller
 {
@@ -19,13 +20,15 @@ class WebAppController extends Controller
     protected $_BlockService;
     protected $_CalendarService;
     protected $_TableService;
-
-    public function __construct(TurnService $TurnService, BlockService $BlockService, CalendarService $CalendarService, TableService $TableService)
+    protected $_AvailabilityService;
+    
+    public function __construct(TurnService $TurnService, BlockService $BlockService, CalendarService $CalendarService, TableService $TableService, AvailabilityService $AvailabilityService)
     {
         $this->_TurnService     = $TurnService;
         $this->_BlockService    = $BlockService;
         $this->_CalendarService = $CalendarService;
         $this->_TableService    = $TableService;
+        $this->_AvailabilityService = $AvailabilityService;
     }
 
     public function floor(Request $request)
@@ -128,7 +131,8 @@ class WebAppController extends Controller
 
             $dateTimeOpen  = CalendarHelper::realDateTimeOpen($microsite_id, $date);
             $dateTimeClose = CalendarHelper::realDateTimeClose($microsite_id, $date);
-
+            
+//            $hours = $this->_AvailabilityService->hoursWithEvenst($microsite_id, $date);
             $turnsIds = $this->turnsIdsByDate($microsite_id, $date);
             $turns    = $this->turnsByIds($turnsIds);
             $zones    = $this->zonesIdsByTurnsIds($turnsIds);
@@ -172,6 +176,7 @@ class WebAppController extends Controller
             ];
             $data = [
                 "schedule"           => $schedule,
+//                "hours" => $hours,
                 "stadistics"         => $stadistics,
                 "reservations"       => $reservations,
                 "availabilityTables" => $availebility,
@@ -613,13 +618,15 @@ class WebAppController extends Controller
 
         $fecha     = \Carbon\Carbon::parse($date);
         $dayOfWeek = $fecha->dayOfWeek + 1;
+        $turnEventIds = \App\Entities\ev_event::EventFree()->EnableInDate($date)->where("ms_microsite_id", $microsite_id)->pluck('res_turn_id');
         /* Obtener Los Ids de los turnos Habilitados para la fecha */
-        return $turnsIds = \App\res_turn_calendar::join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
+        $turnsIds = \App\res_turn_calendar::join("res_turn", "res_turn.id", "=", "res_turn_calendar.res_turn_id")
             ->where(DB::raw("dayofweek(start_date)"), $dayOfWeek)
             ->where("res_turn.ms_microsite_id", $microsite_id)
             ->where("start_date", "<=", $fecha->toDateString())
             ->where("end_date", ">=", $fecha->toDateString())
             ->pluck('id');
+        return $turnEventIds->merge($turnsIds);
     }
 
     private function shifts($turnIds, $notes = null)

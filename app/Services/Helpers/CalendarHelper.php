@@ -199,7 +199,7 @@ class CalendarHelper {
                 
         $dateIni = $date;
         $date = (strcmp($date, $datenow->toDateString()) == -1 || is_null($date))? $datenow->toDateString():$date;
-        
+                
         if(is_null($dateIni) || strcmp($dateIni, $yesterday->toDateString()) == 0){  // SI ES LA FEHCA DE HOY BUSCAR HORARIOS DE MADRUGADA DE AYER
             
             $datetimeEnd = "CONCAT('$date ', end_time)";            
@@ -225,13 +225,13 @@ class CalendarHelper {
         
         if(!$turncalendar){
             // Buscar el turno mas proximos.
-            $turncalendar = res_turn_calendar::fromMicrositeActives($microsite_id)->orderBy('start_date')->first();            
+            $turncalendar = res_turn_calendar::fromMicrositeActives($microsite_id, $date)->orderBy('start_date')->first();            
         }        
         // Buscar el turno de eventos en la fecha.
         $eventFree = ev_event::eventFreeActive($date, $date)->select('*', DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"))->where('ms_microsite_id', $microsite_id)->with('turn')->orderBy('datetime_event')->first();
         if(!$eventFree){
             // Buscar el turno de eventos mas proximos.
-            $eventFree = ev_event::eventFreeActive()->select('*', DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"))->where('ms_microsite_id', $microsite_id)->with('turn')->orderBy('datetime_event')->first();
+            $eventFree = ev_event::eventFreeActive($date)->select('*', DB::raw("DATE_FORMAT(ev_event.datetime_event, '%Y-%m-%d') AS start_date"))->where('ms_microsite_id', $microsite_id)->with('turn')->orderBy('datetime_event')->first();
         }
         
         if($turncalendar || $eventFree){

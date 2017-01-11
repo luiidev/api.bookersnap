@@ -100,7 +100,7 @@ class AvailabilityService
     }
 
     //Retorna todas las horas disponibles en un dia
-    public function getHours(int $microsite_id, string $date)
+    public function getHours(int $microsite_id, string $date, int $time_restriction = 0)
     {
         $now = Carbon::now();                
         $yesterday = $now->copy()->subDay()->toDateString();
@@ -167,6 +167,8 @@ class AvailabilityService
         $indexMinReal =  $this->timeForTable->timeToIndex($now->toTimeString(), false);        
         $indexMinRealAnt = $indexMinReal;
         
+        $indexMinReal += (int)$time_restriction/15;
+        
         foreach ($lastTurn as $item) {
 
             $indexMin = $this->timeForTable->timeToIndex($item->start_time);
@@ -220,8 +222,16 @@ class AvailabilityService
             }
         }
         
-        $result = $hours->unique()->sortBy('index')->values();
-        return $result;
+        $result = $hours->unique()->sortBy('index');
+        
+//        if($horarioDeHoy){
+//            $indexIni = $this->timeForTable->timeToIndex($now->toTimeString()) + (int)$time_restriction/15;
+//            $result = $result->reject(function($item) use ($indexIni){
+//                return ($item["index"] < $indexIni);
+//            });
+//        }
+        
+        return $result->values();
     }
 
     public function selectHourEvent($index, $indexEvents)
@@ -630,7 +640,7 @@ class AvailabilityService
                 $aTablesE = $this->searchTablesEventFree($today, $tomorrow, $microsite_id, $zone_id);
                 $aTablesN = $availabilityTablesInit;
                 
-                if (!$aTablesN['availability']->isEmpty() && !$aTablesE['availability']->isEmpty()) {
+                if (!$aTablesN['availability']->isEmpty() && ($aTablesE['availability'] != null && !$aTablesE['availability']->isEmpty())) {
                     $idEvent            = $aTablesE['eventFree']->first()['id'];
                     $availabilityTables = $this->algoritmoTables($date, $timezone, $aTablesE, $aTablesN);
                     $dateCloseNormal    = Carbon::createFromFormat('Y-m-d H:i:s', $aTablesN['dayClose'] . " " . $aTablesN['hourClose'], $timezone)->addDay($aTablesN['day']);
@@ -642,7 +652,7 @@ class AvailabilityService
                         $dateClose  = $dateCloseEvent;
                         $indexClose = $this->defineIndexHour($aTablesE['day'], $dateClose->toTimeString());
                     }
-                } elseif (!$aTablesE['availability']->isEmpty()) {
+                } elseif ($aTablesE['availability'] != null &&!$aTablesE['availability']->isEmpty()) {
                     $availabilityTables = $aTablesE;
                     $idEvent            = $aTablesE['eventFree']->first()['id'];
                     $dateClose          = Carbon::createFromFormat('Y-m-d H:i:s', $aTablesE['dayClose'] . " " . $aTablesE['hourClose'], $timezone)->addDay($aTablesE['day']);
@@ -2303,7 +2313,7 @@ class AvailabilityService
      * @param type $date
      * @return type
      */
-    public function hoursWithEvenst($microsite_id, $date) {
+    public function hoursWithEvenst($microsite_id, $date, $time_restriction = 0) {
         
         $date = Carbon::parse($date);
         
@@ -2349,7 +2359,7 @@ class AvailabilityService
         $hourscollection = collect();
         
         try {            
-            $hours = $this->getHours($microsite_id, $date->toDateString());
+            $hours = $this->getHours($microsite_id, $date->toDateString(), $time_restriction);
             
             foreach ($hours as  $item) {
                 
@@ -2414,7 +2424,15 @@ class AvailabilityService
     public function formatAvailability(int $microsite_id, string $date = null)
     {        
         //Function Date Actual
+        $configuration             = $this->configurationService->getConfiguration($microsite_id);
+        $this->minCombinationTable = $configuration->max_table;
+        $this->maxPeople           = $configuration->max_people;
+        $this->time_tolerance      = $configuration->time_tolerance;
+        $this->max_people_standing = $configuration->max_people_standing;
+        $this->time_restriction    = $configuration->time_restriction;
+        
         $date     = CalendarHelper::searchDate($microsite_id, $date);
+        
         if(!$date){
             abort(500, "No hay reservaciones disponibles.");
         }
@@ -2425,8 +2443,13 @@ class AvailabilityService
         $lastofmonth = $date->copy()->lastOfMonth();
         $dateFin  = $lastofmonth->addDays(14 - $lastofmonth->dayOfWeek);
         
-        $hours = $this->hoursWithEvenst($microsite_id, $date);
+        $hours = $this->hoursWithEvenst($microsite_id, $date, $this->time_restriction);
         
+        $now = Carbon::now();
+        if($hours->count() == 0 && strcmp($date, $now->toDateString())){
+            $date     = CalendarHelper::searchDate($microsite_id, $now->addDay()->toDateString());
+            $hours = $this->hoursWithEvenst($microsite_id, $date);
+        }        
         
         $zones = $this->searchZones($microsite_id, $date->toDateString(), $timezone);        
         $daysDisabled = $this->getDaysDisabled($microsite_id, $dateIni->toDateString(), $dateFin->toDateString());
