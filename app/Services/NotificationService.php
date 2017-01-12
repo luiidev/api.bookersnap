@@ -10,7 +10,7 @@ class NotificationService extends Service
 {
     public function index()
     {
-        $paginate = res_reservation::with("guest")->where("ms_microsite_id", $this->microsite_id)->where("res_source_type_id", 4)->simplePaginate(5);
+        $paginate = res_reservation::with("guest")->where("ms_microsite_id", $this->microsite_id)->where("res_source_type_id", 4)->orderBy('date_upd', 'DESC')->simplePaginate(5);
         $views = res_notification::where("bs_user_id", $this->req->_bs_user_id)->get()->pluck("res_reservation_id");
         $count = res_reservation::where("ms_microsite_id", $this->microsite_id)->whereNotIn("id", $views)->count();
 

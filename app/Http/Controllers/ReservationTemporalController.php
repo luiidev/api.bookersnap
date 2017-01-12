@@ -52,16 +52,11 @@ class ReservationTemporalController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(ReservationTemporalRequest $request)
-    {
-        // return $request->header("token");
-        //inyectar evento
-        // $request->request->set('ev_event_id', 1);
-        
-        return $this->TryCatch(function () use ($request) {
-            
+    {        
+        return $this->TryCatch(function () use ($request) {            
 //             $token        = request()->cookie('token', request()->cookie('laravel_session'));
             $token        = request()->header("token");
-            $ev_event_id = $request->ev_event_id;
+            $ev_event_id = $request->event_id;
 
             $user_id      = $request->input("_bs_user_id");
             $microsite_id = $request->route('microsite_id');

@@ -78,8 +78,8 @@ class res_turn_calendar extends Model
             $query = $query->where('ms_microsite_id', $microsite_id);
             return $query;
         });
-
-        $query = $query->where(function ($query) use ($yesterday, $now, $nextday, $istoday, $start_date, $end_date) {
+        
+        $query = $query->where(function ($query) use ($yesterday, $now, $nextday, $istoday) {
 
             if ($istoday) {
                 /* Horarios del dia de ayer que esta activos hoy */
@@ -96,7 +96,7 @@ class res_turn_calendar extends Model
                     ->whereRaw("IF(start_time > end_time, CONCAT(?, ' ' ,end_time), CONCAT(?, ' ' ,end_time)) >= ?", [$nextday->toDateString(), $now->toDateString(), $now->toDateTimeString()]);
 
                 /* Horarios activos el dia siguiente */
-                $query = $query->orWhere('end_date', '>', $nextday->toDateString());
+                $query = $query->orWhere('end_date', '>=', $nextday->toDateString());
             } else {
 
                 /* Horarios activos a partir de una fecha */
@@ -135,26 +135,27 @@ class res_turn_calendar extends Model
         if (!is_null($end_date)) {
             $query = $query->whereRaw("$startDateActive <= ?", [$end_date]);
         }
+        
         /* query select para test de datos */
         $query = $query->select('*', DB::raw("$startDateActive AS start_date"));
 //        $query = $query->select('res_turn_calendar.*',
-        //                DB::raw("'" . $now->toDateString() . "' AS HOY"),
-        //                DB::raw("'" . $yesterday->toDateString() . "' AS AYER"),
-        //                DB::raw("'" . $datenow->toDateString() . "' AS DATENOW"),
-        //                DB::raw("CONCAT($startActive, ' ', end_time) AS CONAT_YESTERDAY"),
-        //                DB::raw("$startActive AS left_yesterday_result"),
-        //                DB::raw("IF((start_time > end_time) AND CONCAT('" . $now->toDateString() . " ', end_time) >= '" . $now->toDateTimeString() . "',  '" . $now->toDateString() . "', '" . $yesterday->toDateString() . "') AS start_date_active_lll"),
-        //                DB::raw("IF(start_date <= '" . $yesterday->toDateString() . "', 'start_date <= " . $yesterday->toDateString() . "', 'start_date > " . $yesterday->toDateString() . "') AS left_yesterday"),
-        //                DB::raw("$condYesterday AS condition_yesterday"),
-        //                DB::raw("dayofweek(start_date) AS dayofweek"),
-        //                DB::raw("($now->dayOfWeek + 1) AS dayofweekNow"),
-        //                DB::raw("($yesterday->dayOfWeek + 1) AS dayofweekYesterady"),
-        //                DB::raw("'" . $now->toDateTimeString() . "' AS DatetimeNow"),
-        //                DB::raw("CONCAT('" . $yesterday->toDateString() . " ', res_turn_calendar.end_time) AS DateYesterady"),
-        //                DB::raw("CONCAT('" . $now->toDateString() . " ', res_turn_calendar.end_time) AS DateNow"),
-        //                DB::raw("(start_date <= '" . $yesterday->toDateString() . "') AS PAST"),
-        //                DB::raw("dayofweek(start_date) <= " . ($yesterday->dayOfWeek + 1) . " AS RESULT"),
-        //                DB::raw("$startDateActive AS start_date_active"));
+//                        DB::raw("'" . $now->toDateString() . "' AS HOY"),
+//                        DB::raw("'" . $yesterday->toDateString() . "' AS AYER"),
+//                        DB::raw("'" . $datenow->toDateString() . "' AS DATENOW"),
+////                        DB::raw("CONCAT($startActive, ' ', end_time) AS CONAT_YESTERDAY"),
+////                        DB::raw("$startActive AS left_yesterday_result"),
+//                        DB::raw("IF((start_time > end_time) AND CONCAT('" . $now->toDateString() . " ', end_time) >= '" . $now->toDateTimeString() . "',  '" . $now->toDateString() . "', '" . $yesterday->toDateString() . "') AS start_date_active_lll"),
+//                        DB::raw("IF(start_date <= '" . $yesterday->toDateString() . "', 'start_date <= " . $yesterday->toDateString() . "', 'start_date > " . $yesterday->toDateString() . "') AS left_yesterday"),
+////                        DB::raw("$condYesterday AS condition_yesterday"),
+//                        DB::raw("dayofweek(start_date) AS dayofweek"),
+//                        DB::raw("($now->dayOfWeek + 1) AS dayofweekNow"),
+//                        DB::raw("($yesterday->dayOfWeek + 1) AS dayofweekYesterady"),
+//                        DB::raw("'" . $now->toDateTimeString() . "' AS DatetimeNow"),
+//                        DB::raw("CONCAT('" . $yesterday->toDateString() . " ', res_turn_calendar.end_time) AS DateYesterady"),
+//                        DB::raw("CONCAT('" . $now->toDateString() . " ', res_turn_calendar.end_time) AS DateNow"),
+//                        DB::raw("(start_date <= '" . $yesterday->toDateString() . "') AS PAST"),
+//                        DB::raw("dayofweek(start_date) <= " . ($yesterday->dayOfWeek + 1) . " AS RESULT"),
+//                        DB::raw("$startDateActive AS start_date_active"));
         return $query;
     }
 

@@ -285,11 +285,12 @@ class res_turn extends Model {
             $conditionActives = "IF($dateformat > '" . $yesterday->toDateString() . "', $dateformat, $conditionB)";
 
             $query = $query->where('bs_type_event_id', 1)->where('status', 1)->whereRaw("$conditionActives >= ?", [$yesterday->toDateString()]);
+            
             if (!is_null($start_date)) {
-                $query = $query->whereRaw("$conditionActives >= ?", [$start_date]);
+                $query = $query->whereRaw("$conditionActives <= ?", [$start_date]);
             }
             if (!is_null($end_date)) {
-                $query = $query->whereRaw("$conditionActives <= ?", [$end_date]);
+                $query = $query->whereRaw("$conditionActives >= ?", [$end_date]);
             }
             return $query;
         });

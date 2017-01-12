@@ -422,7 +422,152 @@ class AvailabilityService
         }
         return $aux;
     }
-
+    /**
+     * Evaluar disponibilidad para reservar en un horario específico.
+     * @param array $hourOptions
+     * @param int $microsite_id
+     * @param string $date
+     * @param string $hour
+     * @param int $num_guests
+     * @param int $zone_id
+     * @param int $next_day
+     * @param int $eventId
+     * @return int
+     */
+    public function evalAvailabilityHours(array $hourOptions, int $microsite_id, string $date, string $hour, int $num_guests, int $zone_id, int $next_day, int $eventId = null) {
+        $index = $hourOptions["index"];
+        $hourOption = $hourOptions["option"];
+        $data = [
+            "index" => $index,
+            "hour" => $hourOption,
+            "availability" => false,
+            "form" => null,
+            "tables_id" => null,
+//            "events" => $hourOptions["events"],
+        ];        
+        
+        $existEvent = false;
+        if($eventId != null && @$hourOptions["events"] && $hourOptions["events"] != null){                
+            foreach ($hourOptions["events"] as $value) {
+                if($eventId == $value["id"]){
+                    $existEvent = true;
+                }
+            }
+        }
+        
+        if(($eventId != null && $existEvent) || $eventId == null){
+//            $date = ($next_day > 0) ? Carbon::parse($date)->addDay()->toDateString():$date;
+            $availabilityTablesIdFinal = $this->checkReservationStandingPeople($date, $hourOption, $this->time_tolerance, null, $microsite_id, $num_guests);
+            $data["result"] = $availabilityTablesIdFinal;
+            if($availabilityTablesIdFinal){
+                $data["availability"] = true;
+                $data["form"] = [                    
+                    "date" => $date,
+                    "hour" => $hourOption,
+                    "num_guests" => $num_guests,
+                    "zone_id" => $zone_id,
+                    "event_id" => $eventId
+                ];
+            }
+        }
+        return $data;
+    }
+    
+    public function formatResultNotAvailabilityByIndex($index) {
+        $hourOption = TimeForTable::indexToTime($index);
+        return [
+            "index" => $index,
+            "hour" => $hourOption,
+            "availability" => false,
+            "form" => null,
+            "tables_id" => null,
+        ];
+    }
+    /**
+     * Busacr horarios disponibles para reservas de pie.
+     * @param int $microsite_id
+     * @param string $date
+     * @param string $hour
+     * @param int $num_guests
+     * @param int $zone_id
+     * @param int $next_day
+     * @param int $eventId
+     * @return type
+     */
+    public function searchAvailabilityStandingPeople(int $microsite_id, string $date, string $hour, int $num_guests, int $zone_id, int $next_day, int $eventId = null) {
+        
+        $hours = $this->hoursWithEvenst($microsite_id, $date);
+        
+        $indexHour = $this->defineIndexHour($next_day, $hour);
+        $availability = collect();
+        
+        $size = $hours->count();
+        $indexcenter = 0;
+        
+        /* Busca disponibilidad en la hora */
+        foreach ($hours as $key => $value) {
+            if($value["index"] == $indexHour){
+                $indexcenter = $key;
+                $data = $this->evalAvailabilityHours($value, $microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $eventId);               
+                $availability->push($data);
+            }
+        }
+        if($availability->count() == 0){
+            $data = $this->formatResultNotAvailabilityByIndex($indexHour);
+            $availability->push($data);
+        }
+        
+        /* Busca disponibilidad en la 2 horas inferiores */
+        $numsub = 0;
+        $i = $indexcenter - 1;
+        $lastIndexHourSub = $indexHour - 1;
+        
+        while ($i >=0 && $numsub < 2) {
+            $value = $hours->get($i);
+            $data = $this->evalAvailabilityHours($value, $microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $eventId);
+            if($data["availability"]){
+                $availability->push($data);
+                $numsub++;
+                $lastIndexHourSub = $data["index"];
+            }
+            $i--;
+        }      
+        
+        /* Busca disponibilidad en la 2 horas superiores */
+        $numup = 0;
+        $j = $indexcenter + 1;
+        $lastIndexHourUp = $indexHour + 1;
+        while ($j < $size && $numup < 2) {
+            $value = $hours->get($j);
+            $data = $this->evalAvailabilityHours($value, $microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $eventId);
+            if($data["availability"]){
+                $availability->push($data);
+                $numup++;
+                $lastIndexHourUp = $data["index"];
+            }
+            $j++;
+        }
+                       
+        $lastIndexHourSub --;
+        while ($lastIndexHourSub >= 0 && $numsub < 2){
+            $data = $this->formatResultNotAvailabilityByIndex($lastIndexHourSub);
+            $availability->push($data);
+            $numsub++;
+            $lastIndexHourSub--;
+        }
+        
+        $lastIndexHourUp ++;
+        while ($lastIndexHourUp < 122 && $numup < 2){
+            $data = $this->formatResultNotAvailabilityByIndex($lastIndexHourUp);
+            $availability->push($data);
+            $numup++;
+            $lastIndexHourUp++;
+        }
+        
+        $result = $availability->sortBy("index")->values();
+        return $result;
+    }
+    
     /**
      * Busca la disponibilidad en un dia y hora determinado valida la hora actual de busqueda y devulve un formato fijo de 5 horarios
      * @param  int    $microsite_id id del micrositio
@@ -458,16 +603,19 @@ class AvailabilityService
         $today    = Carbon::parse($date);
         $tomorrow = $today->copy()->addDay();
 
-        //Valida si existe disponibilidad
+        //Valida si existe disponibilidad de mesas
         $availabilityTablesInit = $this->searchTablesReservation($date, $microsite_id, $zone_id);
         
-        if (!$availabilityTablesInit['availability']->isEmpty()) {
+        $firstAvailability = $availabilityTablesInit['availability']->first();
+        if (!$firstAvailability->isEmpty()) {
             //Calculo hora de cierre de local
             $dateCloseInit = Carbon::createFromFormat('Y-m-d H:i:s', $availabilityTablesInit['dayClose'] . " " . $availabilityTablesInit['hourClose'], $timezone)->addDay($availabilityTablesInit['day']);
             //Busco si existe un evento de pago
             $event = $this->checkEventPayment($date, $microsite_id, $hour, $dateCloseInit, $next_day, $timezone);
         } else {
-            abort(500, "No hay turnos disponibles " . $today->formatLocalized('%A %d %B %Y'));
+            /* Cuando no hay mesas buscar reservar persona de pie */
+           return $result =  $this->searchAvailabilityStandingPeople($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $eventId);
+//            abort(500, "No hay mesas disponibles " . $today->formatLocalized('%A %d %B %Y'));
         }
         //Verifico si existe evento de pago
         if ($event->get("event")) {
@@ -1235,16 +1383,15 @@ class AvailabilityService
         if ($time_tolerance !== 0) {
             // $date                  = Carbon::parse($date, $timezone)->addDay($next_day)->toDateString();
             $time_tolerance_string = Carbon::createFromTime(0, 0, 0, $timezone)->addMinutes($time_tolerance)->toTimeString();
-            $dateActual            = Carbon::now($timezone);
+            $dateActual            = Carbon::now();            
             $hourActual            = $dateActual->toDateTimeString();
             $reservations          = Reservation::where("ms_microsite_id", $microsite_id)
                 ->where("date_reservation", $date)
-                ->where("res_source_type_id", $this->id_res_source_type)
-                ->where('res_reservation_status_id', $this->id_status_reserved)
-                ->whereRaw("ADDDATE(addtime(concat(date_reservation,' ',hours_reservation),?) ,  INTERVAL next_day DAY) <= ?", array($time_tolerance_string, $hourActual))->get();
+                ->StatusReserved()
+                ->whereRaw("addtime(datetime_input, ?) <= ?", array($time_tolerance_string, $hourActual))->get();
             if (!$reservations->isEmpty()) {
                 foreach ($reservations as $reservation) {
-                    $reservation->res_reservation_status_id = $this->id_status_cancel;
+                    $reservation->res_reservation_status_id = \App\res_reservation_status::_ID_ABSENT;
                     $reservation->save();
                 }
                 return true;
@@ -1354,7 +1501,7 @@ class AvailabilityService
 
     private function checkEventPromo(string $date, int $microsite_id, string $hour, Carbon $dateCloseInit, int $next_day, string $timezone, int $idEvent = null)
     {
-        $dayC = Carbon::parse($date, $timezone);
+        $dayC = Carbon::parse($date);
         $day  = $dayC->dayOfWeek;
         if (isset($idEvent)) {
             $promotions = ev_event::where('id', $idEvent)
@@ -1469,41 +1616,36 @@ class AvailabilityService
         return $date;
     }
 
-    public function checkReservationStandingPeople(string $date, string $hour, string $time_tolerance, string $timezone, int $microsite_id, int $num_guests)
+    public function checkReservationStandingPeople(string $date, string $hour, string $time_tolerance, string $timezone = null, int $microsite_id, int $num_guests)
     {
-        // [$date, $hour, $timezone];
-        $dateC      = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $hour, $timezone);
-        $dateActual = Carbon::now($timezone);
-        if (($dateC->toDateString() <=> $dateActual->toDateString()) > 0) {
-            $dateActual = $dateC->copy();
-        }
+        
+        $dateActual      = Carbon::createFromFormat('Y-m-d H:i:s', $date . " " . $hour);
+//        $dateActual = Carbon::now();
+//        if (($dateC->toDateString() <=> $dateActual->toDateString()) > 0) {
+//            $dateActual = $dateC->copy();
+//        }
         $hourActual = $dateActual->toDateTimeString();
-        if ($time_tolerance !== 0) {
-            $time_tolerance_string = Carbon::createFromTime(0, 0, 0, $timezone)->addMinutes($time_tolerance)->toTimeString();
-            $reservations          = Reservation::selectRaw("count(num_guest) as num_guests_standing")->where('ms_microsite_id', $microsite_id)
+        
+        $reservations = Reservation::selectRaw("SUM(num_guest) as num_guests_standing")->selectRaw("'$hourActual' as hourActual")->where('ms_microsite_id', $microsite_id)
                 ->where('date_reservation', $date)
-                ->where('status_standing', $this->status_standing)
-                ->where('res_source_type_id', $this->id_res_source_type)
-                ->where('res_reservation_status_id', $this->id_status_reserved)
-                ->whereRaw("addtime(concat(date_reservation,' ',hours_reservation),?) <= ?", array($time_tolerance_string, $hourActual))
-                ->first();
-        } else {
-            $reservations = Reservation::selectRaw("count(num_guest) as num_guests_standing")->where('ms_microsite_id', $microsite_id)
-                ->where('date_reservation', $date)
-                ->where('status_standing', $this->status_standing)
-                ->where('res_source_type_id', $this->id_res_source_type)
-                ->where('res_reservation_status_id', $this->id_status_reserved)
-                ->whereRaw("concat(date_reservation,' ',hours_reservation) <= ?", array($hourActual))
-                ->first();
-        }
-        $cantGuest = $num_guests + $reservations->num_guests_standing;
-        if ($num_guests + $reservations->num_guests_standing <= $this->max_people_standing) {
-            return true;
-//            return collect(["availability_standing" => true, "num_guest_availability" => $cantGuest, "num_guest_s_max" => $this->max_people_standing]);
-        } else {
-            return false;
-//            return collect(["availability_standing" => false, "num_guest_availability" => $cantGuest, "num_guest_s_max" => $this->max_people_standing]);
-        }
+                ->Standing()
+                ->SourceWeb()
+                ->StatusReserved();
+        
+        $reservations = $reservations->where(function($query) use ($hourActual, $time_tolerance){
+                        
+            $query = $query->whereRaw("CONCAT(date_reservation, ' ', hours_reservation) <= ?", array($hourActual))
+                ->whereRaw("ADDTIME(CONCAT(date_reservation, ' ', hours_reservation), hours_duration) >= ?", array($hourActual));
+            
+            return $query;
+        });
+        
+        $reservations = $reservations->first();
+        
+        $totalpeople = $num_guests + (int)$reservations->num_guests_standing;
+        
+        return ($totalpeople <= $this->max_people_standing);
+        
     }
     
     public function searchEventFree($microsite_id, $date) {
@@ -2082,7 +2224,8 @@ class AvailabilityService
                 "name" => $item->name,
                 "description" => strip_tags($item->description),
                 "observation" => $item->observation,
-                "image" => ($item->image!=null || $item->image != "")?"http://bookersnap.com/archivo/reservatiopromotion/320x320/".$item->image:null,
+                "image" => ($item->image!=null || $item->image != "")?ev_event::_BASEURL_IMG_PROMOTION.$item->image:null,
+                "image_thumb" => ($item->image!=null || $item->image != "")?ev_event::_BASEURL_IMG_THUMB_PROMOTION.$item->image:null,
                 "name_type" => "Promoción",
                 "turns" => collect($item->turns),
             ];
@@ -2100,7 +2243,8 @@ class AvailabilityService
                 "name" => $item->name,
                 "description" => strip_tags($item->description),
                 "observation" => $item->observation,                
-                "image" => ($item->image!=null || $item->image != "")?"http://bookersnap.com/archivo/eventos/800x800/".$item->image:null,
+                "image" => ($item->image!=null || $item->image != "")?ev_event::_BASEURL_IMG_EVENT.$item->image:null,
+                "image_thumb" => ($item->image!=null || $item->image != "")?ev_event::_BASEURL_IMG_THUMB_EVENT.$item->image:null,
                 "name_type" => "Evento",
                 "turn" => $item->turn,
             ];
@@ -2166,8 +2310,8 @@ class AvailabilityService
         } catch (\Exception $e) {
                       
         }
-        
-        return ["hours" => $hourscollection, "event_ids" => array_unique($turnsIds->toArray())];
+        return $hourscollection;
+//        return ["hours" => $hourscollection, "event_ids" => array_unique($turnsIds->toArray())];
     }
     
     public function formatAvailability(int $microsite_id, string $date = null)
@@ -2183,28 +2327,9 @@ class AvailabilityService
         $dateIni  = $firstmonth->subDays($firstmonth->dayOfWeek + 1);
         $lastofmonth = $date->copy()->lastOfMonth();
         $dateFin  = $lastofmonth->addDays(14 - $lastofmonth->dayOfWeek);
-        $next_day = 0;        
         
-        $result = $this->hoursWithEvenst($microsite_id, $date);
-        $hours = $result["hours"];
-        $eventIds = $result["event_ids"];
-                
-        $events = ev_event::whereIn('id', $eventIds)->get()->map(function($item){            
-            $imagepath = ($item->bs_type_event_id == ev_event::_ID_EVENT_FREE)?"http://bookersnap.com/archivo/eventos/800x800/":"http://bookersnap.com/archivo/reservatiopromotion/320x320/";
-            if($item->bs_type_event_id == ev_event::_ID_EVENT_FREE){
-                $name_type = "Evento";
-            }else{
-                $name_type = "Promoción";
-            }
-            return [
-                "id" => $item->id,
-                "name" => $item->name,
-                "description" => strip_tags($item->description),
-                "observation" => $item->observation,
-                "image" => ($item->image!=null || $item->image != "")?$imagepath.$item->image:null,
-                "name_type" => $name_type,
-            ];
-        });        
+        $hours = $this->hoursWithEvenst($microsite_id, $date);
+        
         
         $zones = $this->searchZones($microsite_id, $date->toDateString(), $timezone);        
         $daysDisabled = $this->getDaysDisabled($microsite_id, $dateIni->toDateString(), $dateFin->toDateString());
@@ -2216,7 +2341,7 @@ class AvailabilityService
             "daysDisabled" => $daysDisabled,
             "hours" => $hours, 
             "zones" => $zones, 
-            'events' => $events
+            'events' => []
         ];
         
     }
