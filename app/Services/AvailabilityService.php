@@ -597,6 +597,7 @@ class AvailabilityService
                 abort(500, "Rango incorrecto los ragos correctos para horario de madrugada son de 00:00:00 a 05:45:00");
             }
         }
+        
         $configuration             = $this->configurationService->getConfiguration($microsite_id);
         $this->minCombinationTable = $configuration->max_table;
         $this->maxPeople           = $configuration->max_people;
