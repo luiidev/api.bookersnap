@@ -36,7 +36,7 @@ class ConfigurationUserController extends Controller
     public function destroy(Request $request)
     {
         $microsite_id = $request->route("microsite_id");
-        $user_id      = $request->route("users");
+        $user_id      = $request->route("user_id");
         return $this->TryCatchDB(function () use ($microsite_id, $user_id) {
             $response = $this->service->deletePrivilegeUSer($microsite_id, $user_id);
             return $this->CreateJsonResponse(true, 200, "Se elimino privilegio", $response);
