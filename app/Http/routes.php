@@ -274,17 +274,3 @@ function routeMesas()
     });
 
 }
-
-function apiPublic()
-{
-
-    //-----------------------------------------------------
-    // MICROSITE:: Availability
-    //-----------------------------------------------------
-    Route::group(['prefix' => 'reservations/'], function () {
-        Route::post('availability', 'AvailabilityController@basic', [ 'middleware' =>'ACL:action' ]);
-        Route::get('daysdisabled', 'AvailabilityController@getDaysDisabled', [ 'middleware' =>'ACL:action' ]);
-        Route::get('search', 'AvailabilityController@getFormatAvailability', [ 'middleware' =>'ACL:action' ]);
-    });
-
-}
