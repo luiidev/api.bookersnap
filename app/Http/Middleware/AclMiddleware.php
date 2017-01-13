@@ -4,7 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Entities\bs_acl;
 use App\Entities\ms_manager;
-use App\Services\Helpers\HttpRequestHelper;
+use App\Services\Helpers\CheckPrivilegeHelper;
 use Closure;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use JWTAuth;
@@ -12,7 +12,6 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
-use Redis;
 
 class AclMiddleware {
 
@@ -29,20 +28,11 @@ class AclMiddleware {
             
             $request->request->set('_bs_user_id', 1);
 
-            // $http = HttpRequestHelper::make("GET", "http://localhost:100/v1/es/check-privilege")
-            //     ->setData([
-            //         "bs_user_id" => 1,
-            //         "ms_mp_id" => 1,
-            //         "bs_type_admin_id" => 2
-            //     ])
-            //     ->send();
+            $CheckPrivilege = new CheckPrivilegeHelper();
             
-            // $privileges = [];
+            $privileges =$CheckPrivilege->getPrivileges(21, 1, 2);
 
-            // if (in_array($privileges, $action)) {
-            // }
-
-            // return response()->json($http->getArrayResponse());
+            return response()->json($privileges);
 
             return $next($request);
                     //se obtienen las credenciales de acceso de los headers
