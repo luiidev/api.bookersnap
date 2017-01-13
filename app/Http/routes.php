@@ -85,19 +85,22 @@ function routeMesas()
         Route::put('servers/{server_id}', 'ServerController@update', [ 'middleware' =>'ACL:adminms-table-server-update' ]);
         Route::delete('servers/{server_id}', 'ServerController@delete', [ 'middleware' =>'ACL:adminms-table-server-delete' ]);
 
+        
         //-----------------------------------------------------
         // MICROSITE::TURNOS
         //-----------------------------------------------------
+        //
+        //Notas del turno
+        Route::get('turns/notes', 'NoteController@index', [ 'middleware' =>'ACL:adminms-table-turnNote-index' ]); //se esta usando en aplicacion de grid
+        Route::post('turns/notes', 'NoteController@create', [ 'middleware' =>'ACL:adminms-table-turnNote-create' ]);
+        
         Route::group(["middleware" =>'ACL:adminms-table-turn-show' ], function() {
             Route::get('turns', 'TurnController@index');
             Route::get('turns/calendar', 'TurnController@calendar'); /* lista de turnos de una fecha de calnedario */
             Route::get('turns/search', 'TurnController@search');
             Route::get('turns/{turn_id}', 'TurnController@show');
             Route::get('turns/{turn_id}/zones/{zone_id}/tables', 'TurnController@listTableZone');
-        });
-        //Notas del turno
-        // Route::get('turns/notes', 'NoteController@index', [ 'middleware' =>'ACL:adminms-table-turnNote-index' ]);
-        Route::post('turns/notes', 'NoteController@create', [ 'middleware' =>'ACL:adminms-table-turnNote-create' ]);
+        });        
         Route::post('turns/', 'TurnController@create', [ 'middleware' =>'ACL:adminms-table-turn-create' ]);
         Route::delete('turns/{turn_id}', 'TurnController@delete', [ 'middleware' =>'ACL:adminms-table-turn-delete' ]);
         Route::put('turns/{turn_id}', 'TurnController@update', [ 'middleware' =>'ACL:adminms-table-turn-update' ]);
@@ -110,7 +113,7 @@ function routeMesas()
         //-----------------------------------------------------
         Route::get('calendar/{date}', 'CalendarController@index', [ 'middleware' =>'ACL:adminms-table-calendar-show' ]);
         // Route::get('calendar/{date}/zones', 'CalendarController@getZones', [ 'middleware' =>'ACL:adminms-table-calendar-getZones' ]);
-        // Route::get('calendar/{date}/shifts', 'CalendarController@listShift', [ 'middleware' =>'ACL:adminms-table-calendar-listShift' ]);
+        Route::get('calendar/{date}/shifts', 'CalendarController@listShift', [ 'middleware' =>'ACL:adminms-table-calendar-show' ]); //se esta usando en aplicacion de grid
         Route::post('calendar', 'CalendarController@storeCalendar', [ 'middleware' =>'ACL:adminms-table-calendar-store' ]);
         Route::delete('calendar/{res_turn_id}', 'CalendarController@deleteCalendar', [ 'middleware' =>'ACL:adminms-table-calendar-delete' ]);
         Route::put('calendar/change', 'CalendarController@changeCalendar', [ 'middleware' =>'ACL:adminms-table-calendar-update' ]);
