@@ -285,16 +285,3 @@ function routeMesas()
 
 }
 
-// function apiPublic()
-// {
-
-//     //-----------------------------------------------------
-//     // MICROSITE:: Availability
-//     //-----------------------------------------------------
-//     Route::group(['prefix' => 'reservations/'], function () {
-//         Route::post('availability', 'AvailabilityController@basic');
-//         Route::get('daysdisabled', 'AvailabilityController@getDaysDisabled');
-//         Route::get('search', 'AvailabilityController@getFormatAvailability');
-//     });
-
-// }

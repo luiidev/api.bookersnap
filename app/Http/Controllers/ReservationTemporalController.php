@@ -52,7 +52,8 @@ class ReservationTemporalController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(ReservationTemporalRequest $request)
-    {        
+    {   
+        
         return $this->TryCatch(function () use ($request) {            
 //             $token        = request()->cookie('token', request()->cookie('laravel_session'));
             $token        = request()->header("token");
@@ -69,6 +70,8 @@ class ReservationTemporalController extends Controller
             $timezone     = $request->timezone;
             
             $reservationTime = CalendarHelper::getDatetimeCalendar($microsite_id, $date, $hour);
+            
+            
             if(!$reservationTime){
                 abort(500, "Este horario no existe");
             }

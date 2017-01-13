@@ -24,7 +24,7 @@ class EnableTimesForTable
 
     }
 
-    public function segment($turn, $turns_table = null)
+    public function segment($turn, $turns_table = null, $rule_id = 1)
     {
         $this->availability = [];
         $this->initAvailability();
@@ -32,7 +32,7 @@ class EnableTimesForTable
         $end = $this->timeToIntegerRangePosition($turn->hours_end);
 
         for ($i = $ini; $i <= $end; $i++) {
-            $this->availability[$i]['rule_id'] = 1;
+            $this->availability[$i]['rule_id'] = $rule_id;
         }
         if ($turns_table) {
             $this->defineRule($turns_table);

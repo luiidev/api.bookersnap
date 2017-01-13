@@ -457,24 +457,27 @@ class TurnService {
     }
 
     public function getListTable(int $turn_id, int $zone_id) {
-
-        $turn = res_turn::whereHas('turnZone',function($query) use ($turn_id){
+        
+        $turn_zone = res_turn_zone::where('res_zone_id' , $zone_id)->whereHas('turn', function($query) use ($turn_id){
             return $query->where('id', $turn_id);
-        })->first();
+        })->with(['turn'])->first();
 
-        if ($turn != null) {
+        if ($turn_zone != null) {
+            $rule_id = $turn_zone->res_turn_rule_id;
+            $turn = $turn_zone->turn;
             $EnableTimesForTable = new \App\Domain\EnableTimesForTable();
 
             $tables = res_table::where('res_zone_id', $zone_id)->where('status', 1)->with(array('turns' => function ($query) use ($turn_id) {
                             $query->where('res_turn_id', $turn_id);
-                        }))->get(array('id', 'name', 'min_cover', 'max_cover'))->map(function ($item) use ($turn, $EnableTimesForTable) {
-                $item->availability = $EnableTimesForTable->segment($turn, $item->turns);
+                        }))->get(array('id', 'name', 'min_cover', 'max_cover'))->map(function ($item) use ($turn, $rule_id, $EnableTimesForTable) {
+                
+                $item->availability = $EnableTimesForTable->segment($turn, $item->turns, $rule_id);
                 unset($item->turns);
                 return $item;
             });
             return $tables;
         }
-        return $turn;
+        return $turn_zone;
     }
 
     private function saveTurnTables(array $tables = null, $hours_ini, $hours_end, int $turn_id) {

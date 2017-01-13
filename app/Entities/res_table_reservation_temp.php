@@ -4,6 +4,7 @@ namespace App\Entities;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Entities\ev_event;
+use App\res_zone;
 use App\res_reservation;
 use App\Services\Helpers\DateTimesHelper;
 use App\res_turn_time;
@@ -17,5 +18,9 @@ class res_table_reservation_temp extends Model
     
     public function event() {
         return $this->belongsTo(ev_event::class, "ev_event_id");
+    }
+    
+    public function zone() {
+        return $this->belongsTo(res_zone::class, "zone_id");
     }
 }

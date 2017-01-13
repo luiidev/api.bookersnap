@@ -548,12 +548,14 @@ class TableReservationService extends Service
         $reservation->save();
                 
         // Tables
-        $tables = explode(",", trim($temporal->tables_id));        
-        foreach ($tables as $value) {
-            $tables[$value] = array("num_people" => 0);
+        if(!is_null($temporal->tables_id) || strlen(trim($temporal->tables_id))>0){
+            $tables = explode(",", trim($temporal->tables_id));        
+            foreach ($tables as $value) {
+                $tables[$value] = array("num_people" => 0);
+            }
+            $reservation->tables()->sync($tables);
         }
-        $reservation->tables()->sync($tables);
-
+        
         // Guest List
         $guest_list_add = array();
         if ($this->req->has("guest_list")) {
@@ -567,10 +569,14 @@ class TableReservationService extends Service
         $reservation->guestList()->saveMany($guest_list_add);
 
         res_table_reservation_temp::where("token", $token)->where("expire", ">", $now)->update(["expire" => $now]);
-
+        
+        $microsite = ms_microsite::with("country", "configuration.percentage")
+                ->find($this->microsite_id);
+        $microsite->url_image_logo = ($microsite->image_logo != null)?ms_microsite::_BASEURL_IMG_LOGO."/".$microsite->image_logo:null;
+        
         $data = array(
             "reservation" => res_reservation::withRelations()->find($reservation->id),
-            "site"        => ms_microsite::with("country", "configuration.percentage")->find($this->microsite_id),
+            "site"        => $microsite,
             "reserve_key" => encrypt($reservation->id),
         );
 
