@@ -27,7 +27,8 @@ class AclMiddleware {
         return $this->TryCatch(function () use ($request, $next, $action) {
             
             $request->request->set('_bs_user_id', 1);
-
+            return $next($request);
+            
             $CheckPrivilege = new CheckPrivilegeHelper();
             
             $privileges =$CheckPrivilege->getPrivileges(21, 1, 2);
