@@ -36,7 +36,7 @@ class TableReservationRequest extends Request
             "server_id"        => "exists:res_server,id",
             "note"             => "string",
             "guest"            => "array",
-            "guest.first_name" => "string|max:255",
+            "guest.first_name" => "required|string|max:255",
             "guest.last_name"  => "string|max:255",
             "guest.email"      => "email",
             "guest.phone"      => "digits_between:7,15",
@@ -50,9 +50,18 @@ class TableReservationRequest extends Request
             "tags.*"           => "exists:res_tag_r,id",
         ];
     }
+    
+//    public function mesage() {
+//        return [
+//            "guest.first_name" => [
+//                "required" => "la fecha de reservacionb es obligatoria",
+//                "date" => "El formato de fecha debe se HH:mm:dd"
+//                ],
+//        ];
+//    }
 
     public function response(array $errors)
     {
-        return $this->CreateJsonResponse(false, 422, "", $errors, null, null, "Parametros no admitidos");
+        return $this->CreateJsonResponseValidation(false, 422, "", $errors, null, null, "Los datos enviados son incorrectos.");
     }
 }
