@@ -4,6 +4,7 @@ namespace App\Services\Helpers;
 
 use App\Entities\bs_role;
 use App\Entities\ms_manager;
+use App\Services\Helpers\HttpRequestHelper;
 use Redis;
 
 class CheckPrivilegeHelper
@@ -22,31 +23,7 @@ class CheckPrivilegeHelper
     {
         $key = self::userPrefix.$bs_user_id.":".$ms_mp_id.":".$bs_type_admin_id;
 
-        $role_id = Redis::get($key);
-
-        if ($role_id === null) {
-            $http = HttpRequestHelper::make("GET", "http://localhost:100/v1/es/manager")
-                ->setData([
-                    "bs_user_id" => 1,
-                    "ms_mp_id" => 1,
-                    "bs_type_admin_id" => 2
-                ])
-                ->send();
-
-            if ($http->isOk()) {
-                $data = $http->getArrayResponse()["data"];
-
-                if ($data !== null) {
-                    if ($data->bs_role_id !== null) {
-                        Redis::set($key, $data->bs_role_id);
-                        Redis::expire($key, 129600);
-                        $role_id = $data->bs_role_id;
-                    }
-                }
-            }
-        }
-
-        return $role_id;
+        return Redis::get($key);
     }
 
     /**
@@ -58,13 +35,42 @@ class CheckPrivilegeHelper
      */
     public function getPrivileges($bs_user_id, $ms_mp_id, $bs_type_admin_id)
     {
-        $role_id = $this->getRole($bs_user_id, $ms_mp_id, $bs_type_admin_id);
+        $user_role_id = $this->getRole($bs_user_id, $ms_mp_id, $bs_type_admin_id);
 
-        if ($role_id !== null) {
-            return Redis::lrange(self::rolePrefix.$role_id, 0, -1);
-        } else {
-            return [];
+        if ($user_role_id !== null) {
+            $privileges = Redis::lrange(self::rolePrefix.$user_role_id, 0, -1);
+            if (count($privileges) === 0) { // Si no se encuentra el rol, preguntar a api auth
+                return $this->getAuthPrivileges($bs_user_id, $ms_mp_id, $bs_type_admin_id);
+            } else {    // Si todo esta ok devuelve array de privilegios
+                return Redis::lrange(self::rolePrefix.$user_role_id, 0, -1);
+            }
+        } else {    // Si no se ecnuentra el usuario, preguntar en api auth
+            return $this->getAuthPrivileges($bs_user_id, $ms_mp_id, $bs_type_admin_id);
         }
+    }
+
+/**
+ * Si no se encuentra usuario o roles se consulta a api auth
+ * @param  Int $bs_user_id       id de usuario
+ * @param  Int $ms_mp_id         id de sitio
+ * @param  Int $bs_type_admin_id tipo de sitio
+ * @return Array                   [description]
+ */
+    public function getAuthPrivileges($bs_user_id, $ms_mp_id, $bs_type_admin_id)
+    {
+            $http = HttpRequestHelper::make("GET")
+                ->setUrl(config('settings.api_auth')."/v1/es/microsites/".$ms_mp_id."/permissions")
+                ->setData([
+                    "bs_user_id" => $bs_user_id,
+                ])
+                ->send();
+
+            if ($http->isOk()) {
+                $data = @$http->getArrayResponse()["data"];
+                return $data ? $data : [];
+            } else {
+                return [];
+            }
     }
 
     /**
