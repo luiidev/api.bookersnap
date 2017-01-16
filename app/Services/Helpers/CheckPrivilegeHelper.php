@@ -80,7 +80,7 @@ class CheckPrivilegeHelper
      */
     public function getPrivilegesByRole($id)
     {
-        return Redis::lrange(self::rolePrefix.$id, 0, -1);
+        // return Redis::lrange(self::rolePrefix.$id, 0, -1);
     }
 
     /**
@@ -90,17 +90,17 @@ class CheckPrivilegeHelper
      */
     public function updateRole($id)
     {
-        Redis::del(self::rolePrefix.$id);
+        // Redis::del(self::rolePrefix.$id);
 
-        $role = bs_role::select("id")->with(["privileges" => function($query) {
-            return $query->select("action_name");
-        }])->find($id);
+        // $role = bs_role::select("id")->with(["privileges" => function($query) {
+        //     return $query->select("action_name");
+        // }])->find($id);
 
-        if ($role !== null) {
-            if (count($role->privileges)) {
-                Redis::rpush(self::rolePrefix.$role->id, $role->privileges->pluck("action_name")->toArray());
-            }
-        }
+        // if ($role !== null) {
+        //     if (count($role->privileges)) {
+        //         Redis::rpush(self::rolePrefix.$role->id, $role->privileges->pluck("action_name")->toArray());
+        //     }
+        // }
     }
 
     /**
@@ -109,17 +109,17 @@ class CheckPrivilegeHelper
      */
     public function resetRoles()
     {
-        Redis::eval("local keys = redis.call('keys', ARGV[1]) for i=1,#keys,5000 do redis.call('del', unpack(keys, i, math.min(i+4999, #keys))) end return keys", 0, self::rolePrefix.'*');
+        // Redis::eval("local keys = redis.call('keys', ARGV[1]) for i=1,#keys,5000 do redis.call('del', unpack(keys, i, math.min(i+4999, #keys))) end return keys", 0, self::rolePrefix.'*');
 
-        $roles = bs_role::select("id")->with(["privileges" => function($query) {
-            return $query->select("action_name");
-        }])->get();
+        // $roles = bs_role::select("id")->with(["privileges" => function($query) {
+        //     return $query->select("action_name");
+        // }])->get();
 
-        foreach ($roles as $role) {
-            if (count($role->privileges)) {
-                Redis::rpush(self::rolePrefix.$role->id, $role->privileges->pluck("action_name")->toArray());
-            }
-        }
+        // foreach ($roles as $role) {
+        //     if (count($role->privileges)) {
+        //         Redis::rpush(self::rolePrefix.$role->id, $role->privileges->pluck("action_name")->toArray());
+        //     }
+        // }
     }
 
     /**
@@ -129,7 +129,7 @@ class CheckPrivilegeHelper
      */
     public function deleteUser($id)
     {
-        Redis::eval("local keys = redis.call('keys', ARGV[1]) for i=1,#keys,5000 do redis.call('del', unpack(keys, i, math.min(i+4999, #keys))) end return keys", 0, self::userPrefix.$id.':*');
+        // Redis::eval("local keys = redis.call('keys', ARGV[1]) for i=1,#keys,5000 do redis.call('del', unpack(keys, i, math.min(i+4999, #keys))) end return keys", 0, self::userPrefix.$id.':*');
     }
 
     /**
@@ -139,7 +139,7 @@ class CheckPrivilegeHelper
      */
     public function deleteRole($id)
     {
-        Redis::eval("local keys = redis.call('keys', ARGV[1]) for i=1,#keys,5000 do redis.call('del', unpack(keys, i, math.min(i+4999, #keys))) end return keys", 0, self::rolePrefix.$id);
+        // Redis::del(self::rolePrefix.$id);
     }
 
 }
