@@ -44,7 +44,7 @@ function routeMesas()
     //-----------------------------------------------------
     // MICROSITE
     //-----------------------------------------------------
-    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['setLocale', 'setTimeZone', 'ACL:microsite']], function () {
+    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['setLocale', 'setTimeZone', /*'ACL:microsite'*/]], function () {
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS
@@ -279,8 +279,8 @@ function routeMesas()
             Route::get('block/{block_id}', 'WebAppController@editBlock');
         });
 
-        Route::get("notification", "NotificationController@index", [ 'middleware' =>'ACL:adminms-table-notification-show' ]);
-        Route::put("notification", "NotificationController@update", [ 'middleware' =>'ACL:adminms-table-notification-update' ]);
+        Route::get("notification", "NotificationController@index", ['middleware' =>'ACL:adminms-table-notification-show']);
+        Route::put("notification", "NotificationController@update", ['middleware' =>'ACL:adminms-table-notification-update']);
     });
 
 }

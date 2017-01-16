@@ -23,7 +23,7 @@ class AclMiddleware {
      * @return mixed
      */
     public function handle($request, Closure $next, $action = null) {
-
+        return $next($request);
         return $this->TryCatch(function () use ($request, $next, $action) {
             
             $request->request->set('_bs_user_id', 1);
