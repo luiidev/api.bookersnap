@@ -693,6 +693,7 @@ class AvailabilityService
                     
                 } else {
                     
+                    $availabilityTables = $availabilityTablesInit;
                     $hoursWithEvenst = $this->hoursWithEvenst($microsite_id, $date);
                     $first = $hoursWithEvenst->first();
                     $last = $hoursWithEvenst->last();
@@ -780,8 +781,8 @@ class AvailabilityService
                 $indexClose                    = $this->defineIndexHour($availabilityTables['day'], $dateClose->toTimeString());
                 $hours                         = $this->formatActualHour($date, $hour, $next_day, $timezone, $otherDay, $availabilityTables['hourIni']);
             }
+//            return [$availabilityTablesInit];
             // return [$otherDay,$otherDayE,$next_day];
-            // return $hours;
             $hourQuery        = $hours->get("hourQuery");
             $hourAvailability = $hours->get("hourAvailability");
             $hourUp           = $hours->get("hourUp");
@@ -946,7 +947,7 @@ class AvailabilityService
 //                    return $aux;
 //                } else {
                     //Verifica si se buscan promociones en la disponibilidad
-                
+                    
                     $availabilityTablesAvailability = (@$availabilityTables)?$availabilityTables['availability']:null;
                     $availabilitySinPromociones = $this->searchAvailavilityFormat($indexQuery, $indexAvailability, $indexHourInitDown, $indexHourInitUp, $indexHourMin, $indexHourMax, $microsite_id, $date, $hourQuery, $num_guests, $zone_id, $timezone, $availabilityTablesAvailability, $eventId);
                     
