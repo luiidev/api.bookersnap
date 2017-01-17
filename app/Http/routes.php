@@ -44,7 +44,7 @@ function routeMesas()
     //-----------------------------------------------------
     // MICROSITE
     //-----------------------------------------------------
-    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['setLocale', 'setTimeZone', /*'ACL:microsite'*/]], function () {
+    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['setLocale', 'setTimeZone', "auth"]], function () {
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS

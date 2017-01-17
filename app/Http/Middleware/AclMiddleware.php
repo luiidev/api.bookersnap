@@ -4,7 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Entities\bs_acl;
 use App\Entities\ms_manager;
-use App\Services\Helpers\CheckPrivilegeHelper;
+use App\Services\Helpers\PrivilegeHelper;
 use Closure;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use JWTAuth;
@@ -23,29 +23,42 @@ class AclMiddleware {
      * @return mixed
      */
     public function handle($request, Closure $next, $action = null) {
-        return $next($request);
-        return $this->TryCatch(function () use ($request, $next, $action) {
+
+        $checkProvilege = new PrivilegeHelper();
+        $privileges =  $checkProvilege->getPrivileges($request->_bs_user_id, $request->route("microsite_id"), 2);
+
+        if (count($privileges) > 0) {
+            if ( in_array($action, $privileges) ) {
+                return $next($request);
+            }
+        } 
+
+        return response()->json("unauthorized", 401);
+
+
+        // // return $next($request);
+        // return $this->TryCatch(function () use ($request, $next, $action) {
             
-            $request->request->set('_bs_user_id', 1);
-
-            $CheckPrivilege = new CheckPrivilegeHelper();
+        //     $request->request->set('_bs_user_id', 1);
+        //     return $next($request);
+        //     $CheckPrivilege = new CheckPrivilegeHelper();
             
-            $privileges =$CheckPrivilege->getPrivileges(21, 1, 2);
+        //     $privileges =$CheckPrivilege->getPrivileges(21, 1, 2);
 
-            return response()->json($privileges);
+        //     return response()->json($privileges);
 
-            return $next($request);
-                    //se obtienen las credenciales de acceso de los headers
-                    $user_info = $this->GetUserInfo();
-                    $request->request->set('_bs_user_id', $user_info['id']);
-                    $ms_mp_id = $request->header('ms-mp-id');
-                    $type_admin_id = $request->header('type-admin');
-                    $hasAccess = $this->CheckAuth($user_info['id'], $type_admin_id, $ms_mp_id, $action);
-                    if (!$hasAccess) {
-                        abort(403, trans('messages.forbidden'));
-                    }
-                    return $next($request);
-                });
+        //     return $next($request);
+        //             //se obtienen las credenciales de acceso de los headers
+        //             $user_info = $this->GetUserInfo();
+        //             $request->request->set('_bs_user_id', $user_info['id']);
+        //             $ms_mp_id = $request->header('ms-mp-id');
+        //             $type_admin_id = $request->header('type-admin');
+        //             $hasAccess = $this->CheckAuth($user_info['id'], $type_admin_id, $ms_mp_id, $action);
+        //             if (!$hasAccess) {
+        //                 abort(403, trans('messages.forbidden'));
+        //             }
+        //             return $next($request);
+        //         });
                 
     }
 
