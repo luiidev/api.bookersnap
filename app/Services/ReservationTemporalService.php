@@ -24,7 +24,7 @@ class ReservationTemporalService {
         $this->availabilityService = $AvailabilityService;
     }
 
-    public function createReservationTemporal(int $user_id, int $microsite_id, string $hour, string $date, int $num_guest, int $zone_id = null, string $timezone, int $ev_event_id = null, string $tokenAuth, int $next_day, int $num_guests) {
+    public function createReservationTemporal(int $user_id = null, int $microsite_id, string $hour, string $date, int $num_guest, int $zone_id = null, string $timezone, int $ev_event_id = null, string $tokenAuth, int $next_day, int $num_guests) {
     
         $this->timezone = $timezone;
         $this->tokenAuth = $tokenAuth;
@@ -50,7 +50,7 @@ class ReservationTemporalService {
         
     }
     
-    private function saveReservationTemporal($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone, $ev_event_id, $user_id, $tokenAuth) {
+    private function saveReservationTemporal($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone, $ev_event_id, $user_id = null, $tokenAuth) {
         
         if (isset($zone_id)) {
             $availabilityList = $this->availabilityService->searchAvailabilityDay($microsite_id, $date, $hour, $num_guests, $zone_id, $next_day, $timezone, $ev_event_id);
