@@ -49,12 +49,12 @@ class HttpRequestHelper
 
             $this->isResponseOk =$response->getReasonPhrase();
             $this->statusCode = $response->getStatusCode();
-            $this->response =$response->getBody();
+            $this->response =(string) $response->getBody();
         } catch (RequestException $e) {
             $this->isResponseOk = false;
             if ($e->hasResponse()) {
                 $this->statusCode = $e->getResponse()->getStatusCode();
-                $this->errorResponse = $e->getResponse()->getBody();
+                $this->errorResponse = (string) $e->getResponse()->getBody();
             }
             $this->error = strtok($e->getMessage(), "\n");
         } catch (Exception $e) {
@@ -95,7 +95,7 @@ class HttpRequestHelper
 
         $this->header['user-agent'] = $request->server('HTTP_USER_AGENT');
 
-        $api_token = $request->session()->get('api-token');
+        $api_token = $request->session()->get("token_session");
 
         if (!is_null($api_token)) {
             $this->header['Authorization'] = 'Bearer ' . $api_token;
@@ -110,7 +110,7 @@ class HttpRequestHelper
 
     public function getResponse()
     {
-        return (String) $this->response;
+        return $this->response;
     }
 
     public function getArrayResponse()
