@@ -23,11 +23,15 @@ class Authenticate
     {
         try {
             $token = JWTAuth::getToken();
+
+            if (!$token) {
+                return response()->json("unauthorized", 401);
+            }
+
             if ($jwt = JWTAuth::decode($token)->get()) {
                 $user_id = AuthHelper::getSession($jwt["aud"]);
                 if (! is_null($user_id) ) {
                     $request->request->set("_bs_user_id", $user_id);
-                    // return response()->json($request->all());
                     return $next($request);
                 }
             }
