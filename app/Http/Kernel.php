@@ -53,8 +53,7 @@ class Kernel extends HttpKernel
         'responseHeader' => \App\Http\Middleware\ResponseHeaderMiddleware::class,
         'setLocale' => \App\Http\Middleware\SetLocaleMiddleware::class,
         'setTimeZone' => \App\Http\Middleware\SetTimeZoneMiddleware::class,
-        'ACL' => \App\Http\Middleware\AclMiddleware::class,
-        
+        'ACL' => \App\Http\Middleware\AclMiddleware::class,        
         'auth.api' => \App\Http\Middleware\ACLTempApiMicrosite::class,
     ];
 }

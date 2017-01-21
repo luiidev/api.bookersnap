@@ -44,7 +44,7 @@ function routeMesas()
     //-----------------------------------------------------
     // MICROSITE
     //-----------------------------------------------------
-    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['setLocale', 'setTimeZone', /*'ACL:microsite'*/]], function () {
+    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['setLocale', 'setTimeZone'/*, "auth"*/]], function () {
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS
@@ -117,7 +117,7 @@ function routeMesas()
         Route::post('calendar', 'CalendarController@storeCalendar', [ 'middleware' =>'ACL:adminms-table-calendar-store' ]);
         Route::delete('calendar/{res_turn_id}', 'CalendarController@deleteCalendar', [ 'middleware' =>'ACL:adminms-table-calendar-delete' ]);
         Route::put('calendar/change', 'CalendarController@changeCalendar', [ 'middleware' =>'ACL:adminms-table-calendar-update' ]);
-        // Route::get('calendar/{turn_id}/{start_time}/{end_time}', 'CalendarController@existConflictTurn', [ 'middleware' =>'ACL:existConflictTurn' ]);
+        Route::get('calendar/{turn_id}/{start_time}/{end_time}', 'CalendarController@existConflictTurn', [ 'middleware' =>'ACL:existConflictTurn' ]);
 
         //-----------------------------------------------------
         // MICROSITE::TABLES
