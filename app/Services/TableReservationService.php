@@ -158,11 +158,11 @@ class TableReservationService extends Service
         }
 
         $now = Carbon::now();
-        //$turn = TurnsHelper::TypeTurnWithHourForHour($this->req->date, $this->req->hour, $this->microsite_id);
-        $reservationInit = CalendarHelper::CalculeTimesReservation($this->microsite_id, $this->req->date, $this->req->hour);
-        if (!$reservationInit) {
-            abort(500, "No hay reservaciones para esta fecha");
-        }
+        //$turn = TurnsHelper::TypeTurnWithHourForHour($this->req->date, $this->req->hour, $this->microsite_id);        
+//        $reservationInit = CalendarHelper::CalculeTimesReservation($this->microsite_id, $this->req->date, $this->req->hour);
+//        if (!$reservationInit) {
+//            abort(500, "No hay reservaciones para esta fecha");
+//        }
         //$duration                     = ($action == "create") ? $this->req->duration : $reservation->hours_duration;
 
         $reservation->res_guest_id              = $guest_id;
@@ -174,7 +174,7 @@ class TableReservationService extends Service
         $reservation->num_people_2              = $this->req->guests["women"];
         $reservation->num_people_3              = $this->req->guests["children"];
         $reservation->date_reservation          = $this->req->date;
-        $reservation->hours_reservation         = $reservationInit->hours_reservation;
+        $reservation->hours_reservation         = $this->req->hour;
         $reservation->hours_duration            = $this->req->duration;
         $reservation->res_server_id             = $this->req->server_id;
         $reservation->note                      = $this->req->note;
