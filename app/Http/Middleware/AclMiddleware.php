@@ -15,9 +15,7 @@ class AclMiddleware {
      * @return mixed
      */
     public function handle($request, Closure $next, $action = null)
-    {
-        
-        $request->request->set('_bs_user_id', 1);
+    {        
         return $next($request);
         
         $privileges =  PrivilegeHelper::getPrivileges($request->_bs_user_id, $request->route("microsite_id"), 2);
