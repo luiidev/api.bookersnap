@@ -2482,7 +2482,7 @@ class AvailabilityService
         $people       = $this->getPeople($microsite_id);
 
         return [
-            "zones_yoh" => $zoneshoy,
+//            "zones_yoh" => $zoneshoy,
             "date" => $date->toDateString(), 
             "people" => $people, 
             "daysDisabled" => $daysDisabled,

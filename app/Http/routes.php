@@ -112,7 +112,7 @@ function routeMesas()
         // MICROSITE::CALENDAR
         //-----------------------------------------------------
         Route::get('calendar/{date}', 'CalendarController@index', [ 'middleware' =>'ACL:adminms-table-calendar-show' ]);
-        // Route::get('calendar/{date}/zones', 'CalendarController@getZones', [ 'middleware' =>'ACL:adminms-table-calendar-getZones' ]);
+        Route::get('calendar/{date}/zones', 'CalendarController@getZones', [ 'middleware' =>'ACL:adminms-table-calendar-getZones' ]);
         Route::get('calendar/{date}/shifts', 'CalendarController@listShift', [ 'middleware' =>'ACL:adminms-table-calendar-show' ]); //se esta usando en aplicacion de grid
         Route::post('calendar', 'CalendarController@storeCalendar', [ 'middleware' =>'ACL:adminms-table-calendar-store' ]);
         Route::delete('calendar/{res_turn_id}', 'CalendarController@deleteCalendar', [ 'middleware' =>'ACL:adminms-table-calendar-delete' ]);
