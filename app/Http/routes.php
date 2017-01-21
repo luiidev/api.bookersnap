@@ -44,7 +44,7 @@ function routeMesas()
     //-----------------------------------------------------
     // MICROSITE
     //-----------------------------------------------------
-    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['setLocale', 'setTimeZone', /*'ACL:microsite'*/]], function () {
+    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['setLocale', 'setTimeZone'/*, "auth"*/]], function () {
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS
@@ -112,12 +112,12 @@ function routeMesas()
         // MICROSITE::CALENDAR
         //-----------------------------------------------------
         Route::get('calendar/{date}', 'CalendarController@index', [ 'middleware' =>'ACL:adminms-table-calendar-show' ]);
-        // Route::get('calendar/{date}/zones', 'CalendarController@getZones', [ 'middleware' =>'ACL:adminms-table-calendar-getZones' ]);
+        Route::get('calendar/{date}/zones', 'CalendarController@getZones', [ 'middleware' =>'ACL:adminms-table-calendar-getZones' ]);
         Route::get('calendar/{date}/shifts', 'CalendarController@listShift', [ 'middleware' =>'ACL:adminms-table-calendar-show' ]); //se esta usando en aplicacion de grid
         Route::post('calendar', 'CalendarController@storeCalendar', [ 'middleware' =>'ACL:adminms-table-calendar-store' ]);
         Route::delete('calendar/{res_turn_id}', 'CalendarController@deleteCalendar', [ 'middleware' =>'ACL:adminms-table-calendar-delete' ]);
         Route::put('calendar/change', 'CalendarController@changeCalendar', [ 'middleware' =>'ACL:adminms-table-calendar-update' ]);
-        // Route::get('calendar/{turn_id}/{start_time}/{end_time}', 'CalendarController@existConflictTurn', [ 'middleware' =>'ACL:existConflictTurn' ]);
+        Route::get('calendar/{turn_id}/{start_time}/{end_time}', 'CalendarController@existConflictTurn', [ 'middleware' =>'ACL:existConflictTurn' ]);
 
         //-----------------------------------------------------
         // MICROSITE::TABLES
