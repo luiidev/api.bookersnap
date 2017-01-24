@@ -242,6 +242,11 @@ function routeMesas()
         Route::delete("configuration/users/{user_id}", "ConfigurationUserController@destroy", ["middleware" => 'ACL:adminms-table-configurationUser-delete']);
         Route::post("configuration/users", "ConfigurationUserController@store", ["middleware" => 'ACL:adminms-table-configurationUser-store']);
 
+        //-----------------------------------------------------
+        // MICROSITE:: FORM (table res_form)
+        //-----------------------------------------------------
+        Route::get("configuration/form", "ConfigurationFormController@index", [ 'middleware' =>'ACL:adminms-table-configurationForm-show' ]);
+        Route::put("configuration/form", "ConfigurationFormController@update", ["middleware" => 'ACL:adminms-table-configurationForm-update']);
 
         //-----------------------------------------------------
         // MICROSITE:: Reservation Temporal
