@@ -180,7 +180,7 @@ class ZoneService {
                 $this->_ZoneTableService->create($value, $zone->id, $user_id);
             }
             DB::Commit();
-            return true;
+            return res_zone::with('tables')->find($zone->id);
         } catch (\Exception $e) {
             DB::rollBack();
             abort(500, "Ocurrio un error interno ");

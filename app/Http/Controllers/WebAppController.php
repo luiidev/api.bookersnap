@@ -485,7 +485,7 @@ class WebAppController extends Controller
         if (strlen(trim($searchText)) > 0 || $sortBy == "guest.asc" || $sortBy == "guest.desc" || $sortBy === "guest") {
             $reservations = $reservations->join("res_guest as guest", "guest.id", "=", "res.res_guest_id");
             if (strlen(trim($searchText)) > 0) {
-                $reservations = $reservations->where("guest.first_name", "LIKE", "%" . $searchText . "%");
+                $reservations = $reservations->where(DB::raw("CONCAT(guest.first_name, ' ', guest.last_name)"), "LIKE", "%" . $searchText . "%");
             }
         }
         if ($sortBy == "table.asc" || $sortBy == "table.desc") {

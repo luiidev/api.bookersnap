@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Services\Traits\ResponseFormatTrait;
+use Illuminate\Contracts\Validation\Validator;
 
 abstract class Request extends FormRequest {
 
@@ -21,6 +22,30 @@ abstract class Request extends FormRequest {
          */
         $this->merge($this->request->all());
         return parent::all();
+    }
+    
+    
+    protected function formatErrors(Validator $validator)
+    {
+        return $this->JsonResponse(parent::formatErrors($validator));
+    }
+
+    private function JsonResponse($errors)
+    {
+        return [
+            "success" => false,
+            "statuscode" => 422,
+            "msg" => 'Ocurrieron errores al validar los datos.',
+            "data" => null,
+            "redirect" => false,
+            "url" => null,
+            "error" => [
+                "user_msg" => 'Verifique las siguientes inconsistencias.',
+                "internal_msg" => null,
+                "errors" => $errors
+            ]
+        ];
+        
     }
 
 }

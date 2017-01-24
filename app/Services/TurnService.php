@@ -272,7 +272,7 @@ class TurnService {
             unset($turn_zones);
             $turn_zones = array();
             foreach ($request->turn_zone as $value) {
-                $this->saveTurnTables(@$value["tables"], $turn->hours_ini, $turn->hours_end, $turn->id);
+                $this->saveTurnTables(@$value["tables"], $turn->hours_ini, $turn->hours_end, $turn->id);                
                 $turn_zones[$value['res_zone_id']] = array('res_turn_rule_id' => $value['res_turn_rule_id']);
             }
             $turn->zones()->attach($turn_zones);

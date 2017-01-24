@@ -102,11 +102,4 @@ class ZoneRequest extends Request {
         ];
     }
     
-    public function messages()
-    {
-        return [
-            
-        ];
-    }
-
 }
