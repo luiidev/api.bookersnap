@@ -21,9 +21,8 @@ class Authenticate
      */
     public function handle($request, Closure $next, $guard = null)
     {
-        $request->request->set("_bs_user_id", 1);
-        return $next($request);
-        
+        // $request->request->set("_bs_user_id", 1);
+        // return $next($request);
         try {
             $token = JWTAuth::getToken();
 
@@ -38,13 +37,10 @@ class Authenticate
                     return $next($request);
                 }
             }
-        } catch (TokenExpiredException $e) {
-            // return redirect()->guest(route('microsite-login'));
-        } catch (TokenInvalidException $e) {
-            // return redirect()->guest(route('microsite-login'));
-        } catch (JWTException $e) {
-            // return redirect()->guest(route('microsite-login'));
-        }
+        } 
+        catch (TokenExpiredException $e) {}
+        catch (TokenInvalidException $e) {}
+        catch (JWTException $e) {}
 
         return response()->json(["unauthorized"], 401);
     }

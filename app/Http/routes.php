@@ -12,6 +12,7 @@
  */
 
 Route::get('/', function () {
+    return App\Services\FormService::make()->getFormsByMicrosite(1);
     return view('welcome');
 });
 
@@ -245,8 +246,8 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE:: FORM (table res_form)
         //-----------------------------------------------------
-        Route::get("configuration/form", "ConfigurationFormController@index", [ 'middleware' =>'ACL:adminms-table-configurationForm-show' ]);
-        Route::put("configuration/form", "ConfigurationFormController@update", ["middleware" => 'ACL:adminms-table-configurationForm-update']);
+        Route::get("configuration/form", "ConfigurationFormController@index")->middleware('ACL:adminms-table-configurationForm-show');
+        Route::put("configuration/form", "ConfigurationFormController@update")->middleware( 'ACL:adminms-table-configurationForm-update');
 
         //-----------------------------------------------------
         // MICROSITE:: Reservation Temporal

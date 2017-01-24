@@ -24,6 +24,10 @@ abstract class Request extends FormRequest {
         return parent::all();
     }
     
+    public function response(array $errors)
+    {
+        return $this->CreateJsonResponseValidation(false, 422, "", $errors, null, null, "Los datos enviados son incorrectos.");
+    }
     
     protected function formatErrors(Validator $validator)
     {

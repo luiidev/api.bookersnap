@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Services\ConfigurationFormService as Service;
 use App\Http\Requests;
+use App\Http\Requests\FormRequest;
+use App\Services\ConfigurationFormService as Service;
+use Illuminate\Http\Request;
 
 class ConfigurationFormController extends Controller
 {
@@ -15,12 +16,12 @@ class ConfigurationFormController extends Controller
      */
     public function index()
     {
-       	$this->service = Service::make();
-       	return $this->TryCatch(function () {
-       	    $reservation = $this->service->list();
+        $this->service = Service::make();
+        return $this->TryCatch(function () {
+            $reservation = $this->service->list();
 
-       	    return $this->CreateJsonResponse(true, 200, "La reservacion fue actualizada.", $reservation);
-       	});
+            return $this->CreateJsonResponse(true, 200, "", $reservation);
+        });
     }
 
     /**
@@ -70,12 +71,16 @@ class ConfigurationFormController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(FormRequest $request)
     {
-        //
+        $this->service = Service::make($request);
+        return $this->TryCatch(function () {
+            $reservation = $this->service->updateForm();
+
+            return $this->CreateJsonResponse(true, 200, "El formulario fue actualizado.", $reservation);
+        });
     }
 
     /**
