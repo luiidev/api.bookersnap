@@ -21,8 +21,6 @@ class Authenticate
      */
     public function handle($request, Closure $next, $guard = null)
     {
-        // $request->request->set("_bs_user_id", 1);
-        // return $next($request);
         try {
             $token = JWTAuth::getToken();
 
@@ -34,6 +32,7 @@ class Authenticate
                 $user_id = AuthHelper::getSession($jwt["aud"]);
                 if (! is_null($user_id) ) {
                     $request->request->set("_bs_user_id", $user_id);
+                    $request->request->set("_bs_user_type_root", $jwt["type_root"]);
                     return $next($request);
                 }
             }
