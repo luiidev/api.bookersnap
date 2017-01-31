@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class bs_userlogin extends Model
 {
     protected $table = "bs_userlogin";
+    protected $primaryKey = "id_social";
 
     public function user()
     {

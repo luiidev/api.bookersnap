@@ -245,20 +245,6 @@ function routeMesas()
         Route::put("configuration/form", "ConfigurationFormController@update")->middleware( 'ACL:adminms-table-configurationForm-update');
 
         //-----------------------------------------------------
-        // MICROSITE:: Availability
-        //-----------------------------------------------------
-        // Route::get('availability/hours', 'AvailabilityController@getHours');
-        Route::group(['prefix' => 'availability/', 'middleware' => ['auth.api']], function () {
-            Route::get('basic', 'AvailabilityController@basic');
-            // Route::get('zones', 'AvailabilityController@getZones');
-            // Route::get('events', 'AvailabilityController@getEvents');
-            // Route::get('days', 'AvailabilityController@getDays');
-            Route::get('daysdisabled', 'AvailabilityController@getDaysDisabled');
-            // Route::get('people', 'AvailabilityController@getPeople');
-            Route::get('formatAvailability', 'AvailabilityController@getFormatAvailability');
-        });
-
-        //-----------------------------------------------------
         // MICROSITE:: Floor
         //-----------------------------------------------------
         Route::group(['prefix' => 'web-app/', 'middleware' => 'ACL:adminms-table-reservation-show'], function () {
@@ -278,7 +264,7 @@ function routeMesas()
     });
 
 
-    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['setLocale', 'setTimeZone', "auth"]], function () {
+    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['setLocale', 'setTimeZone']], function () {
         //-----------------------------------------------------
         // MICROSITE:: Reservation Temporal
         //-----------------------------------------------------
@@ -290,10 +276,24 @@ function routeMesas()
                 Route::delete("/{token}", "ReservationTemporalController@destroy");
             });
 
-            Route::post('table/reservation/w', 'TableReservationController@storeFromWeb');
-            Route::get('table/reservation/confirmed/{crypt}', 'TableReservationController@showByCrypt');
-            Route::post('table/reservation/cancel/{crypt}', 'TableReservationController@cancelReserveWeb');
-        });
+            //-----------------------------------------------------
+            // MICROSITE:: Availability
+            //-----------------------------------------------------
+            // Route::get('availability/hours', 'AvailabilityController@getHours');
+            Route::group(['prefix' => 'availability/'], function () {
+                Route::get('basic', 'AvailabilityController@basic');
+                // Route::get('zones', 'AvailabilityController@getZones');
+                // Route::get('events', 'AvailabilityController@getEvents');
+                // Route::get('days', 'AvailabilityController@getDays');
+                Route::get('daysdisabled', 'AvailabilityController@getDaysDisabled');
+                // Route::get('people', 'AvailabilityController@getPeople');
+                Route::get('formatAvailability', 'AvailabilityController@getFormatAvailability');
+            });
+
+            Route::post('table/reservation/w', 'TableReservationController@storeFromWeb'); // generar una reservacion desde el widget
+            Route::get('table/reservation/confirmed/{crypt}', 'TableReservationController@showByCrypt'); // dovlver una reservacion al widget por un id encriptado
+            Route::post('table/reservation/cancel/{crypt}', 'TableReservationController@cancelReserveWeb'); // canelcar una reservacion desde el widget por id encriptado
+       });
     });
 
 }
