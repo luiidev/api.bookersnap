@@ -17,7 +17,7 @@ use App\OldTokenSession;
 use Closure;
 use App\Http\Middleware\Middleware;
 
-class ACLTempApiMicrosite extends Middleware{
+class ACLTempUserSession extends Middleware{
 
     /**
      * Handle an incoming request.
@@ -33,8 +33,8 @@ class ACLTempApiMicrosite extends Middleware{
             $token_session = OldTokenSession::where('token', $request->header('TOKEN'))->first();
             
             if($token_session){
-                $request->request->set('__ID_USER', $token_session->usermicrosite_id);
-                $request->request->set('__ID_SESSION', $token_session->token);
+//                $request->request->set('__ID_USER', $token_session->usermicrosite_id);
+//                $request->request->set('__ID_SESSION', $token_session->token);
                 return $next($request);
             }else{
                 abort(403, trans('messages.forbidden'));

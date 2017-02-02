@@ -262,7 +262,7 @@ function routeMesas()
         // MICROSITE:: Availability
         //-----------------------------------------------------
         // Route::get('availability/hours', 'AvailabilityController@getHours');
-        Route::group(['prefix' => 'availability/', 'middleware' => ['auth.api']], function () {
+        Route::group(['prefix' => 'availability/', 'middleware' => [/*'auth.api'*/]], function () {
             Route::get('basic', 'AvailabilityController@basic');
             // Route::get('zones', 'AvailabilityController@getZones');
             // Route::get('events', 'AvailabilityController@getEvents');
