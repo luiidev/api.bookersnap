@@ -21,11 +21,10 @@ class Authenticate
      */
     public function handle($request, Closure $next, $guard = null)
     {
-        try {          
+        try {
             $token = JWTAuth::getToken();
-            return response()->json(["unauthorized :(", $token], 401);
             if (!$token) {
-                return response()->json("unauthorized :)", 401);
+                return response()->json("unauthorized", 401);
             }
             if ($jwt = JWTAuth::decode($token)->get()) {
                 $user_id = AuthHelper::getSession($jwt["aud"]);
@@ -40,6 +39,6 @@ class Authenticate
         catch (TokenInvalidException $e) {}
         catch (JWTException $e) {}
 
-        return response()->json(["unauthorized :("], 401);
+        return response()->json(["unauthorized"], 401);
     }
 }
