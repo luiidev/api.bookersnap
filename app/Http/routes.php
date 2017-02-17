@@ -12,6 +12,7 @@
  */
 
 Route::get('/', function () {
+    return App\Services\FormService::make()->getFormsByMicrosite(1);
     return view('welcome');
 });
 
@@ -57,9 +58,9 @@ function routeMesas()
             Route::get('zones/{zone_id}',  'ZoneController@show');
             Route::get('zones/{zone_id}/tables',  'ZoneController@listTable');
         });
-        Route::post('zones', 'ZoneController@create', [ 'middleware' =>'ACL:adminms-table-zone-store' ]);
-        Route::put('zones/{zone_id}', 'ZoneController@update', [ 'middleware' =>'ACL:adminms-table-zone-update' ]);
-        Route::delete('zones/{zone_id}', 'ZoneController@delete', [ 'middleware' =>'ACL:adminms-table-zone-delete' ]);
+        Route::post('zones', 'ZoneController@create')->middleware("ACL:adminms-table-zone-store");
+        Route::put('zones/{zone_id}', 'ZoneController@update')->middleware("ACL:adminms-table-zone-update");
+        Route::delete('zones/{zone_id}', 'ZoneController@delete')->middleware("ACL:adminms-table-zone-delete");
 
         //-----------------------------------------------------
         // MICROSITE::BLOQUEO
@@ -73,17 +74,17 @@ function routeMesas()
             Route::put('blocks/{block_id}', 'BlockController@update');
             Route::patch('blocks/{block_id}/grid', 'BlockController@updateGrid');
         });
-        Route::delete('blocks/{block_id}', 'BlockController@delete', [ 'middleware' =>'ACL:adminms-table-block-delete' ]);
-        Route::post('blocks', 'BlockController@insert', [ 'middleware' =>'ACL:adminms-table-block-store' ]);
+        Route::delete('blocks/{block_id}', 'BlockController@delete')->middleware("ACL:adminms-table-block-delete");
+        Route::post('blocks', 'BlockController@insert')->middleware("ACL:adminms-table-block-store");
 
 
         //-----------------------------------------------------
         // MICROSITE::SERVERS
         //-----------------------------------------------------
-        Route::get('servers', 'ServerController@listado', [ 'middleware' =>'ACL:adminms-table-server-show' ]);
-        Route::post('servers', 'ServerController@insert', [ 'middleware' =>'ACL:adminms-table-server-store' ]);
-        Route::put('servers/{server_id}', 'ServerController@update', [ 'middleware' =>'ACL:adminms-table-server-update' ]);
-        Route::delete('servers/{server_id}', 'ServerController@delete', [ 'middleware' =>'ACL:adminms-table-server-delete' ]);
+        Route::get('servers', 'ServerController@listado')->middleware("ACL:adminms-table-server-show");
+        Route::post('servers', 'ServerController@insert')->middleware("ACL:adminms-table-server-store");
+        Route::put('servers/{server_id}', 'ServerController@update')->middleware("ACL:adminms-table-server-update");
+        Route::delete('servers/{server_id}', 'ServerController@delete')->middleware("ACL:adminms-table-server-delete");
 
         
         //-----------------------------------------------------
@@ -91,8 +92,8 @@ function routeMesas()
         //-----------------------------------------------------
         //
         //Notas del turno
-        Route::get('turns/notes', 'NoteController@index', [ 'middleware' =>'ACL:adminms-table-turnNote-index' ]); //se esta usando en aplicacion de grid
-        Route::post('turns/notes', 'NoteController@create', [ 'middleware' =>'ACL:adminms-table-turnNote-create' ]);
+        Route::get('turns/notes', 'NoteController@index')->middleware("ACL:adminms-table-turnNote-index"); //se esta usando en aplicacion de grid
+        Route::post('turns/notes', 'NoteController@create')->middleware("ACL:adminms-table-turnNote-create");
         
         Route::group(["middleware" =>'ACL:adminms-table-turn-show' ], function() {
             Route::get('turns', 'TurnController@index');
@@ -101,9 +102,9 @@ function routeMesas()
             Route::get('turns/{turn_id}', 'TurnController@show');
             Route::get('turns/{turn_id}/zones/{zone_id}/tables', 'TurnController@listTableZone');
         });        
-        Route::post('turns/', 'TurnController@create', [ 'middleware' =>'ACL:adminms-table-turn-create' ]);
-        Route::delete('turns/{turn_id}', 'TurnController@delete', [ 'middleware' =>'ACL:adminms-table-turn-delete' ]);
-        Route::put('turns/{turn_id}', 'TurnController@update', [ 'middleware' =>'ACL:adminms-table-turn-update' ]);
+        Route::post('turns/', 'TurnController@create')->middleware("ACL:adminms-table-turn-create");
+        Route::delete('turns/{turn_id}', 'TurnController@delete')->middleware("ACL:adminms-table-turn-delete");
+        Route::put('turns/{turn_id}', 'TurnController@update')->middleware("ACL:adminms-table-turn-update");
         //Route::get('turns/{turn_id}/availability', 'TurnController@tableAvailability');
         // Route::get('turns/{turn_id}/unlink-zones/{zone_id}', 'TurnController@unlinkZone', [ 'middleware' =>'ACL:adminms-table-turn-unlinkZone' ]);
 
@@ -111,13 +112,13 @@ function routeMesas()
         //-----------------------------------------------------
         // MICROSITE::CALENDAR
         //-----------------------------------------------------
-        Route::get('calendar/{date}', 'CalendarController@index', [ 'middleware' =>'ACL:adminms-table-calendar-show' ]);
-        Route::get('calendar/{date}/zones', 'CalendarController@getZones', [ 'middleware' =>'ACL:adminms-table-calendar-getZones' ]);
-        Route::get('calendar/{date}/shifts', 'CalendarController@listShift', [ 'middleware' =>'ACL:adminms-table-calendar-show' ]); //se esta usando en aplicacion de grid
-        Route::post('calendar', 'CalendarController@storeCalendar', [ 'middleware' =>'ACL:adminms-table-calendar-store' ]);
-        Route::delete('calendar/{res_turn_id}', 'CalendarController@deleteCalendar', [ 'middleware' =>'ACL:adminms-table-calendar-delete' ]);
-        Route::put('calendar/change', 'CalendarController@changeCalendar', [ 'middleware' =>'ACL:adminms-table-calendar-update' ]);
-        Route::get('calendar/{turn_id}/{start_time}/{end_time}', 'CalendarController@existConflictTurn', [ 'middleware' =>'ACL:existConflictTurn' ]);
+        Route::get('calendar/{date}', 'CalendarController@index')->middleware("ACL:adminms-table-calendar-show");
+        Route::get('calendar/{date}/zones', 'CalendarController@getZones')->middleware("ACL:adminms-table-calendar-getZones");
+        Route::get('calendar/{date}/shifts', 'CalendarController@listShift')->middleware("ACL:adminms-table-calendar-show"); //se esta usando en aplicacion de grid
+        Route::post('calendar', 'CalendarController@storeCalendar')->middleware("ACL:adminms-table-calendar-store");
+        Route::delete('calendar/{res_turn_id}', 'CalendarController@deleteCalendar')->middleware("ACL:adminms-table-calendar-delete");
+        Route::put('calendar/change', 'CalendarController@changeCalendar')->middleware("ACL:adminms-table-calendar-update");
+        Route::get('calendar/{turn_id}/{start_time}/{end_time}', 'CalendarController@existConflictTurn')->middleware("ACL:existConflictTurn");
 
         //-----------------------------------------------------
         // MICROSITE::TABLES
@@ -134,24 +135,24 @@ function routeMesas()
             Route::get('guests/{guest_id}', 'GuestController@show');
             Route::get('guests/{guest_id}/reservations', 'GuestController@reservation');
         });
-        Route::post('guests', 'GuestController@create', [ 'middleware' =>'ACL:adminms-table-guest-store' ]);
-        Route::put('guests/{guest_id}', 'GuestController@update', [ 'middleware' =>'ACL:adminms-table-guest-update' ]);
+        Route::post('guests', 'GuestController@create')->middleware("ACL:adminms-table-guest-store");
+        Route::put('guests/{guest_id}', 'GuestController@update')->middleware("ACL:adminms-table-guest-update");
 
 
         //-----------------------------------------------------
         // MICROSITE:: HUESPEDES TAGS
         //-----------------------------------------------------
-        Route::get('guest-tags/', 'GuestController@listGuestTag', [ 'middleware' =>'ACL:adminms-table-guestTag-show' ]);
-        Route::post('guest-tags/', 'GuestController@createGuestTag', [ 'middleware' =>'ACL:adminms-table-guestTag-store' ]);
-        Route::delete('guest-tags/{guest_tag_id}', 'GuestController@deleteGuestTag', [ 'middleware' =>'ACL:adminms-table-guestTag-delete' ]);
+        Route::get('guest-tags/', 'GuestController@listGuestTag')->middleware("ACL:adminms-table-guestTag-show");
+        Route::post('guest-tags/', 'GuestController@createGuestTag')->middleware("ACL:adminms-table-guestTag-store");
+        Route::delete('guest-tags/{guest_tag_id}', 'GuestController@deleteGuestTag')->middleware("ACL:adminms-table-guestTag-delete");
 
         //-----------------------------------------------------
         // MICROSITE:: RESERVATION TAGS
         //-----------------------------------------------------
         // Route::resource("reservation/tag", "ReservationTagController", ["only" => ["index", "store", "destroy"]]);
-        Route::get('reservation/tag', 'ReservationTagController@index', ['middleware' => 'adminms-table-reservationTag-show']);
-        Route::post('reservation/tag', 'ReservationTagController@store', ['middleware' => 'adminms-table-reservationTag-store']);
-        Route::delete('reservation/tag/{tag}', 'ReservationTagController@destroy', ['middleware' => 'adminms-table-reservationTag-delete']);
+        Route::get('reservation/tag', 'ReservationTagController@index')->middleware("ACL:adminms-table-reservationTag-show");
+        Route::post('reservation/tag', 'ReservationTagController@store')->middleware("ACL:adminms-table-reservationTag-store");
+        Route::delete('reservation/tag/{tag}', 'ReservationTagController@destroy')->middleware("ACL:adminms-table-reservationTag-delete");
 
         //-----------------------------------------------------
         // MICROSITE::ZONAS::TURNS
@@ -180,9 +181,9 @@ function routeMesas()
             Route::patch('reservations/{reservation_id}', 'ReservationController@patch');
             Route::post('reservations/{reservation_id}/grid', 'ReservationController@updateGrid');
         });
-        Route::post('reservations', 'ReservationController@create', [ 'middleware' =>'ACL:adminms-table-reservation-store' ]);
-        Route::delete('reservations/{reservation_id}', 'ReservationController@delete', [ 'middleware' =>'ACL:adminms-table-reservation-delete' ]);
-        Route::post('reservations/{reservation_id}/send-email', 'ReservationController@sendEmail', [ 'middleware' =>'ACL:adminms-table-reservation-email' ]);
+        Route::post('reservations', 'ReservationController@create')->middleware("ACL:adminms-table-reservation-store");
+        Route::delete('reservations/{reservation_id}', 'ReservationController@delete')->middleware("ACL:adminms-table-reservation-delete");
+        Route::post('reservations/{reservation_id}/send-email', 'ReservationController@sendEmail')->middleware("ACL:adminms-table-reservation-email");
 
 
         //-----------------------------------------------------
@@ -202,23 +203,18 @@ function routeMesas()
             Route::put('table/reservation/{reservation}/sit', 'TableReservationController@sit');
             Route::put('table/reservation/{reservation}/guest-list', 'TableReservationController@updateGuestList');
         });
-        Route::group(['middleware' => ['auth.api']], function () {
-            Route::post('table/reservation/w', 'TableReservationController@storeFromWeb');
-            Route::get('table/reservation/confirmed/{crypt}', 'TableReservationController@showByCrypt');
-            Route::post('table/reservation/cancel/{crypt}', 'TableReservationController@cancelReserveWeb');
-        });
-        Route::post('waitlist', 'TableReservationController@createWaitList', ['middleware' => 'adminms-table-waitlist-store']);
-        Route::put('waitlist', 'TableReservationController@updateWaitList', ['middleware' => 'adminms-table-waitlist-update']);
-        Route::delete('waitlist/{id}', 'TableReservationController@deleteWaitList', ['middleware' => 'adminms-table-waitlist-delete']);
+        Route::post('waitlist', 'TableReservationController@createWaitList')->middleware("adminms-table-waitlist-store");
+        Route::put('waitlist', 'TableReservationController@updateWaitList')->middleware("adminms-table-waitlist-update");
+        Route::delete('waitlist/{id}', 'TableReservationController@deleteWaitList')->middleware("adminms-table-waitlist-delete");
 
         //-----------------------------------------------------
         // MICROSITE:: CONFIGURATION (table res_configuration)
         //-----------------------------------------------------
-        Route::patch("configuration/reservations", "ConfigurationController@edit", [ 'middleware' =>'ACL:adminms-table-configurationRes-update' ]);
+        Route::patch("configuration/reservations", "ConfigurationController@edit")->middleware("ACL:adminms-table-configurationRes-update");
         // Route::resource("configuration/reservations", "ConfigurationController", ["only" => ["index", "update"]]);
-        Route::get("configuration/reservations", "ConfigurationController@index", [ 'middleware' =>'ACL:adminms-table-configurationRes-show' ]);
-        Route::put("configuration/reservations/{reservation}", "ConfigurationController@update", [ 'middleware' =>'ACL:adminms-table-configurationRes-update' ]);
-        Route::get("configuration/percentages", "PercentageController@index", [ 'middleware' =>'ACL:adminms-table-configurationRes-show' ]);
+        Route::get("configuration/reservations", "ConfigurationController@index")->middleware("ACL:adminms-table-configurationRes-show");
+        Route::put("configuration/reservations/{reservation}", "ConfigurationController@update")->middleware("ACL:adminms-table-configurationRes-update");
+        Route::get("configuration/percentages", "PercentageController@index")->middleware("ACL:adminms-table-configurationRes-show");
 
         // Route::post("configuration/reservations/forms", "ConfigurationController@addFormConfiguration", [ 'middleware' =>'ACL:adminms-table-configurationForm-store' ]);
         // Route::delete("configuration/reservations/forms", "ConfigurationController@removeFormConfiguration", [ 'middleware' =>'ACL:adminms-table-configurationForm-delete' ]);
@@ -228,49 +224,25 @@ function routeMesas()
         // MICROSITE:: CODES (table res_code)
         //-----------------------------------------------------
         // Route::resource("configuration/codes", "ConfigurationCodeController", ["only" => ["index", "store", "update", "destroy"]]);
-        Route::get("configuration/codes", "ConfigurationCodeController@index", [ 'middleware' =>'ACL:adminms-table-configurationCodes-show' ]);
-        Route::post("configuration/codes", "ConfigurationCodeController@store", [ 'middleware' =>'ACL:adminms-table-configurationCodes-store' ]);
-        Route::put("configuration/codes/{code}", "ConfigurationCodeController@update", [ 'middleware' =>'ACL:adminms-table-configurationCodes-update' ]);
-        Route::delete("configuration/codes/{code}", "ConfigurationCodeController@destroy", [ 'middleware' =>'ACL:adminms-table-configurationCodes-delete' ]);
+        Route::get("configuration/codes", "ConfigurationCodeController@index")->middleware("ACL:adminms-table-configurationCodes-show");
+        Route::post("configuration/codes", "ConfigurationCodeController@store")->middleware("ACL:adminms-table-configurationCodes-store");
+        Route::put("configuration/codes/{code}", "ConfigurationCodeController@update")->middleware("ACL:adminms-table-configurationCodes-update");
+        Route::delete("configuration/codes/{code}", "ConfigurationCodeController@destroy")->middleware("ACL:adminms-table-configurationCodes-delete");
 
         //-----------------------------------------------------
         // MICROSITE:: USER (table bs_user)
         //-----------------------------------------------------
-        Route::get("configuration/users/privileges", "ConfigurationUserController@getAllUser", [ 'middleware' =>'ACL:adminms-table-configurationUser-show' ]);
+        Route::get("configuration/users/privileges", "ConfigurationUserController@getAllUser")->middleware("ACL:adminms-table-configurationUser-show");
         // Route::resource("configuration/users", "ConfigurationUserController", ["only" => ["index", "destroy", "store"]]);
-        Route::get("configuration/users", "ConfigurationUserController@index", ["middleware" => 'ACL:adminms-table-configurationUser-show']);
-        Route::delete("configuration/users/{user_id}", "ConfigurationUserController@destroy", ["middleware" => 'ACL:adminms-table-configurationUser-delete']);
-        Route::post("configuration/users", "ConfigurationUserController@store", ["middleware" => 'ACL:adminms-table-configurationUser-store']);
+        Route::get("configuration/users", "ConfigurationUserController@index")->middleware("ACL:adminms-table-configurationUser-show");
+        Route::delete("configuration/users/{user_id}", "ConfigurationUserController@destroy")->middleware("ACL:adminms-table-configurationUser-delete");
+        Route::post("configuration/users", "ConfigurationUserController@store")->middleware("ACL:adminms-table-configurationUser-store");
 
         //-----------------------------------------------------
         // MICROSITE:: FORM (table res_form)
         //-----------------------------------------------------
-        Route::get("configuration/form", "ConfigurationFormController@index", [ 'middleware' =>'ACL:adminms-table-configurationForm-show' ]);
-        Route::put("configuration/form", "ConfigurationFormController@update", ["middleware" => 'ACL:adminms-table-configurationForm-update']);
-
-        //-----------------------------------------------------
-        // MICROSITE:: Reservation Temporal
-        //-----------------------------------------------------
-        Route::group(['prefix' => 'reservationtemporal', 'middleware' => ['auth.api']], function () {
-            Route::resource("/", "ReservationTemporalController", ["only" => ["index", "destroy", "store"]]);
-            Route::get("/expire", "ReservationTemporalController@expire");
-            Route::get("/{token}", "ReservationTemporalController@show");
-            Route::delete("/{token}", "ReservationTemporalController@destroy");
-        });
-
-        //-----------------------------------------------------
-        // MICROSITE:: Availability
-        //-----------------------------------------------------
-        // Route::get('availability/hours', 'AvailabilityController@getHours');
-        Route::group(['prefix' => 'availability/', 'middleware' => [/*'auth.api'*/]], function () {
-            Route::get('basic', 'AvailabilityController@basic');
-            // Route::get('zones', 'AvailabilityController@getZones');
-            // Route::get('events', 'AvailabilityController@getEvents');
-            // Route::get('days', 'AvailabilityController@getDays');
-            Route::get('daysdisabled', 'AvailabilityController@getDaysDisabled');
-            // Route::get('people', 'AvailabilityController@getPeople');
-            Route::get('formatAvailability', 'AvailabilityController@getFormatAvailability');
-        });
+        Route::get("configuration/form", "ConfigurationFormController@index")->middleware('ACL:adminms-table-configurationForm-show');
+        Route::put("configuration/form", "ConfigurationFormController@update")->middleware( 'ACL:adminms-table-configurationForm-update');
 
         //-----------------------------------------------------
         // MICROSITE:: Floor
@@ -287,8 +259,43 @@ function routeMesas()
             Route::get('block/{block_id}', 'WebAppController@editBlock');
         });
 
-        Route::get("notification", "NotificationController@index", ['middleware' =>'ACL:adminms-table-notification-show']);
-        Route::put("notification", "NotificationController@update", ['middleware' =>'ACL:adminms-table-notification-update']);
+        Route::get("notification", "NotificationController@index")->middleware("ACL:adminms-table-notification-show");
+        Route::put("notification", "NotificationController@update")->middleware("ACL:adminms-table-notification-update");
+    });
+
+
+    Route::group(['prefix' => 'microsites/{microsite_id}', 'middleware' => ['setLocale', 'setTimeZone']], function () {
+        //-----------------------------------------------------
+        // MICROSITE:: Reservation Temporal
+        //-----------------------------------------------------
+        
+        Route::group(['middleware' => ['auth.api']], function () {
+       
+            Route::group(['prefix' => 'reservationtemporal'], function () {
+                Route::resource("/", "ReservationTemporalController", ["only" => ["index", "destroy", "store"]]);
+                Route::get("/expire", "ReservationTemporalController@expire");
+                Route::get("/{token}", "ReservationTemporalController@show");
+                Route::delete("/{token}", "ReservationTemporalController@destroy");
+            });
+
+            //-----------------------------------------------------
+            // MICROSITE:: Availability
+            //-----------------------------------------------------
+            // Route::get('availability/hours', 'AvailabilityController@getHours');
+            Route::group(['prefix' => 'availability/'], function () {
+                Route::get('basic', 'AvailabilityController@basic');
+                // Route::get('zones', 'AvailabilityController@getZones');
+                // Route::get('events', 'AvailabilityController@getEvents');
+                // Route::get('days', 'AvailabilityController@getDays');
+                Route::get('daysdisabled', 'AvailabilityController@getDaysDisabled');
+                // Route::get('people', 'AvailabilityController@getPeople');
+                Route::get('formatAvailability', 'AvailabilityController@getFormatAvailability');
+            });
+
+            Route::post('table/reservation/w', 'TableReservationController@storeFromWeb'); // generar una reservacion desde el widget
+            Route::get('table/reservation/confirmed/{crypt}', 'TableReservationController@showByCrypt'); // dovlver una reservacion al widget por un id encriptado
+            Route::post('table/reservation/cancel/{crypt}', 'TableReservationController@cancelReserveWeb'); // canelcar una reservacion desde el widget por id encriptado
+       });
     });
 
 }

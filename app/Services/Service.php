@@ -7,7 +7,7 @@ class Service
 
     protected $properties;
     
-    public function __construct($request)
+    public function __construct($request = null)
     {
         if ($request){
             $this->properties = ($request->route())?$request->route()->parameters():[];

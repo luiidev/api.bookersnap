@@ -2,6 +2,8 @@
 
 namespace App\Entities;
 
+use App\Entities\res_form;
+use App\Entities\res_form_configuration;
 use Illuminate\Database\Eloquent\Model;
 
 class ms_microsite extends Model
@@ -10,6 +12,7 @@ class ms_microsite extends Model
     const _BASEURL_IMG_FAVICON = "http://bookersnap.com/archivo/img-favicon/36x36";
 
     protected $table = "ms_microsite";
+    protected $hidden = ['pivot'];
 
     public function privileges()
     {
@@ -29,6 +32,11 @@ class ms_microsite extends Model
     public function configuration()
     {
         return $this->hasOne(res_configuration::class, "ms_microsite_id");
+    }
+
+    public function form()
+    {
+        return $this->belongsToMany(res_form::class, "res_form_configuration");
     }
     
 }

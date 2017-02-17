@@ -147,8 +147,7 @@ class ReservationTemporalService {
         $diff = null;
         $now = Carbon::now();
         $reservationtemporal = res_table_reservation_temp::with(["event" => function($query){
-            $condition = "IF(bs_type_event_id = '".bs_type_event::_ID_EVENT_FREE."', CONCAT('".bs_type_event::_BASEURL_IMG_EVENT."', image), CONCAT('".bs_type_event::_BASEURL_IMG_PROMOTION."', image))";
-            return $query->select("*", DB::raw("$condition AS image"));
+            return $query->select("*")->UrlImgLg("image")->UrlImgSm("image_thumb");
         }, "zone"])->where("token", $token)->where("expire", ">", $now)->orderBy("id", "desc")->first();
         if ($reservationtemporal !== null) {
             $diff = $now->diffInSeconds(Carbon::parse($reservationtemporal->expire), false) * 1000;

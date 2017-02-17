@@ -71,6 +71,7 @@ class ConfigurationService
             $confingRequest = $input;
             unset($confingRequest["_bs_user_id"]);
             unset($confingRequest["timezone"]);
+            unset($confingRequest["_bs_user_type_root"]);
             // return $confingRequest;
             $config->where('ms_microsite_id', $microsite_id)->update($confingRequest);
             $configUpdate = res_configuration::where('ms_microsite_id', $microsite_id)->first();

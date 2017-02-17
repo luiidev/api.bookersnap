@@ -39,37 +39,4 @@ trait ResponseFormatTrait
 
         return response()->json($response, $statusCode);
     }
-    
-    private function formatErrorValidation($data){
-        
-        $dataError = [];
-        
-        
-        
-        foreach ($data as $key => $value) {
-            
-            $index = strpos($key, ".");
-            if(!$index){
-                $dataError[$key] = $value;               
-            }else{         
-                $subkey = substr($key, 0, $index-1);
-                $poskey = substr($key, $index);
-                $subval = substr($key, $index);
-                $dataError[$subkey] = $subval;
-            }
-            
-        }
-        return $dataError;
-    }
-    
-    public function generateArrayError($data) {
-        foreach ($data as $key => $value) {            
-            $index = strpos($key, ".");
-            if(!$index){
-                $dataError[$key] = $value;               
-            }else{
-                
-            }
-        }
-    }
 }

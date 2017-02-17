@@ -21,31 +21,25 @@ class Authenticate
      */
     public function handle($request, Closure $next, $guard = null)
     {
-        $request->request->set("_bs_user_id", 1);
-        return $next($request);
-        
-        try {
+        try {          
             $token = JWTAuth::getToken();
-
+            return response()->json(["unauthorized :(", $token], 401);
             if (!$token) {
-                return response()->json("unauthorized", 401);
+                return response()->json("unauthorized :)", 401);
             }
-
             if ($jwt = JWTAuth::decode($token)->get()) {
                 $user_id = AuthHelper::getSession($jwt["aud"]);
                 if (! is_null($user_id) ) {
                     $request->request->set("_bs_user_id", $user_id);
+                    $request->request->set("_bs_user_type_root", $jwt["type_root"]);
                     return $next($request);
                 }
             }
-        } catch (TokenExpiredException $e) {
-            // return redirect()->guest(route('microsite-login'));
-        } catch (TokenInvalidException $e) {
-            // return redirect()->guest(route('microsite-login'));
-        } catch (JWTException $e) {
-            // return redirect()->guest(route('microsite-login'));
-        }
+        } 
+        catch (TokenExpiredException $e) {}
+        catch (TokenInvalidException $e) {}
+        catch (JWTException $e) {}
 
-        return response()->json(["unauthorized"], 401);
+        return response()->json(["unauthorized :("], 401);
     }
 }

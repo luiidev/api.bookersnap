@@ -46,7 +46,16 @@ class ev_event extends Model {
     //HHHHHHHHHHH          HHHHHH            HHHHH              HHHHH   HHHHHHHHHHHHHH            HHHHHHHHHHHHHHHHHHHHHHHHHH
     //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
     //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-
+    
+    public function scopeUrlImgLg($query, $name = "url_img_lg"){
+        $condition = "IF(bs_type_event_id = '".self::_ID_EVENT_FREE."', CONCAT('".self::_BASEURL_IMG_EVENT."', image), CONCAT('".self::_BASEURL_IMG_PROMOTION."', image))";
+        return $query->selectRaw("$condition AS $name");
+    }
+    
+    public function scopeUrlImgSm($query, $name = "url_img_sm"){
+        $condition = "IF(bs_type_event_id = '".self::_ID_EVENT_FREE."', CONCAT('".self::_BASEURL_IMG_THUMB_EVENT."', image), CONCAT('".self::_BASEURL_IMG_THUMB_PROMOTION."', image))";
+        return $query->selectRaw("$condition AS $name");
+    }
     /**
      * Eventos Gratuitos
      */
@@ -60,7 +69,15 @@ class ev_event extends Model {
     public function scopePromotionFree($query) {
         return $query->where('ev_event.bs_type_event_id', self::_ID_PROMOTION_FREE);
     }
-
+    
+    public function scopeExistReservation($query, $date){
+        return $query->where(function($query) use($date){
+            $query = $query->where("ev_event.status_reservations_day", 0);
+            $query = $query->orWhere("ev_event.status_reservations_day", 1)
+                    ->whereRaw("ev_event.reservations_day > (SELECT COUNT(res_reservation.id) FROM res_reservation WHERE ev_event.id = res_reservation.ev_event_id AND res_reservation.date_reservation = ?)", [$date]);
+            return $query;
+        });
+    }
     /**
      * Eventos activo en una fecha
      * @param type $query

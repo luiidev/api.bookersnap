@@ -9,16 +9,58 @@ use Exception;
 
 class HttpRequestHelper
 {
+    /**
+     * method  (GET, POST, PUT, ETC)
+     * @var string
+     */
     private $method;
+
+    /**
+     * Url: direccion de la web, api, etc
+     * @var string
+     */
     private $url;
+
+    /**
+     * Headers o encabezados
+     * @var array
+     */
     private $header;
+
+    /**
+     * Data a enviar se enviara como JSON
+     * @var array
+     */
     private $data;
 
+    /**
+     * Si la respues fue satisfactoria, 200, 201 etc
+     * @var boolean
+     */
     private $isResponseOk = false;
+    
+    /**
+     * Resumen de error, tipo y estado de peticiion
+     * @var string
+     */
     private $error;
+
+    /**
+     * Cuerpo de la respuesta de error
+     * @var text/html/json
+     */
     private $errorResponse;
+
+    /**
+     * Estado de respuesta de la peticion por codigo, 200, 400, 500. etc
+     * @var int
+     */
     private $statusCode;
 
+    /**
+     * Respuesta del servidor
+     * @var text/json
+     */
     private $response;
 
     function __construct (string $method = null, string $url = null, $data = null, array $headers = null)

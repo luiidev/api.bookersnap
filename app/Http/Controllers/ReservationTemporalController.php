@@ -101,7 +101,7 @@ class ReservationTemporalController extends Controller
 
             $reservation_temp = $this->service->getTempReservation($token);            
             if ($reservation_temp["reservation"] === null) {
-                return response("", 404);
+                return response("no existe reservacíon", 404);
             }
             $forms = $this->formService->getFormsByMicrosite($microsite_id);
 

@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Entities\res_form;
 use App\Entities\res_form_configuration;
 
-class FormService
+class FormService extends Service
 {
 
     public function getFormsByMicrosite($microsite)

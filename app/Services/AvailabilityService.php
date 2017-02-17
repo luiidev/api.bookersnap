@@ -2312,12 +2312,12 @@ class AvailabilityService
         
         $date = Carbon::parse($date);
         
-        $promotionsdata = ev_event::PromotionFree()->EnableInDate($date->toDateString())->with(['turns' => function($query){            
+        $promotionsdata = ev_event::PromotionFree()->EnableInDate($date->toDateString())->ExistReservation($date->toDateString())->with(['turns' => function($query){            
             $datetime = "CONCAT('0000-00-00 ', hours_ini_web)";
             $nextdatetime = "IF(hours_ini_web > hours_end_web, CONCAT('0000-00-01 ', hours_end_web), CONCAT('0000-00-00 ', hours_end_web))";        
             $indexIni = "CAST((HOUR($datetime)*4 +  MINUTE($datetime)/15) AS INT)";
             $indexEnd = "CAST((HOUR($nextdatetime)*4 +  MINUTE($nextdatetime)/15) AS INT)";        
-            return $query->select('*', DB::raw("$indexIni AS index_ini"), DB::raw("IF(hours_ini_web > hours_end_web, ($indexEnd + 96), $indexEnd) AS index_end"));            
+            return $query->select('*', DB::raw("$indexIni AS index_ini"), DB::raw("IF(hours_ini_web > hours_end_web, ($indexEnd + 96), $indexEnd) AS index_end")); 
         }])->where('ms_microsite_id', $microsite_id)->where("status", 1)->get()->map(function($item){
             return [
                 "id" => $item->id,

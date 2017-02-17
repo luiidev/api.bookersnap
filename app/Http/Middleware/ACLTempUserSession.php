@@ -17,7 +17,7 @@ use App\OldTokenSession;
 use Closure;
 use App\Http\Middleware\Middleware;
 
-class ACLTempUserSession extends Middleware{
+class ACLTempUserSesion extends Middleware{
 
     /**
      * Handle an incoming request.
