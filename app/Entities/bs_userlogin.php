@@ -7,8 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class bs_userlogin extends Model
 {
     protected $table = "bs_userlogin";
-    protected $primaryKey = "id_social";
-
+    protected $primaryKey = "id";
+    public $timestamps = false;
+    
     public function user()
     {
         return $this->belongsTo('App\Entities\bs_user', 'bs_user_id', 'id');
